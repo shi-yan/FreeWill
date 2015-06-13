@@ -51,66 +51,106 @@ public:
         }
     }
 
-    VectorType result(VectorType input)
+    ScalarType train(std::vector<VectorType> miniBatch, std::vector<VectorType> expectedAnswer, ScalarType &cost)
     {
-        VectorType previousNeurons;
-
-        previousNeurons = input;
-
-        foreach(std::vector<VectorType> &weightsForOneLayer, weights)
+        if (miniBatch.size() != expectedAnswer)
         {
-            VectorType resultLayer;
-            foreach(VectorType &weightsForOneNeuron, weightsForOneLayer)
-            {
-                if(previousNeurons.size() + 1 == weightsForOneNeuron.size())
-                {
-                    ScalarType result = 0.0;
-                    int i = 0;
-                    for(i = 0; i < previousNeurons.size(); ++i)
-                    {
-                        result += previousNeurons[i] * weightsForOneNeuron[i];
-                    }
-                    result += weightsForOneNeuron[i];
-                    result = sigmoid<ScalarType>(result);
-
-                    resultLayer.push_back(result);
-                }
-                else
-                {
-                    qDebug() << "layer size doesn't add up" << (previousNeurons.size() + 1) << weightsForOneNeuron.size();
-                }
-            }
-            previousNeurons = resultLayer;
-        }
-
-        return previousNeurons;
-    }
-
-    ScalarType error(VectorType result, VectorType expectedAnswer)
-    {
-        if (result.size() == expectedAnswer.size())
-        {
-            ScalarType sum = 0.0;
-            for(int i = 0; i< result.size() ;++i)
-            {
-                sum+=(expectedAnswer - result)^2;
-            }
-            sum /= result.size();
-            return sum;
-        }
-        else
-        {
-            qDebug() << "result size and expected answer size doesn't match" << result.size() << expectedAnswer.size();
+            qDebug() << "inputs should have the same size as the outputs";
             return 0;
         }
+        //batch     //layer     //neuron
+        std::vector<std::vector<std::vector<ScalarType>>> activations;
+
+        activations.resize(miniBatch.size());
+
+        for(int i = 0; i< miniBatch.size(); ++i)
+        {
+            VectorType const &previousNeurons = miniBatch[i];
+
+            activations[i].resize(weights.size());
+            for(int l = 0; l< weights.size(); ++l)
+            {
+                std::vector<VectorType> &weightsForOneLayer = weights[l];
+                activations[i][l].resize(weightsForOneLayer.size()-1, 0);
+
+                for(int n = 0; n < weightsForOneLayer.size()-1; ++n)
+                {
+                    VectorType &weightsForOneNeuron = weightsForOneLayer[n];
+
+                    if(previousNeurons.size() + 1 == weightsForOneNeuron.size())
+                    {
+                        ScalarType result = 0.0;
+                        int i = 0;
+                        for(i = 0; i < previousNeurons.size(); ++i)
+                        {
+                            result += previousNeurons[i] * weightsForOneNeuron[i];
+                        }
+                        result += weightsForOneNeuron[i];
+                        result = sigmoid<ScalarType>(result);
+
+                        activations[i][l][n] = result;
+                    }
+                    else
+                    {
+                        qDebug() << "layer size doesn't add up" << (previousNeurons.size() + 1) << weightsForOneNeuron.size();
+                        return 0;
+                    }
+                }
+                previousNeurons = resultLayer;
+            }
+        }
+
+        ScalarType crossEntropy = 0.0;
+        for(int i = 0;i<activations.size();++i)
+        {
+            int finalLayer = activations[i].size() - 1;
+            int neuronCount = activations[i][finalLayer].size();
+            for(int e = 0; e< neuronCount;++e)
+            {
+                crossEntropy += expectedAnswer[i][e]*log(activations[i][finalLayer][e]) + (1- expectedAnswer[i][e])*log(1-activations[i][finalLayer][e]);
+            }
+        }
+
+        crossEntropy *= -1.0/miniBatch.size();
+
+        cost = crossEntropy;
+
+        std::vector<std::vector<std::vector<ScalarType>>> delta;
+
+        delta.resize(miniBatch.size());
+
+        for(int i = 0; i< miniBatch.size();++i)
+        {
+            delta[i].resize(weights.size());
+            delta[i][delta[i].size() -1].resize(weights[weights.size() -1].size() -1, 0);
+            for(int e = 0; e< weights[weights.size() -1].size() -1;++e)
+            {
+                delta[i][delta[i].size() - 1][e] = activations[i][delta[i].size()-1][e] - expectedAnswer[i][e];
+            }
+        }
+
+        std::vector<std::vector<ScalarType>> bias;
+
+        bias.resize(weights.size());
+
+
+        for(int i = 0; i<miniBatch.size(); ++i)
+        {
+
+            bias[weights.size() - 1].resize(weights[weights.size() -1].size() -1);
+
+            for(int e = 0; e< weights[weights.size() -1].size() -1;++e)
+            {
+                bias[weights.size()-1][e] = delta[i][delta[i].size()-1][e];
+            }
+        }
+
     }
-    void save(QString &filePath);
-    void load(QString &filePath);
-    void backpropagate(ScalarType error);
+
 
 private:
     std::vector<std::vector<VectorType>> weights;
-    //std::vector<VectorType> neurons;
+
 };
 
 #endif // NEURALNETWORK_H
