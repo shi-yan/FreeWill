@@ -14,6 +14,12 @@ void sigmoid(const std::vector<ScalarType>& in, std::vector<ScalarType>& out)
 }
 
 template<class ScalarType>
+ScalarType sigmoidDerivative(ScalarType in)
+{
+    return in * (1.0 - in);
+}
+
+template<class ScalarType>
 void softmax(const std::vector<ScalarType>& in, std::vector<ScalarType>& out)
 {
     ScalarType average = 0.0;

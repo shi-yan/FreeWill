@@ -19,8 +19,8 @@ private:
 
 public:
     NeuralNetworkLayer(unsigned int inputSize, unsigned int outputSize,
-                       std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> &activationFunction,
-                       std::function<ScalarType(ScalarType)> &activationFunctionDerivative)
+                       std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> activationFunction,
+                       std::function<ScalarType(ScalarType)> activationFunctionDerivative)
         :m_inputSize(inputSize),
           m_outputSize(outputSize),
           m_weights(NULL),

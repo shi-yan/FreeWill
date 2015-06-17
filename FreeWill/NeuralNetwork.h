@@ -5,6 +5,7 @@
 #include <QString>
 #include <time.h>
 #include "NeuralNetworkLayer.h"
+#include "ActivationFunctions.h"
 
 template<class ScalarType>
 class NeuralNetwork
@@ -13,7 +14,8 @@ private:
     std::vector<NeuralNetworkLayer<ScalarType>> m_layers;
     unsigned int m_inputSize;
     unsigned int m_outputSize;
-    std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, ScalarType&, std::vector<ScalarType>&)> m_costFunction;
+    std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, ScalarType&)> m_costFunction;
+    std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, std::vector<ScalarType>&)> m_costFunctionDerivative;
 
 public:
     class TrainingData
@@ -63,24 +65,26 @@ public:
 
     void init(unsigned int inputSize, unsigned int outputSize,
               const std::vector<unsigned int> &neuronCountsForAllLayers,
-              std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> &activationForInnerLayers,
-              std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> &activationForLastLayer,
-              std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, ScalarType&, std::vector<ScalarType>&)> &costFunction)
+              std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> activationForInnerLayers,
+              std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> activationForLastLayer,
+              std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, ScalarType&)> costFunction,
+              std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, std::vector<ScalarType>&)> costFunctionDerivitive)
     {
         m_inputSize = inputSize;
         m_outputSize = outputSize;
         int previousLayerSize = inputSize;
         m_costFunction = costFunction;
+        m_costFunctionDerivative = costFunctionDerivitive;
 
         for(int i = 0; i< neuronCountsForAllLayers.size(); ++i)
         {
             unsigned int layerSize = neuronCountsForAllLayers[i];
-            NeuralNetworkLayer<ScalarType> oneLayer(previousLayerSize, layerSize, activationForInnerLayers);
+            NeuralNetworkLayer<ScalarType> oneLayer(previousLayerSize, layerSize, activationForInnerLayers, sigmoidDerivative<ScalarType>);
             m_layers.push_back(oneLayer);
             previousLayerSize = layerSize;
         }
 
-        NeuralNetworkLayer<ScalarType> lastLayer(previousLayerSize, outputSize, activationForLastLayer);
+        NeuralNetworkLayer<ScalarType> lastLayer(previousLayerSize, outputSize, activationForLastLayer, sigmoidDerivative<ScalarType>);
         m_layers.push_back(lastLayer);
     }
 
@@ -97,6 +101,12 @@ public:
     bool forwardPropagate(const NeuralNetwork<ScalarType>::MiniBatch &miniBatch, ScalarType &cost, std::vector<NeuralNetworkLayer<ScalarType>> &gradient)
     {
         cost = 0.0;
+
+        for(int i = 0; i < m_layers.size(); ++i)
+        {
+            NeuralNetworkLayer<ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize());
+            gradient.push_back(layer);
+        }
 
         foreach(NeuralNetwork<ScalarType>::TrainingData data, miniBatch)
         {
@@ -122,7 +132,8 @@ public:
             ScalarType costForOneData = 0.0;
             std::vector<ScalarType> derivativesWithRespectToOutputs;
 
-            m_costFunction(*previousInput, data.getOutputs(), costForOneData, derivativesWithRespectToOutputs);
+            m_costFunction(*previousInput, data.getOutputs(), costForOneData);
+            m_costFunctionDerivative(*previousInput, data.getOutputs(), derivativesWithRespectToOutputs);
 
             cost += costForOneData;
             std::vector<ScalarType> n = derivativesWithRespectToOutputs;
@@ -139,5 +150,7 @@ public:
         cost /= miniBatch.size();
     }
 };
+
+void testNeuralNetwork();
 
 #endif // NEURALNETWORK_H

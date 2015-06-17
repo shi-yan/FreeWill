@@ -12,6 +12,6 @@ int main(int argc, char *argv[])
 
     testGradientCheck();
 
-
+    testNeuralNetwork();
     return a.exec();
 }
