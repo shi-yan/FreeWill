@@ -7,7 +7,7 @@
 #include "ActivationFunctions.h"
 
 template<class ScalarType>
-class NeuronNetworkLayer
+class NeuralNetworkLayer
 {
 private:
     unsigned int m_inputSize;
@@ -15,14 +15,17 @@ private:
 
     ScalarType **m_weights;
     std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> m_activationFunction;
+    std::function<ScalarType(ScalarType)> m_activationFunctionDerivative;
 
 public:
-    NeuronNetworkLayer(unsigned int inputSize, unsigned int outputSize,
-                       std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> &activationFunction = noActivation)
+    NeuralNetworkLayer(unsigned int inputSize, unsigned int outputSize,
+                       std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> &activationFunction,
+                       std::function<ScalarType(ScalarType)> &activationFunctionDerivative)
         :m_inputSize(inputSize),
           m_outputSize(outputSize),
           m_weights(NULL),
-          m_activationFunction(activationFunction)
+          m_activationFunction(activationFunction),
+          m_activationFunctionDerivative(activationFunctionDerivative)
     {
         m_weights = new ScalarType*[m_outputSize];
         for(int i = 0; i < m_outputSize; ++i)
@@ -30,6 +33,11 @@ public:
             m_weights[i] = new ScalarType[m_inputSize + 1];
             memset(m_weights[i], 0, m_inputSize + 1);
         }
+    }
+
+    std::function<ScalarType(ScalarType)> &getActivationDerivative()
+    {
+        return m_activationFunctionDerivative;
     }
 
     unsigned int getOutputSize() const
@@ -42,12 +50,12 @@ public:
         return m_inputSize;
     }
 
-    NeuronNetworkLayer(const NeuronNetworkLayer<ScalarType> &in)
+    NeuralNetworkLayer(const NeuralNetworkLayer<ScalarType> &in)
     {
         *this = in;
     }
 
-    void operator=(const NeuronNetworkLayer<ScalarType> &in)
+    void operator=(const NeuralNetworkLayer<ScalarType> &in)
     {
         if (m_weights)
         {
@@ -69,6 +77,7 @@ public:
         }
 
         m_activationFunction = in.m_activationFunction;
+        m_activationFunctionDerivative = in.m_activationFunctionDerivative;
     }
 
     void randomWeights()
@@ -109,7 +118,32 @@ public:
         return true;
     }
 
-    ~NeuronNetworkLayer()
+    void calculateLayerGradient(std::vector<ScalarType> &inputActivation, std::function<ScalarType(ScalarType)> d, std::vector<ScalarType> &n, NeuralNetworkLayer<ScalarType> &w, std::vector<ScalarType> &newN)
+    {
+        for(int i = 0; i< m_outputSize; ++i)
+        {
+            m_weights[i][m_inputSize] = n[i];
+            for(int e = 0; e< m_inputSize;++e)
+            {
+                m_weights[i][e] = inputActivation[e] * n[i];
+            }
+        }
+
+        newN.resize(inputActivation.size());
+
+        for(int i = 0; i< newN.size(); ++i)
+        {
+            newN[i] = 0;
+            for(int e = 0; e<w.getOutputSize();++e)
+            {
+                newN[i] += w.m_weights[e][i] * n[e];
+            }
+
+            newN[i] *= d(inputActivation[i]);
+        }
+    }
+
+    ~NeuralNetworkLayer()
     {
         for(int i = 0; i< m_outputSize; ++i)
         {

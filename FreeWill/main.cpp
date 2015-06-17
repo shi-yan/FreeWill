@@ -5,11 +5,13 @@
 #include "NeuralNetwork.h"
 #include "GradientCheck.h"
 
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
     testGradientCheck();
+
 
     return a.exec();
 }
