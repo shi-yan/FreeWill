@@ -25,6 +25,9 @@ public:
         std::vector<ScalarType> m_outputs;
 
     public:
+        TrainingData():m_inputs(), m_outputs()
+        {}
+
         TrainingData(std::vector<ScalarType> &inputs, std::vector<ScalarType> &outputs)
             :m_inputs(inputs),
               m_outputs(outputs)
@@ -80,11 +83,13 @@ public:
         {
             unsigned int layerSize = neuronCountsForAllLayers[i];
             NeuralNetworkLayer<ScalarType> oneLayer(previousLayerSize, layerSize, activationForInnerLayers, sigmoidDerivative<ScalarType>);
+
             m_layers.push_back(oneLayer);
             previousLayerSize = layerSize;
         }
 
         NeuralNetworkLayer<ScalarType> lastLayer(previousLayerSize, outputSize, activationForLastLayer, sigmoidDerivative<ScalarType>);
+
         m_layers.push_back(lastLayer);
     }
 
@@ -92,9 +97,9 @@ public:
     {
         srand(time(NULL));
 
-        foreach(NeuralNetworkLayer<ScalarType> &layer, m_layers)
+        for(int i = 0; i<m_layers.size(); ++i)
         {
-            layer.randomWeights();
+            m_layers[i].randomWeights();
         }
     }
 
@@ -104,16 +109,17 @@ public:
 
         for(int i = 0; i < m_layers.size(); ++i)
         {
-            NeuralNetworkLayer<ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize());
+            NeuralNetworkLayer<ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize(), m_layers[i].getActivationFunction(), m_layers[i].getActivationDerivative());
             gradient.push_back(layer);
         }
 
         foreach(NeuralNetwork<ScalarType>::TrainingData data, miniBatch)
         {
             std::vector<NeuralNetworkLayer<ScalarType>> gradientForOneData;
+            gradientForOneData.reserve(3);
             for(int i = 0; i < m_layers.size(); ++i)
             {
-                NeuralNetworkLayer<ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize());
+                NeuralNetworkLayer<ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize(), m_layers[i].getActivationFunction(), m_layers[i].getActivationDerivative());
                 gradientForOneData.push_back(layer);
             }
 
@@ -126,7 +132,7 @@ public:
                 std::vector<ScalarType> activation;
                 m_layers[i].forward(*previousInput, activation);
                 activations.push_back(activation);
-                *previousInput = &activations[activations.size() - 1];
+                previousInput = &activations[activations.size() - 1];
             }
 
             ScalarType costForOneData = 0.0;
@@ -141,9 +147,7 @@ public:
 
             for(int i = gradientForOneData.size() - 1; i>=0; --i)
             {
-
-                gradientForOneData[i].calculateLayerGradient(activations[i+1], activations[i].getActivationDerivative(), n, m_layers[i], newN);
-
+                gradientForOneData[i].calculateLayerGradient(activations[i+1], m_layers[i].getActivationDerivative(), n, m_layers[i], newN);
             }
         }
 

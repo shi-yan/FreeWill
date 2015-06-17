@@ -16,7 +16,7 @@ void crossEntropy(const std::vector<ScalarType> &outputs, const std::vector<Scal
 }
 
 template<class ScalarType>
-void derivativeCrossEntropySigmoid(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, std::vector<ScalarType> derivatives)
+void derivativeCrossEntropySigmoid(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, std::vector<ScalarType> &derivatives)
 {
     derivatives.resize(outputs.size());
 
