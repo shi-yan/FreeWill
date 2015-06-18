@@ -113,7 +113,7 @@ public:
             gradient.push_back(layer);
         }
 
-        foreach(NeuralNetwork<ScalarType>::TrainingData data, miniBatch)
+        for(int b = 0; b<miniBatch.size(); ++b)
         {
             std::vector<NeuralNetworkLayer<ScalarType>> gradientForOneData;
             gradientForOneData.reserve(3);
@@ -124,7 +124,8 @@ public:
             }
 
             std::vector<std::vector<ScalarType>> activations;
-            activations.push_back(data.getInputs());
+            activations.push_back(miniBatch[b].getInputs());
+
             std::vector<ScalarType> *previousInput = &activations[activations.size() - 1];
 
             for(int i =0 ;i<m_layers.size();++i)
@@ -132,23 +133,38 @@ public:
                 std::vector<ScalarType> activation;
                 m_layers[i].forward(*previousInput, activation);
                 activations.push_back(activation);
+
                 previousInput = &activations[activations.size() - 1];
             }
 
             ScalarType costForOneData = 0.0;
             std::vector<ScalarType> derivativesWithRespectToOutputs;
 
-            m_costFunction(*previousInput, data.getOutputs(), costForOneData);
-            m_costFunctionDerivative(*previousInput, data.getOutputs(), derivativesWithRespectToOutputs);
+            m_costFunction(*previousInput, miniBatch[b].getOutputs(), costForOneData);
+
+            m_costFunctionDerivative(*previousInput, miniBatch[b].getOutputs(), derivativesWithRespectToOutputs);
 
             cost += costForOneData;
             std::vector<ScalarType> n = derivativesWithRespectToOutputs;
             std::vector<ScalarType> newN;
 
+            qDebug() << "n---------------------";
+            for(int i = 0; i< n.size(); ++i)
+                qDebug() << n[i];
+            qDebug() << "n------------------";
+
             for(int i = gradientForOneData.size() - 1; i>=0; --i)
             {
                 gradientForOneData[i].calculateLayerGradient(activations[i+1], m_layers[i].getActivationDerivative(), n, m_layers[i], newN);
+               // gradientForOneData[i].display();
+                break;
+                gradient[i].merge(gradientForOneData[i]);
             }
+        }
+
+        for(int i = 0; i< gradient.size();++i)
+        {
+            gradient[i].normalize(1.0/miniBatch.size());
         }
 
         cost /= miniBatch.size();

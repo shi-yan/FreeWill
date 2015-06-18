@@ -37,6 +37,12 @@ bool gradientCheck(std::function<ScalarType(const std::vector<ScalarType> &, std
             qDebug() << "the error:" << reldiff;
             return false;
         }
+        else
+        {
+            qDebug() << "gradient check at" << i << "passed";
+            qDebug() << "the gradient is" << gradientAtX[i] << "the numberic gradient is" << numgrad;
+            qDebug() << "the error:" << reldiff;
+        }
 
         x_2[i] = x_1[i] = x[i];
     }

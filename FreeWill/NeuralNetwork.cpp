@@ -1,8 +1,9 @@
 #include "NeuralNetwork.h"
 #include "ActivationFunctions.h"
 #include "CostFunctions.h"
+#include "GradientCheck.h"
 
-void testNeuralNetwork()
+float neuralNetworkFunction(const std::vector<float> &x, std::vector<float> &grad)
 {
     NeuralNetwork<float> network;
     std::vector<unsigned int> layerCounts;
@@ -11,6 +12,78 @@ void testNeuralNetwork()
 
     network.randomWeights();
 
+    float labels[20][10] =
+    {{ 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.},
+     { 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.}};
+
+    NeuralNetwork<float>::MiniBatch miniBatch;
+
+    int offset = 0;
+    for (int i = 0; i< 20; ++i)
+    {
+        std::vector<float> labelVector;
+        labelVector.resize(10);
+        memcpy(&labelVector[0], labels[i], 10 * sizeof(float));
+
+        std::vector<float> inputVector;
+        inputVector.resize(10);
+        memcpy(&inputVector[0], &x[offset], 10 * sizeof(float));
+
+        NeuralNetwork<float>::TrainingData d(inputVector, labelVector);
+
+        miniBatch.push_back(d);
+
+        offset += 10;
+    }
+
+    float cost = 0.0;
+    std::vector<NeuralNetworkLayer<float>> gradient;
+    network.forwardPropagate(miniBatch, cost, gradient);
+    qDebug() << cost;
+
+    grad.clear();
+    grad.reserve(x.size());
+
+    for(int i = 0; i<gradient.size();++i)
+    {
+
+
+        gradient[i].flatten(grad);
+       // gradient[i].display();
+
+    }
+
+qDebug() << "cost" << cost << "grad size" << grad.size();
+/*
+qDebug() << "======================= gradients";
+
+for(int i = 0; i< grad.size(); ++i)
+    qDebug() << grad[i];
+qDebug() << "======================= gradients";
+*/
+    return cost;
+}
+
+void testNeuralNetwork()
+{
     float inputs[20][10] = {{ 0.49671415, -0.1382643,   0.64768854,  1.52302986, -0.23415337, -0.23413696,
        1.57921282,  0.76743473, -0.46947439,  0.54256004},
      {-0.46341769, -0.46572975,  0.24196227, -1.91328024, -1.72491783, -0.56228753,
@@ -52,47 +125,21 @@ void testNeuralNetwork()
      {-0.44651495,  0.85639879,  0.21409374, -1.24573878,  0.17318093,  0.38531738,
       -0.88385744,  0.15372511,  0.05820872, -1.1429703 }};
 
-    float labels[20][10] =
-    {{ 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.},
-     { 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.}};
-
-    NeuralNetwork<float>::MiniBatch miniBatch;
-
-    for (int i = 0; i< 20; ++i)
+    std::vector<float> x;
+    for(int i = 0; i< 20; ++i)
     {
-        std::vector<float> labelVector;
-        labelVector.resize(10);
-        memcpy(&labelVector[0], labels[i], 10);
-
-        std::vector<float> inputVector;
-        inputVector.resize(10);
-        memcpy(&inputVector[0], inputs[i], 10);
-
-        NeuralNetwork<float>::TrainingData d(inputVector, labelVector);
-
-        miniBatch.push_back(d);
+        for(int e =0 ; e< 10; ++e)
+        {
+            x.push_back(inputs[i][e]);
+        }
     }
 
-    float cost = 0.0;
-    std::vector<NeuralNetworkLayer<float>> gradient;
-    network.forwardPropagate(miniBatch, cost, gradient);
-    qDebug() << cost;
+    if (gradientCheck<float>(neuralNetworkFunction, x, 1e-4))
+    {
+        qDebug() << "gradient check passed!";
+    }
+    else
+    {
+        qDebug() << "gradient check failed!";
+    }
 }
