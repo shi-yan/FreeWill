@@ -112,6 +112,25 @@ public:
         }
     }
 
+    void getResult(const std::vector<ScalarType> &inputs, std::vector<ScalarType> &outputs)
+    {
+        std::vector<std::vector<ScalarType>> activations;
+        activations.push_back(inputs);
+
+        std::vector<ScalarType> *previousInput = &activations[activations.size() - 1];
+
+        for(int i =0 ;i<m_layers.size();++i)
+        {
+            std::vector<ScalarType> activation;
+            m_layers[i].forward(*previousInput, activation);
+            activations.push_back(activation);
+
+            previousInput = &activations[activations.size() - 1];
+        }
+
+        outputs = *previousInput;
+    }
+
     bool forwardPropagate(const NeuralNetwork<ScalarType>::MiniBatch &miniBatch, ScalarType &cost, std::vector<NeuralNetworkLayer<ScalarType>> &gradient)
     {
         cost = 0.0;
@@ -125,7 +144,7 @@ public:
         for(int b = 0; b<miniBatch.size(); ++b)
         {
             std::vector<NeuralNetworkLayer<ScalarType>> gradientForOneData;
-            gradientForOneData.reserve(3);
+            gradientForOneData.reserve(m_layers.size());
             for(int i = 0; i < m_layers.size(); ++i)
             {
                 NeuralNetworkLayer<ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize(), m_layers[i].getActivationFunction(), m_layers[i].getActivationDerivative());
@@ -171,6 +190,14 @@ public:
         }
 
         cost /= miniBatch.size();
+    }
+
+    void updateWeights(ScalarType rate, const std::vector<NeuralNetworkLayer<ScalarType>> &gradient)
+    {
+        for(int i = 0; i< m_layers.size();++i)
+        {
+            m_layers[i].updateWeights(rate, gradient[i]);
+        }
     }
 };
 
