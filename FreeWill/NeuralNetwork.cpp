@@ -107,27 +107,14 @@ double neuralNetworkFunction(const std::vector<double> &weights, std::vector<dou
     double cost = 0.0;
     std::vector<NeuralNetworkLayer<double>> gradient;
     network.forwardPropagate(miniBatch, cost, gradient);
-    qDebug() << cost;
 
     grad.clear();
     grad.reserve(x.size());
 
     for(int i = 0; i<gradient.size();++i)
     {
-
-
         gradient[i].flatten(grad);
-       // gradient[i].display();
-
     }
-
-qDebug() << "cost" << cost << "grad size" << grad.size();
-
-qDebug() << "=========flatten ============== gradients";
-
-for(int i = 0; i< grad.size(); ++i)
-    qDebug() << grad[i];
-qDebug() << "============flatten =========== gradients";
 
     return cost;
 }

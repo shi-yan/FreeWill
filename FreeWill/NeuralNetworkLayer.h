@@ -205,7 +205,6 @@ public:
             for(int e = 0; e< m_inputSize;++e)
             {
                 m_weights[i][e] = inputActivation[e] * n[i];
-                qDebug( ) << "w" <<  m_weights[i][e];
             }
         }
 
@@ -214,7 +213,7 @@ public:
         for(int i = 0; i< newN.size(); ++i)
         {
             newN[i] = 0;
-            for(int e = 0; e<w.getOutputSize();++e)
+            for(int e = 0; e<w.getOutputSize(); ++e)
             {
                 newN[i] += w.m_weights[e][i] * n[e];
             }

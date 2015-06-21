@@ -157,22 +157,11 @@ public:
             std::vector<ScalarType> n = derivativesWithRespectToOutputs;
             std::vector<ScalarType> newN;
 
-          /*  qDebug() << "n---------------------";
-            for(int i = 0; i< n.size(); ++i)
-                qDebug() << n[i];
-            qDebug() << "n------------------";
-*/
             for(int i = gradientForOneData.size() - 1; i>=0; --i)
             {
-                gradientForOneData[i].calculateLayerGradient(activations[i+1], m_layers[i].getActivationDerivative(), n, m_layers[i], newN);
-                gradientForOneData[i].display();
-
+                gradientForOneData[i].calculateLayerGradient(activations[i], m_layers[i].getActivationDerivative(), n, m_layers[i], newN);
                 gradient[i].merge(gradientForOneData[i]);
-
-                qDebug() << "gradient [i]";
-                gradient[i].display();
-
-                break;
+                n = newN;
             }
         }
 
