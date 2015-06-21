@@ -1,6 +1,6 @@
 #include "GradientCheck.h"
 
-float xSquareFunction(const std::vector<float> &x, std::vector<float> &grad)
+double xSquareFunction(const std::vector<double> &x, std::vector<double> &grad)
 {
     //assume size of x is 1
     grad.resize(1);
@@ -10,10 +10,10 @@ float xSquareFunction(const std::vector<float> &x, std::vector<float> &grad)
 
 void testGradientCheck()
 {
-    std::vector<float> x;
+    std::vector<double> x;
     x.push_back(5.3);
 
-    if (gradientCheck<float>(xSquareFunction, x, 1e-4))
+    if (gradientCheck<double>(xSquareFunction, x, 1e-4))
     {
         qDebug() << "gradient check passed!";
     }

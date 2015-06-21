@@ -3,88 +3,16 @@
 #include "CostFunctions.h"
 #include "GradientCheck.h"
 
-float neuralNetworkFunction(const std::vector<float> &x, std::vector<float> &grad)
+double neuralNetworkFunction(const std::vector<double> &weights, std::vector<double> &grad)
 {
-    NeuralNetwork<float> network;
+    NeuralNetwork<double> network;
     std::vector<unsigned int> layerCounts;
     layerCounts.push_back(5);
-    network.init(10,10,layerCounts, sigmoid<float>, sigmoid<float>, crossEntropy<float>, derivativeCrossEntropySigmoid<float>);
+    network.init(10,10,layerCounts, sigmoid<double>, sigmoid<double>, crossEntropy<double>, derivativeCrossEntropySigmoid<double>);
 
-    network.randomWeights();
+    network.assignWeights(weights);
 
-    float labels[20][10] =
-    {{ 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.},
-     { 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.},
-     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.}};
-
-    NeuralNetwork<float>::MiniBatch miniBatch;
-
-    int offset = 0;
-    for (int i = 0; i< 20; ++i)
-    {
-        std::vector<float> labelVector;
-        labelVector.resize(10);
-        memcpy(&labelVector[0], labels[i], 10 * sizeof(float));
-
-        std::vector<float> inputVector;
-        inputVector.resize(10);
-        memcpy(&inputVector[0], &x[offset], 10 * sizeof(float));
-
-        NeuralNetwork<float>::TrainingData d(inputVector, labelVector);
-
-        miniBatch.push_back(d);
-
-        offset += 10;
-    }
-
-    float cost = 0.0;
-    std::vector<NeuralNetworkLayer<float>> gradient;
-    network.forwardPropagate(miniBatch, cost, gradient);
-    qDebug() << cost;
-
-    grad.clear();
-    grad.reserve(x.size());
-
-    for(int i = 0; i<gradient.size();++i)
-    {
-
-
-        gradient[i].flatten(grad);
-       // gradient[i].display();
-
-    }
-
-qDebug() << "cost" << cost << "grad size" << grad.size();
-/*
-qDebug() << "======================= gradients";
-
-for(int i = 0; i< grad.size(); ++i)
-    qDebug() << grad[i];
-qDebug() << "======================= gradients";
-*/
-    return cost;
-}
-
-void testNeuralNetwork()
-{
-    float inputs[20][10] = {{ 0.49671415, -0.1382643,   0.64768854,  1.52302986, -0.23415337, -0.23413696,
+    double inputs[20][10] = {{ 0.49671415, -0.1382643,   0.64768854,  1.52302986, -0.23415337, -0.23413696,
        1.57921282,  0.76743473, -0.46947439,  0.54256004},
      {-0.46341769, -0.46572975,  0.24196227, -1.91328024, -1.72491783, -0.56228753,
       -1.01283112,  0.31424733, -0.90802408, -1.4123037 },
@@ -125,7 +53,7 @@ void testNeuralNetwork()
      {-0.44651495,  0.85639879,  0.21409374, -1.24573878,  0.17318093,  0.38531738,
       -0.88385744,  0.15372511,  0.05820872, -1.1429703 }};
 
-    std::vector<float> x;
+    std::vector<double> x;
     for(int i = 0; i< 20; ++i)
     {
         for(int e =0 ; e< 10; ++e)
@@ -134,7 +62,87 @@ void testNeuralNetwork()
         }
     }
 
-    if (gradientCheck<float>(neuralNetworkFunction, x, 1e-4))
+    double labels[20][10] =
+    {{ 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.},
+     { 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.},
+     { 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.}};
+
+    NeuralNetwork<double>::MiniBatch miniBatch;
+
+    int offset = 0;
+    for (int i = 0; i< 20; ++i)
+    {
+        std::vector<double> labelVector;
+        labelVector.resize(10);
+        memcpy(&labelVector[0], labels[i], 10 * sizeof(double));
+
+        std::vector<double> inputVector;
+        inputVector.resize(10);
+        memcpy(&inputVector[0], &x[offset], 10 * sizeof(double));
+
+        NeuralNetwork<double>::TrainingData d(inputVector, labelVector);
+
+        miniBatch.push_back(d);
+
+        offset += 10;
+    }
+
+    double cost = 0.0;
+    std::vector<NeuralNetworkLayer<double>> gradient;
+    network.forwardPropagate(miniBatch, cost, gradient);
+    qDebug() << cost;
+
+    grad.clear();
+    grad.reserve(x.size());
+
+    for(int i = 0; i<gradient.size();++i)
+    {
+
+
+        gradient[i].flatten(grad);
+       // gradient[i].display();
+
+    }
+
+qDebug() << "cost" << cost << "grad size" << grad.size();
+
+qDebug() << "=========flatten ============== gradients";
+
+for(int i = 0; i< grad.size(); ++i)
+    qDebug() << grad[i];
+qDebug() << "============flatten =========== gradients";
+
+    return cost;
+}
+
+void testNeuralNetwork()
+{
+
+    std::vector<double> initialWeights;
+
+    for(int i = 0; i< 115;++i)
+    {
+        initialWeights.push_back(sweights[i]);
+    }
+
+    if (gradientCheck<double>(neuralNetworkFunction, initialWeights, 1e-4))
     {
         qDebug() << "gradient check passed!";
     }

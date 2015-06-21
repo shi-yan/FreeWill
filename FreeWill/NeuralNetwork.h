@@ -103,6 +103,15 @@ public:
         }
     }
 
+    void assignWeights(const std::vector<ScalarType> &weights)
+    {
+        int offset = 0;
+        for(int i = 0; i<m_layers.size(); ++i)
+        {
+            m_layers[i].assignWeights(weights, offset);
+        }
+    }
+
     bool forwardPropagate(const NeuralNetwork<ScalarType>::MiniBatch &miniBatch, ScalarType &cost, std::vector<NeuralNetworkLayer<ScalarType>> &gradient)
     {
         cost = 0.0;
@@ -148,17 +157,22 @@ public:
             std::vector<ScalarType> n = derivativesWithRespectToOutputs;
             std::vector<ScalarType> newN;
 
-            qDebug() << "n---------------------";
+          /*  qDebug() << "n---------------------";
             for(int i = 0; i< n.size(); ++i)
                 qDebug() << n[i];
             qDebug() << "n------------------";
-
+*/
             for(int i = gradientForOneData.size() - 1; i>=0; --i)
             {
                 gradientForOneData[i].calculateLayerGradient(activations[i+1], m_layers[i].getActivationDerivative(), n, m_layers[i], newN);
-               // gradientForOneData[i].display();
-                break;
+                gradientForOneData[i].display();
+
                 gradient[i].merge(gradientForOneData[i]);
+
+                qDebug() << "gradient [i]";
+                gradient[i].display();
+
+                break;
             }
         }
 

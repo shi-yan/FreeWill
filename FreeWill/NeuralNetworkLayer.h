@@ -8,7 +8,7 @@
 #include <QDebug>
 
 
-static float sweights[] = { 0.35778736,  0.56078453,  1.08305124,  1.05380205, -1.37766937, -0.93782504,
+static double sweights[] = { 0.35778736,  0.56078453,  1.08305124,  1.05380205, -1.37766937, -0.93782504,
   0.51503527,  0.51378595,  0.51504769 , 3.85273149 , 0.57089051,  1.13556564,
   0.95400176,  0.65139125, -0.31526924 , 0.75896922, -0.77282521, -0.23681861,
  -0.48536355,  0.08187414,  2.31465857, -1.86726519,  0.68626019 ,-1.61271587,
@@ -65,7 +65,7 @@ public:
         for(int i = 0; i < m_outputSize; ++i)
         {
             m_weights[i] = new ScalarType[m_inputSize + 1];
-            memset(m_weights[i], 0, m_inputSize + 1);
+            memset(m_weights[i], 0, (m_inputSize + 1) * sizeof(ScalarType));
         }
     }
 
@@ -152,7 +152,22 @@ public:
                 for(int e = 0; e < m_inputSize+1 ; ++e)
                 {
                     m_weights[i][e] = sweights[weightc++];
-                            //= static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                            //= static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
+                }
+            }
+        }
+    }
+
+    void assignWeights(const std::vector<ScalarType> &sweights, int &offset)
+    {
+        if(m_weights)
+        {
+            for(int i = 0; i < m_outputSize; ++i)
+            {
+                for(int e = 0; e < m_inputSize+1 ; ++e)
+                {
+                    m_weights[i][e] = sweights[offset ++ ];
+                            //= static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
                 }
             }
         }
@@ -210,16 +225,20 @@ public:
 
     void merge(const NeuralNetworkLayer &in)
     {
-        if (m_inputSize != in.m_inputSize || m_outputSize != in.m_outputSize)
+        if (m_inputSize == in.m_inputSize && m_outputSize == in.m_outputSize)
         {
             for(int i = 0; i< m_outputSize; ++i)
             {
                 m_weights[i][m_inputSize] += in.m_weights[i][m_inputSize];
                 for(int e = 0; e< m_inputSize; ++e)
                 {
-                    m_weights[i][e] += m_weights[i][e];
+                    m_weights[i][e] += in.m_weights[i][e];
                 }
             }
+        }
+        else
+        {
+            qDebug() << "merge error";
         }
     }
 
