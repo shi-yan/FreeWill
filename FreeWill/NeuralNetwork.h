@@ -79,7 +79,7 @@ public:
         m_costFunction = costFunction;
         m_costFunctionDerivative = costFunctionDerivitive;
 
-        for(int i = 0; i< neuronCountsForAllLayers.size(); ++i)
+        for(size_t i = 0; i < neuronCountsForAllLayers.size(); ++i)
         {
             unsigned int layerSize = neuronCountsForAllLayers[i];
             NeuralNetworkLayer<ScalarType> oneLayer(previousLayerSize, layerSize, activationForInnerLayers, sigmoidDerivative<ScalarType>);
@@ -97,7 +97,7 @@ public:
     {
         srand(time(NULL));
 
-        for(int i = 0; i<m_layers.size(); ++i)
+        for(size_t i = 0; i < m_layers.size(); ++i)
         {
             m_layers[i].randomWeights();
         }
@@ -106,7 +106,7 @@ public:
     void assignWeights(const std::vector<ScalarType> &weights)
     {
         int offset = 0;
-        for(int i = 0; i<m_layers.size(); ++i)
+        for(size_t i = 0; i < m_layers.size(); ++i)
         {
             m_layers[i].assignWeights(weights, offset);
         }
@@ -119,7 +119,7 @@ public:
 
         std::vector<ScalarType> *previousInput = &activations[activations.size() - 1];
 
-        for(int i =0 ;i<m_layers.size();++i)
+        for(size_t i =0 ;i < m_layers.size(); ++i)
         {
             std::vector<ScalarType> activation;
             m_layers[i].forward(*previousInput, activation);
@@ -131,21 +131,21 @@ public:
         outputs = *previousInput;
     }
 
-    bool forwardPropagate(const NeuralNetwork<ScalarType>::MiniBatch &miniBatch, ScalarType &cost, std::vector<NeuralNetworkLayer<ScalarType>> &gradient)
+    void forwardPropagate(const NeuralNetwork<ScalarType>::MiniBatch &miniBatch, ScalarType &cost, std::vector<NeuralNetworkLayer<ScalarType>> &gradient)
     {
         cost = 0.0;
 
-        for(int i = 0; i < m_layers.size(); ++i)
+        for(size_t i = 0; i < m_layers.size(); ++i)
         {
             NeuralNetworkLayer<ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize(), m_layers[i].getActivationFunction(), m_layers[i].getActivationDerivative());
             gradient.push_back(layer);
         }
 
-        for(int b = 0; b<miniBatch.size(); ++b)
+        for(size_t b = 0; b<miniBatch.size(); ++b)
         {
             std::vector<NeuralNetworkLayer<ScalarType>> gradientForOneData;
             gradientForOneData.reserve(m_layers.size());
-            for(int i = 0; i < m_layers.size(); ++i)
+            for(size_t i = 0; i < m_layers.size(); ++i)
             {
                 NeuralNetworkLayer<ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize(), m_layers[i].getActivationFunction(), m_layers[i].getActivationDerivative());
                 gradientForOneData.push_back(layer);
@@ -156,7 +156,7 @@ public:
 
             std::vector<ScalarType> *previousInput = &activations[activations.size() - 1];
 
-            for(int i =0 ;i<m_layers.size();++i)
+            for(size_t i =0 ;i<m_layers.size();++i)
             {
                 std::vector<ScalarType> activation;
                 m_layers[i].forward(*previousInput, activation);
@@ -176,7 +176,7 @@ public:
             std::vector<ScalarType> n = derivativesWithRespectToOutputs;
             std::vector<ScalarType> newN;
 
-            for(int i = gradientForOneData.size() - 1; i>=0; --i)
+            for(int i = gradientForOneData.size() - 1; i >= 0; --i)
             {
                 gradientForOneData[i].calculateLayerGradient(activations[i], m_layers[i].getActivationDerivative(), n, m_layers[i], newN);
                 gradient[i].merge(gradientForOneData[i]);
@@ -184,9 +184,9 @@ public:
             }
         }
 
-        for(int i = 0; i< gradient.size();++i)
+        for(size_t i = 0; i < gradient.size(); ++i)
         {
-            gradient[i].normalize(1.0/miniBatch.size());
+            gradient[i].normalize(1.0 / miniBatch.size());
         }
 
         cost /= miniBatch.size();
@@ -194,7 +194,7 @@ public:
 
     void updateWeights(ScalarType rate, const std::vector<NeuralNetworkLayer<ScalarType>> &gradient)
     {
-        for(int i = 0; i< m_layers.size();++i)
+        for(size_t i = 0; i< m_layers.size(); ++i)
         {
             m_layers[i].updateWeights(rate, gradient[i]);
         }

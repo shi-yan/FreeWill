@@ -11,7 +11,7 @@ template<class ScalarType>
 bool gradientCheck(std::function<ScalarType(const std::vector<ScalarType> &, std::vector<ScalarType> &)> func, std::vector<ScalarType> x, ScalarType epsilon)
 {
     std::vector<ScalarType> gradientAtX;
-    ScalarType c= func(x, gradientAtX);
+    func(x, gradientAtX);
 
     std::vector<ScalarType> x_1 = x;
     std::vector<ScalarType> x_2 = x;
@@ -19,7 +19,7 @@ bool gradientCheck(std::function<ScalarType(const std::vector<ScalarType> &, std
     std::vector<ScalarType> gradientAtX1;
     std::vector<ScalarType> gradientAtX2;
 
-    for(int i = x.size()-1; i>=0; --i)
+    for(int i = x.size() - 1; i >= 0; --i)
     {
         x_1[i] = x[i] - epsilon;
         x_2[i] = x[i] + epsilon;

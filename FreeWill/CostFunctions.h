@@ -8,9 +8,9 @@ template<class ScalarType>
 void crossEntropy(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, ScalarType &cost)
 {
     cost = 0.0;
-    for(int i = 0; i< outputs.size();++i)
+    for(size_t i = 0; i < outputs.size(); ++i)
     {
-        cost += labels[i]*log(outputs[i]) + (1-labels[i])*log(1-outputs[i]);
+        cost += labels[i]*log(outputs[i]) + (1 - labels[i])*log(1 - outputs[i]);
     }
     cost *= -1.0;
 }
@@ -20,7 +20,7 @@ void derivativeCrossEntropySigmoid(const std::vector<ScalarType> &outputs, const
 {
     derivatives.resize(outputs.size());
 
-    for(int i = 0; i<outputs.size(); ++i)
+    for(size_t i = 0; i < outputs.size(); ++i)
     {
         derivatives[i] = outputs[i] - labels[i];
     }

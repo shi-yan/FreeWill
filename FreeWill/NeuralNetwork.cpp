@@ -132,7 +132,7 @@ double neuralNetworkFunction(const std::vector<double> &weights, std::vector<dou
     grad.clear();
     grad.reserve(x.size());
 
-    for(int i = 0; i<gradient.size();++i)
+    for(size_t i = 0; i < gradient.size(); ++i)
     {
         gradient[i].flatten(grad);
     }
@@ -205,7 +205,7 @@ void testXORNeuralNetwork()
         network.updateWeights(rate, gradient);
     }
 
-    qDebug() << "Neural network for XOR has trained, not test:";
+    qDebug() << "Neural network for XOR has trained, now test:";
 
     int a[] = {0,0,1,1};
     int b[] = {0,1,0,1};
@@ -221,8 +221,70 @@ void testXORNeuralNetwork()
 
 }
 
+void testXORNeuralNetwork2()
+{
+    NeuralNetwork<float> network;
+    std::vector<unsigned int> layerCounts;
+    layerCounts.push_back(2);
+    network.init(2,1,layerCounts, sigmoid<float>, sigmoid<float>, crossEntropy<float>, derivativeCrossEntropySigmoid<float>);
+
+    network.randomWeights();
+
+    srand(time(NULL));
+
+    double rate = 0.02;
+
+    for (int i = 0; i< 1000000; ++i)
+    {
+        int a = rand() % 2;
+        int b = rand() % 2;
+        int c = a ^ b;
+
+        NeuralNetwork<float>::MiniBatch miniBatch;
+        std::vector<float> labelVector;
+        labelVector.push_back(c);
+
+
+        std::vector<float> inputVector;
+        inputVector.push_back(a);
+        inputVector.push_back(b);
+
+        NeuralNetwork<float>::TrainingData d(inputVector, labelVector);
+
+        miniBatch.push_back(d);
+
+        float cost;
+        std::vector<NeuralNetworkLayer<float>> gradient;
+
+        network.forwardPropagate(miniBatch, cost, gradient);
+        qDebug() << "cost" << cost;
+
+        if (i%500000 == 0)
+        {
+            rate*=0.5;
+        }
+
+        network.updateWeights(rate, gradient);
+    }
+
+    qDebug() << "Neural network for XOR has trained, now test:";
+
+    int a[] = {0,0,1,1};
+    int b[] = {0,1,0,1};
+    for(int i = 0; i<4; ++i)
+    {
+        std::vector<float> inputs;
+        inputs.push_back(a[i]);
+        inputs.push_back(b[i]);
+        std::vector<float> outputs;
+        network.getResult(inputs, outputs);
+        qDebug() << "a:" << a[i] << "b" << b[i] << "a XOR b" << (a[i]^b[i]) << "Neural Network computed:" << outputs[0];
+    }
+
+}
+
 void testNeuralNetwork()
 {
     testNeuralNetworkGradientCheck();
-    testXORNeuralNetwork();
+    testXORNeuralNetwork2();
 }

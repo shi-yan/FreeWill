@@ -7,7 +7,7 @@ template<class ScalarType>
 void sigmoid(const std::vector<ScalarType>& in, std::vector<ScalarType>& out)
 {
     out.resize(in.size());
-    for(int i = 0; i< in.size(); ++i)
+    for(size_t i = 0; i < in.size(); ++i)
     {
         out[i] = 1 / (1 + exp(-in[i]));
     }
