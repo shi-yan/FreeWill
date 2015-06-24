@@ -18,7 +18,8 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     GradientCheck.cpp \
-    NeuralNetwork.cpp
+    NeuralNetwork.cpp \
+    Word2VecDataset.cpp
 
 HEADERS += \
     GradientCheck.h \
@@ -27,4 +28,5 @@ HEADERS += \
     NeuralNetworkLayer.h \
     CostFunctions.h \
     Word2VecCostFunctions.h \
-    Word2VecModels.h
+    Word2VecModels.h \
+    Word2VecDataset.h
