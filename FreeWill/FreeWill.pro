@@ -25,4 +25,6 @@ HEADERS += \
     NeuralNetwork.h \
     ActivationFunctions.h \
     NeuralNetworkLayer.h \
-    CostFunctions.h
+    CostFunctions.h \
+    Word2VecCostFunctions.h \
+    Word2VecModels.h
