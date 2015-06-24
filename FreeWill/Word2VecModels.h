@@ -64,5 +64,52 @@ void skipgram(const std::string &currentWord,
 
 }
 
+template<class ScalarType>
+void CBOW(const std::string &currentWord,
+          unsigned int C,
+          const std::vector<std::string> &contextWords,
+          const std::map<std::string, unsigned int> &tokens,
+          const std::vector<std::vector<ScalarType>> &inputVectors,
+          const std::vector<std::vector<ScalarType>> &outputVectors,
+          std::function<void(const std::vector<ScalarType> &, unsigned int, const std::vector<std::vector<ScalarType>> &, ScalarType &, std::vector<ScalarType> &, std::vector<std::vector<ScalarType>> &)> word2vecCostAndGradient,
+          ScalarType cost, std::vector<std::vector<ScalarType>> &inputGrad, std::vector<std::vector<ScalarType>> &outputGrad)
+{
+    std::vector<ScalarType> r;
+    r.resize(inputVectors[0].size(), 0);
+
+    for(int i =0;i<contextWords.size();++i)
+    {
+        for(int e =0;e<r.size();++e)
+        {
+            r[e] += inputVectors[tokens.at(contextWords[i])][e];
+        }
+    }
+
+    for(int e =0;e<r.size();++e)
+    {
+        r[e] /= C;
+    }
+
+    std::vector<ScalarType> gradPred;
+
+    word2vecCostAndGradient(r, tokens.at(currentWord), outputVectors, cost, gradPred, outputGrad );
+
+    inputGrad.resize(inputVectors.size());
+    for(int i = 0; i< inputGrad.size(); ++i)
+    {
+        inputGrad[i].resize(r.size(), 0.0);
+    }
+
+
+
+    for(int i = 0;i<contextWords.size();++i)
+    {
+        for(int e = 0;e<gradPred.size();++e)
+        {
+            inputGrad[tokens.at(contextWords[i])][e] += gradPred[e] / C;
+        }
+    }
+}
+
 #endif // WORD2VECMODELS
 
