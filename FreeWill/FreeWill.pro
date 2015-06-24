@@ -16,9 +16,13 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    GradientCheck.cpp \
+    NeuralNetwork.cpp
 
 HEADERS += \
     GradientCheck.h \
-    Sigmoid.h \
-    Softmax.h
+    NeuralNetwork.h \
+    ActivationFunctions.h \
+    NeuralNetworkLayer.h \
+    CostFunctions.h
