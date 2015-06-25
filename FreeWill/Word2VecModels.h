@@ -10,6 +10,8 @@
 #include "StanfordSentimentDataset.h"
 #include <mutex>
 #include <thread>
+#include <chrono>
+#include <QDateTime>
 
 template <class ScalarType>
 void skipgram(const std::string &currentWord,
@@ -500,6 +502,10 @@ void word2VecSGD(unsigned int offset, std::vector<std::vector<ScalarType>> &inGr
     const std::map<std::string, unsigned int>  &tokens = dataset.tokens();
 
     normalizeRows(inGrad, outGrad);
+
+    QFile logFile(QString("logfile_%1.txt").arg(QDateTime::currentDateTime().toString()));
+    logFile.open(QFile::Append);
+    auto start = std::chrono::system_clock::now();
     for(int i = 1; i< iterations+1; ++i)
     {
         ScalarType cost;
@@ -518,9 +524,10 @@ void word2VecSGD(unsigned int offset, std::vector<std::vector<ScalarType>> &inGr
         }
 
         normalizeRows(inGrad, outGrad);
-
-        qDebug() << "iteration:" << offset + i << "cost" << cost;
-
+        auto duration = std::chrono::duration_cast<std::chrono::minutes>(std::chrono::system_clock::now()-start);
+        qDebug() << "iteration:" << offset + i << "cost" << cost << "duration" << duration.count();
+        logFile.write(QString("%1 %2 %3\n").arg(offset+i).arg(cost).arg(duration.count()).toUtf8());
+        logFile.flush();
         if (i % SAVE_EVERY == 0)
         {
             save<ScalarType>(offset + i, inGrad, outGrad);
@@ -531,6 +538,7 @@ void word2VecSGD(unsigned int offset, std::vector<std::vector<ScalarType>> &inGr
             step *= 0.5;
         }
     }
+    logFile.close();
 
     save<ScalarType>(iterations+1+offset, inGrad, outGrad);
 }
