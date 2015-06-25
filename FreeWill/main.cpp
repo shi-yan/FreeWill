@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    word2VecSGD<double>(inGrad, outGrad, dataset, 0.5, 400000);
+    word2VecSGD<double>(0, inGrad, outGrad, dataset, 0.5, 400000);
 
     return a.exec();
 }
