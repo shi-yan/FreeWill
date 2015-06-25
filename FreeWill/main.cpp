@@ -21,22 +21,32 @@ int main(int argc, char *argv[])
     std::vector<std::vector<double>> inGrad;
     std::vector<std::vector<double>> outGrad;
 
-    inGrad.resize(nToken);
-    outGrad.resize(nToken);
+    unsigned int previous = 1000;
 
-    for(int i = 0;i<nToken;++i)
+    if (!previous)
     {
-        inGrad[i].resize(10);
-        outGrad[i].resize(10);
+        inGrad.resize(nToken);
+        outGrad.resize(nToken);
 
-        for(int e = 0;e<10;++e)
+        for(int i = 0;i<nToken;++i)
         {
-            inGrad[i][e] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-            outGrad[i][e] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+            inGrad[i].resize(10);
+            outGrad[i].resize(10);
+
+            for(int e = 0;e<10;++e)
+            {
+                inGrad[i][e] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                outGrad[i][e] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+            }
         }
+
+    }
+    else
+    {
+        load(previous, inGrad, outGrad);
     }
 
-    word2VecSGD<double>(0, inGrad, outGrad, dataset, 0.5, 400000);
+    word2VecSGD<double>(previous, inGrad, outGrad, dataset, 0.5, 400000);
 
     return a.exec();
 }

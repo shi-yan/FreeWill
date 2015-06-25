@@ -490,6 +490,36 @@ void save(unsigned int iteration, std::vector<std::vector<ScalarType>> &inGrad, 
 }
 
 template<class ScalarType>
+void load(unsigned int iteration, std::vector<std::vector<ScalarType>> &inGrad, std::vector<std::vector<ScalarType>> &outGrad)
+{
+    QFile outputFile(QString("save_%1.dat").arg(iteration));
+    outputFile.open(QFile::ReadOnly);
+
+    unsigned int height = inGrad.size();
+    unsigned int width = inGrad[0].size();
+
+    outputFile.read((char*)&height, sizeof(height));
+    outputFile.read((char*)&width, sizeof(width));
+
+    inGrad.resize(height);
+    for(int i =0;i<inGrad.size();++i)
+    {
+        inGrad[i].resize(width);
+        outputFile.read((char*)&inGrad[i][0], sizeof(ScalarType) * inGrad[i].size());
+    }
+
+    outGrad.resize(height);
+    for(int i =0;i<outGrad.size();++i)
+    {
+        outGrad[i].resize(width);
+        outputFile.read((char*)&outGrad[i][0], sizeof(ScalarType) * outGrad[i].size());
+    }
+
+    outputFile.close();
+
+}
+
+template<class ScalarType>
 void word2VecSGD(unsigned int offset, std::vector<std::vector<ScalarType>> &inGrad0, std::vector<std::vector<ScalarType>> &outGrad0, Word2VecDataset &dataset, ScalarType step, unsigned int iterations)
 {
     // Anneal learning rate every several iterations
@@ -536,7 +566,7 @@ void word2VecSGD(unsigned int offset, std::vector<std::vector<ScalarType>> &inGr
 
             double iterationPerMinute = i / (double) oldMinuteCount;
 
-            qDebug() << "========== Estimated time: " << iterations / iterationPerMinute / 60.0 << "hours ==========";
+            qDebug() << "========== Estimated time: " << (iterations - i) / iterationPerMinute / 60.0 << "hours ==========";
         }
 
         if (i % SAVE_EVERY == 0)
