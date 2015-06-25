@@ -506,6 +506,7 @@ void word2VecSGD(unsigned int offset, std::vector<std::vector<ScalarType>> &inGr
     QFile logFile(QString("logfile_%1.txt").arg(QDateTime::currentDateTime().toString()));
     logFile.open(QFile::Append);
     auto start = std::chrono::system_clock::now();
+    unsigned int oldMinuteCount = 0;
     for(int i = 1; i< iterations+1; ++i)
     {
         ScalarType cost;
@@ -528,6 +529,16 @@ void word2VecSGD(unsigned int offset, std::vector<std::vector<ScalarType>> &inGr
         qDebug() << "iteration:" << offset + i << "cost" << cost << "duration" << duration.count();
         logFile.write(QString("%1 %2 %3\n").arg(offset+i).arg(cost).arg(duration.count()).toUtf8());
         logFile.flush();
+
+        if (oldMinuteCount != duration.count())
+        {
+            oldMinuteCount = duration.count();
+
+            double iterationPerMinute = i / (double) oldMinuteCount;
+
+            qDebug() << "========== Estimated time: " << iterations / iterationPerMinute / 60.0 << "hours ==========";
+        }
+
         if (i % SAVE_EVERY == 0)
         {
             save<ScalarType>(offset + i, inGrad, outGrad);
