@@ -22,7 +22,7 @@ void softmaxCostAndGradient(const std::vector<ScalarType> &predicted, unsigned i
             diff[i]+= outputVectors[i][e] * predicted[e];
         }
 
-        k+=(a[i] = std::exp(diff));
+        k+=(a[i] = std::exp(diff[i]));
     }
 
 

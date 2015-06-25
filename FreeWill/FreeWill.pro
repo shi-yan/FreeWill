@@ -19,7 +19,8 @@ TEMPLATE = app
 SOURCES += main.cpp \
     GradientCheck.cpp \
     NeuralNetwork.cpp \
-    Word2VecDataset.cpp
+    Word2VecDataset.cpp \
+    StanfordSentimentDataset.cpp
 
 HEADERS += \
     GradientCheck.h \
@@ -29,4 +30,5 @@ HEADERS += \
     CostFunctions.h \
     Word2VecCostFunctions.h \
     Word2VecModels.h \
-    Word2VecDataset.h
+    Word2VecDataset.h \
+    StanfordSentimentDataset.h
