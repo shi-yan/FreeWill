@@ -495,8 +495,8 @@ void load(unsigned int iteration, std::vector<std::vector<ScalarType>> &inGrad, 
     QFile outputFile(QString("save_%1.dat").arg(iteration));
     outputFile.open(QFile::ReadOnly);
 
-    unsigned int height = inGrad.size();
-    unsigned int width = inGrad[0].size();
+    unsigned int height = 0;
+    unsigned int width = 0;
 
     outputFile.read((char*)&height, sizeof(height));
     outputFile.read((char*)&width, sizeof(width));
@@ -531,7 +531,7 @@ void word2VecSGD(unsigned int offset, std::vector<std::vector<ScalarType>> &inGr
 
     const std::map<std::string, unsigned int>  &tokens = dataset.tokens();
 
-    normalizeRows(inGrad, outGrad);
+    //normalizeRows(inGrad, outGrad);
 
     QFile logFile(QString("logfile_%1.txt").arg(QDateTime::currentDateTime().toString()));
     logFile.open(QFile::Append);
@@ -576,7 +576,7 @@ void word2VecSGD(unsigned int offset, std::vector<std::vector<ScalarType>> &inGr
 
         if (i % ANNEAL_EVERY == 0)
         {
-            step *= 0.5;
+            step *= 0.9;
         }
     }
     logFile.close();
