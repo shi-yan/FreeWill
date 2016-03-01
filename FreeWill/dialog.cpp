@@ -49,6 +49,8 @@ static int nextStep(NeuralNetwork<float> &network, int testp[9])
 
             float score = outputs[0];
 
+            qDebug() <<"score:"<< i<< score;
+
             if (minid == -1){
                 minscore = score;
                 minid = i;
@@ -146,9 +148,19 @@ void Dialog::buttonClicked(bool)
        }
     }
 
+    QPixmap image(size());
+    render(&image);
+    static int counter = 0;
+    image.save(QString("image_%1.png").arg(counter++));
 
 }
 
+void Dialog::paintEvent(QPaintEvent *e)
+{
+    QDialog::paintEvent(e);
+
+
+}
 
 Dialog::~Dialog()
 {

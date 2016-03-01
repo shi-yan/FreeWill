@@ -10,7 +10,7 @@
 #include "dialog.h"
 
 
-    static double rate = 0.005;
+    static double rate = 0.05;
     static unsigned int count = 0;
 
 
@@ -45,7 +45,7 @@ void recursiveTrain(NeuralNetwork<float> &network, NeuralNetwork<float>::MiniBat
         {
 
             position[i] = side;
-            float reward = 0;
+            float reward = 0.5;
             bool notset = true;
 
             if (isWin(position,  side))
@@ -55,7 +55,7 @@ void recursiveTrain(NeuralNetwork<float> &network, NeuralNetwork<float>::MiniBat
                     reward = 1;
                 }
                 else
-                    reward = -1;
+                    reward = 0;
              }
             else
             {
@@ -96,7 +96,7 @@ void recursiveTrain(NeuralNetwork<float> &network, NeuralNetwork<float>::MiniBat
                     }
                 }
 
-                reward *= 0.6;
+                reward *= 0.9;
 
             }
 
@@ -200,7 +200,7 @@ void trainDRL(NeuralNetwork<float> &network)
     int position[9] = {0};
     int side = 1;
 
-    for (int i = 0; i< 20000; ++i)
+    for (int i = 0; i< 40000; ++i)
     {
         NeuralNetwork<float>::MiniBatch miniBatch;
 
@@ -221,8 +221,8 @@ void trainDRL(NeuralNetwork<float> &network)
             network.updateWeights(rate, gradient);
         }
 
-        qDebug() << "save file"<< i;
         network.dumpWeights("deepreinforce_1_9", i);
+        qDebug() << "save file"<< i;
     }
 
     qDebug() << "Neural network for trainDRL has trained, now test:";
@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
     network.init(9,1,layerCounts, sigmoid<float>, sigmoid<float>, crossEntropy<float>, derivativeCrossEntropySigmoid<float>);
 
 //2_9_4604
-    QFile file("deepreinforce_1_9_19999.sav");
+    QFile file("deepreinforce_1_9_22617.sav");
 
     file.open(QIODevice::ReadOnly);
 
@@ -306,8 +306,8 @@ int main(int argc, char *argv[])
     network.assignWeights(data);
 
   // network.randomWeights();
-    srand(time(NULL));
-    trainDRL(network);
+   // srand(time(NULL));
+   // trainDRL(network);
 
 
 

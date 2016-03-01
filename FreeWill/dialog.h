@@ -29,6 +29,8 @@ private slots:
 
 private:
     Ui::Dialog *ui;
+
+    void paintEvent(QPaintEvent *) override;
 };
 
 #endif // DIALOG_H
