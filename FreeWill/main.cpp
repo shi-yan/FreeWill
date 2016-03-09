@@ -32,6 +32,34 @@ static bool isWin(int position[9], int side)
 }
 
 
+float getReward(NeuralNetwork<float> &network, std::vector<float> &position, int side)
+{
+   /* if((position[0] == side && position[1] == side && position[2] == side) ||
+       (position[3] == side && position[4] == side && position[5] == side) ||
+       (position[6] == side && position[7] == side && position[8] == side) ||
+       (position[0] == side && position[3] == side && position[6] == side)||
+       (position[1] == side && position[4] == side && position[7] == side)||
+       (position[2] == side && position[5] == side && position[8] == side)||
+       (position[0] == side && position[4] == side && position[8] == side)||
+       (position[2] == side && position[4] == side && position[6] == side))
+    {
+        if (side == 1)
+        {
+            return 1;
+        }
+        else
+            return 0;
+    }
+    else
+    {*/
+
+        std::vector<float> outputs;
+        network.getResult(position, outputs);
+
+        float q = outputs[0];
+        return q;
+    //}
+}
 
 
 void recursiveTrain(NeuralNetwork<float> &network, NeuralNetwork<float>::MiniBatch &miniBatch, int position[9], int side)
@@ -73,10 +101,7 @@ void recursiveTrain(NeuralNetwork<float> &network, NeuralNetwork<float>::MiniBat
                     }
                     inputs[k] = -side;
 
-                    std::vector<float> outputs;
-                    network.getResult(inputs, outputs);
-
-                    float q = outputs[0];
+                    float q = getReward(network, inputs, -side);
 
                     if (notset)
                     {
@@ -86,17 +111,17 @@ void recursiveTrain(NeuralNetwork<float> &network, NeuralNetwork<float>::MiniBat
                     else
                     if (side == 1)
                     {
-                        if (q > reward)
+                        if (q < reward)
                             reward = q;
                     }
                     else
                     {
-                        if (q < reward)
+                        if (q > reward)
                             reward = q;
                     }
                 }
 
-                reward *= 0.9;
+                reward = 0.9 * reward;
 
             }
 
@@ -221,7 +246,7 @@ void trainDRL(NeuralNetwork<float> &network)
             network.updateWeights(rate, gradient);
         }
 
-        network.dumpWeights("deepreinforce_1_9", i);
+        network.dumpWeights("deepreinforce_2_9", i);
         qDebug() << "save file"<< i;
     }
 
@@ -287,12 +312,12 @@ int main(int argc, char *argv[])
     NeuralNetwork<float> network;
     std::vector<unsigned int> layerCounts;
     layerCounts.push_back(9);
-//    layerCounts.push_back(9);
+    layerCounts.push_back(9);
     //layerCounts.push_back(9);
     network.init(9,1,layerCounts, sigmoid<float>, sigmoid<float>, crossEntropy<float>, derivativeCrossEntropySigmoid<float>);
 
 //2_9_4604
-    QFile file("deepreinforce_1_9_22617.sav");
+    QFile file("deepreinforce_1_9_39999.sav");
 
     file.open(QIODevice::ReadOnly);
 
@@ -305,9 +330,10 @@ int main(int argc, char *argv[])
 
     network.assignWeights(data);
 
-  // network.randomWeights();
-   // srand(time(NULL));
-   // trainDRL(network);
+     srand(time(NULL));
+  //   network.randomWeights();
+
+     trainDRL(network);
 
 
 
