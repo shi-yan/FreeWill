@@ -285,3 +285,7 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+from better import better_theme_path
+html_theme_path = [better_theme_path]
+html_theme = 'better'
