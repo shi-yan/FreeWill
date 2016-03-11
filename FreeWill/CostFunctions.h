@@ -26,5 +26,28 @@ void derivativeCrossEntropySigmoid(const std::vector<ScalarType> &outputs, const
     }
 }
 
+template<class ScalarType>
+void meanSquared(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, ScalarType &cost)
+{
+    cost = 0.0;
+    for(size_t i = 0;i<outputs.size();++i)
+    {
+        cost += (outputs[i] - labels[i])*(outputs[i] - labels[i]);
+    }
+    cost /= (float) outputs.size();
+}
+
+template<class ScalarType>
+void derivativeMeanSquaredRectifier(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, std::vector<ScalarType> &derivatives)
+{
+    derivatives.resize(outputs.size());
+
+    for(size_t i = 0; i < outputs.size(); ++i)
+    {
+        derivatives[i] = 2.0 * (outputs[i] - labels[i]) / outputs.size();
+    }
+}
+
+
 #endif // COSTFUNCTIONS
 

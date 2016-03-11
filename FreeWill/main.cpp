@@ -10,7 +10,7 @@
 #include "dialog.h"
 
 
-    static double rate = 0.05;
+    static double rate = 0.001;
     static unsigned int count = 0;
 
 
@@ -34,7 +34,7 @@ static bool isWin(int position[9], int side)
 
 float getReward(NeuralNetwork<float> &network, std::vector<float> &position, int side)
 {
-   /* if((position[0] == side && position[1] == side && position[2] == side) ||
+    if((position[0] == side && position[1] == side && position[2] == side) ||
        (position[3] == side && position[4] == side && position[5] == side) ||
        (position[6] == side && position[7] == side && position[8] == side) ||
        (position[0] == side && position[3] == side && position[6] == side)||
@@ -45,20 +45,20 @@ float getReward(NeuralNetwork<float> &network, std::vector<float> &position, int
     {
         if (side == 1)
         {
-            return 1;
+            return 10;
         }
         else
             return 0;
     }
     else
-    {*/
+    {
 
         std::vector<float> outputs;
         network.getResult(position, outputs);
 
         float q = outputs[0];
         return q;
-    //}
+    }
 }
 
 
@@ -73,14 +73,15 @@ void recursiveTrain(NeuralNetwork<float> &network, NeuralNetwork<float>::MiniBat
         {
 
             position[i] = side;
-            float reward = 0.5;
+            float reward = 5;
             bool notset = true;
-
+            bool hasWon = false;
             if (isWin(position,  side))
             {
+                hasWon = true;
                 if (side == 1)
                 {
-                    reward = 1;
+                    reward = 10;
                 }
                 else
                     reward = 0;
@@ -148,9 +149,10 @@ void recursiveTrain(NeuralNetwork<float> &network, NeuralNetwork<float>::MiniBat
 
 
 
-
-            recursiveTrain(network, miniBatch, position, -side);
-
+            if (!hasWon)
+            {
+                recursiveTrain(network, miniBatch, position, -side);
+            }
             position[i] = 0;
         }
 
@@ -225,7 +227,7 @@ void trainDRL(NeuralNetwork<float> &network)
     int position[9] = {0};
     int side = 1;
 
-    for (int i = 0; i< 40000; ++i)
+    for (int i = 0; i< 100000; ++i)
     {
         NeuralNetwork<float>::MiniBatch miniBatch;
 
@@ -246,7 +248,7 @@ void trainDRL(NeuralNetwork<float> &network)
             network.updateWeights(rate, gradient);
         }
 
-        network.dumpWeights("deepreinforce_2_9", i);
+        network.dumpWeights("deepreinforce_r_1_50", i);
         qDebug() << "save file"<< i;
     }
 
@@ -296,28 +298,61 @@ void trainDRL(NeuralNetwork<float> &network)
 
 }
 
+/*
 
+static void word2Vec()
+{
+    StanfordSentimentDataset dataset("stanfordSentimentTreebank", 10000);
 
+      unsigned int nToken = dataset.tokens().size();
 
+      std::vector<std::vector<double>> inGrad;
+      std::vector<std::vector<double>> outGrad;
 
+      unsigned int previous = 303000;
 
+      if (!previous)
+      {
+          inGrad.resize(nToken);
+          outGrad.resize(nToken);
 
+          for(int i = 0;i<nToken;++i)
+          {
+              inGrad[i].resize(10);
+              outGrad[i].resize(10);
+
+              for(int e = 0;e<10;++e)
+              {
+                  inGrad[i][e] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                  outGrad[i][e] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+              }
+          }
+
+      }
+      else
+      {
+          load(previous, inGrad, outGrad);
+      }
+
+      word2VecSGD<double>(previous, inGrad, outGrad, dataset, 1.0, 400000);
+
+}
+*/
 
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    //testGradientCheck();
+    testGradientCheck();
     NeuralNetwork<float> network;
     std::vector<unsigned int> layerCounts;
-    layerCounts.push_back(9);
-    layerCounts.push_back(9);
-    //layerCounts.push_back(9);
-    network.init(9,1,layerCounts, sigmoid<float>, sigmoid<float>, crossEntropy<float>, derivativeCrossEntropySigmoid<float>);
-
+    layerCounts.push_back(50);
+    network.init(9,1,layerCounts, rectifier<float>, rectifierDerivative<float>, rectifier<float>, rectifierDerivative<float>, meanSquared<float>, derivativeMeanSquaredRectifier<float>);
+//0.659369
 //2_9_4604
-    QFile file("deepreinforce_1_9_39999.sav");
+    //5542
+ /* QFile file("deepreinforce_r_1_20_5994.sav");
 
     file.open(QIODevice::ReadOnly);
 
@@ -329,48 +364,12 @@ int main(int argc, char *argv[])
     file.close();
 
     network.assignWeights(data);
-
+*/
      srand(time(NULL));
-  //   network.randomWeights();
+     network.randomWeights();
 
      trainDRL(network);
 
-
-
-  /*  StanfordSentimentDataset dataset("stanfordSentimentTreebank", 10000);
-
-    unsigned int nToken = dataset.tokens().size();
-
-    std::vector<std::vector<double>> inGrad;
-    std::vector<std::vector<double>> outGrad;
-
-    unsigned int previous = 303000;
-
-    if (!previous)
-    {
-        inGrad.resize(nToken);
-        outGrad.resize(nToken);
-
-        for(int i = 0;i<nToken;++i)
-        {
-            inGrad[i].resize(10);
-            outGrad[i].resize(10);
-
-            for(int e = 0;e<10;++e)
-            {
-                inGrad[i][e] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-                outGrad[i][e] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-            }
-        }
-
-    }
-    else
-    {
-        load(previous, inGrad, outGrad);
-    }
-
-    word2VecSGD<double>(previous, inGrad, outGrad, dataset, 1.0, 400000);
-*/
 
     Dialog dialog(network);
 

@@ -20,6 +20,27 @@ ScalarType sigmoidDerivative(ScalarType in)
 }
 
 template<class ScalarType>
+void rectifier(const std::vector<ScalarType> &in, std::vector<ScalarType> &out)
+{
+    out.resize(in.size());
+    for(size_t i = 0;i<in.size();++i)
+    {
+        out[i] = std::max((ScalarType)0.0f, (ScalarType)in[i]);
+    }
+}
+
+template<class ScalarType>
+ScalarType rectifierDerivative(ScalarType in)
+{
+    if (in > 0)
+    {
+        return 1;
+    }
+    else return 0;
+}
+
+
+template<class ScalarType>
 void softmax(const std::vector<ScalarType>& in, std::vector<ScalarType>& out)
 {
     ScalarType average = 0.0;

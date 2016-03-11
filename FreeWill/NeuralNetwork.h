@@ -165,7 +165,9 @@ public:
     void init(unsigned int inputSize, unsigned int outputSize,
               const std::vector<unsigned int> &neuronCountsForAllLayers,
               std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> activationForInnerLayers,
+              std::function<ScalarType (ScalarType in)> activationDerivativeForInnerLayers,
               std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> activationForLastLayer,
+              std::function<ScalarType (ScalarType in)> activationDerivativeForLastLayer,
               std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, ScalarType&)> costFunction,
               std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, std::vector<ScalarType>&)> costFunctionDerivitive)
     {
@@ -178,13 +180,13 @@ public:
         for(size_t i = 0; i < neuronCountsForAllLayers.size(); ++i)
         {
             unsigned int layerSize = neuronCountsForAllLayers[i];
-            NeuralNetworkLayer<ScalarType> oneLayer(previousLayerSize, layerSize, activationForInnerLayers, sigmoidDerivative<ScalarType>);
+            NeuralNetworkLayer<ScalarType> oneLayer(previousLayerSize, layerSize, activationForInnerLayers, activationDerivativeForInnerLayers);
 
             m_layers.push_back(oneLayer);
             previousLayerSize = layerSize;
         }
 
-        NeuralNetworkLayer<ScalarType> lastLayer(previousLayerSize, outputSize, activationForLastLayer, sigmoidDerivative<ScalarType>);
+        NeuralNetworkLayer<ScalarType> lastLayer(previousLayerSize, outputSize, activationForLastLayer, activationDerivativeForLastLayer);
 
         m_layers.push_back(lastLayer);
     }
