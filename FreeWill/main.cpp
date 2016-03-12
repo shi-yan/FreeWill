@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
 //0.659369
 //2_9_4604
     //5542
- /* QFile file("deepreinforce_r_1_20_5994.sav");
+  QFile file("deepreinforce_r_1_50_8109.sav");
 
     file.open(QIODevice::ReadOnly);
 
@@ -364,9 +364,9 @@ int main(int argc, char *argv[])
     file.close();
 
     network.assignWeights(data);
-*/
+
      srand(time(NULL));
-     network.randomWeights();
+    // network.randomWeights();
 
      trainDRL(network);
 

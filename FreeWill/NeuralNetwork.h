@@ -7,12 +7,10 @@
 #include "NeuralNetworkLayer.h"
 #include "ActivationFunctions.h"
 #include <QFile>
-
 #include <QThread>
 #include <QSemaphore>
-
-
-
+#include <thread>
+#include <tuple>
 
 template<class ScalarType>
 class NeuralNetwork
@@ -65,93 +63,59 @@ public:
 
     typedef std::vector<NeuralNetwork<ScalarType>::TrainingData> MiniBatch;
 
-    class NeuralNetworkThread : public QThread
+    static void parallelTrainingKernel(NeuralNetwork<ScalarType> &network, const NeuralNetwork<ScalarType>::MiniBatch &miniBatch, int offset, int size, std::vector<NeuralNetworkLayer<ScalarType>> &gradientForBatch, ScalarType &cost)
     {
-    public:
-        NeuralNetwork<ScalarType> &m_network;
-        std::vector<NeuralNetworkLayer<ScalarType>> m_gradientForBatch;
-        const NeuralNetwork<ScalarType>::MiniBatch &m_miniBatch;
-        int m_offset;
-        int m_size;
-        QSemaphore &m_semaphore;
-        ScalarType m_cost;
+        cost = 0.0;
 
-    public:
-
-
-        NeuralNetworkThread(    NeuralNetwork<ScalarType> &network,
-                                const NeuralNetwork<ScalarType>::MiniBatch &miniBatch,
-                                int offset,
-                                int size,
-                                QSemaphore &semaphore)
-            :QThread(),
-              m_network(network),
-              m_miniBatch(miniBatch),
-              m_offset(offset),
-              m_size(size),
-              m_semaphore(semaphore),
-              m_gradientForBatch(),
-              m_cost(0.0f)
+        for(size_t i = 0; i < network.m_layers.size(); ++i)
         {
-
+            NeuralNetworkLayer<ScalarType> layer(network.m_layers[i].getInputSize(), network.m_layers[i].getOutputSize(), network.m_layers[i].getActivationFunction(), network.m_layers[i].getActivationDerivative());
+            gradientForBatch.push_back(layer);
         }
 
-        void run() override
+        for(size_t b = offset; b< offset + size; ++b)
         {
-            m_cost = 0.0;
-
-            for(size_t i = 0; i < m_network.m_layers.size(); ++i)
+            std::vector<NeuralNetworkLayer<ScalarType>> gradientForOneData;
+            gradientForOneData.reserve(network.m_layers.size());
+            for(size_t i = 0; i < network.m_layers.size(); ++i)
             {
-                NeuralNetworkLayer<ScalarType> layer(m_network.m_layers[i].getInputSize(), m_network.m_layers[i].getOutputSize(), m_network.m_layers[i].getActivationFunction(), m_network.m_layers[i].getActivationDerivative());
-                m_gradientForBatch.push_back(layer);
+                NeuralNetworkLayer<ScalarType> layer(network.m_layers[i].getInputSize(), network.m_layers[i].getOutputSize(), network.m_layers[i].getActivationFunction(), network.m_layers[i].getActivationDerivative());
+                gradientForOneData.push_back(layer);
             }
 
-            for(size_t b = m_offset; b< m_offset+m_size; ++b)
+            std::vector<std::vector<ScalarType>> activations;
+            activations.push_back(miniBatch[b].getInputs());
+
+            std::vector<ScalarType> *previousInput = &activations[activations.size() - 1];
+
+            for(size_t i =0 ;i<network.m_layers.size();++i)
             {
-                std::vector<NeuralNetworkLayer<ScalarType>> gradientForOneData;
-                gradientForOneData.reserve(m_network.m_layers.size());
-                for(size_t i = 0; i < m_network.m_layers.size(); ++i)
-                {
-                    NeuralNetworkLayer<ScalarType> layer(m_network.m_layers[i].getInputSize(), m_network.m_layers[i].getOutputSize(), m_network.m_layers[i].getActivationFunction(), m_network.m_layers[i].getActivationDerivative());
-                    gradientForOneData.push_back(layer);
-                }
+                std::vector<ScalarType> activation;
+                network.m_layers[i].forward(*previousInput, activation);
+                activations.push_back(activation);
 
-                std::vector<std::vector<ScalarType>> activations;
-                activations.push_back(m_miniBatch[b].getInputs());
-
-                std::vector<ScalarType> *previousInput = &activations[activations.size() - 1];
-
-                for(size_t i =0 ;i<m_network.m_layers.size();++i)
-                {
-                    std::vector<ScalarType> activation;
-                    m_network.m_layers[i].forward(*previousInput, activation);
-                    activations.push_back(activation);
-
-                    previousInput = &activations[activations.size() - 1];
-                }
-
-                float costForOneData = 0.0;
-                std::vector<ScalarType> derivativesWithRespectToOutputs;
-
-                m_network.m_costFunction(*previousInput, m_miniBatch[b].getOutputs(), costForOneData);
-
-                m_network.m_costFunctionDerivative(*previousInput, m_miniBatch[b].getOutputs(), derivativesWithRespectToOutputs);
-
-                m_cost += costForOneData;
-                std::vector<ScalarType> n = derivativesWithRespectToOutputs;
-                std::vector<ScalarType> newN;
-
-                for(int i = gradientForOneData.size() - 1; i >= 0; --i)
-                {
-                    gradientForOneData[i].calculateLayerGradient(activations[i], m_network.m_layers[i].getActivationDerivative(), n, m_network.m_layers[i], newN);
-                    m_gradientForBatch[i].merge(gradientForOneData[i]);
-                    n = newN;
-                }
+                previousInput = &activations[activations.size() - 1];
             }
 
-            m_semaphore.release();
+            float costForOneData = 0.0;
+            std::vector<ScalarType> derivativesWithRespectToOutputs;
+
+            network.m_costFunction(*previousInput, miniBatch[b].getOutputs(), costForOneData);
+
+            network.m_costFunctionDerivative(*previousInput, miniBatch[b].getOutputs(), derivativesWithRespectToOutputs);
+
+            cost += costForOneData;
+            std::vector<ScalarType> n = derivativesWithRespectToOutputs;
+            std::vector<ScalarType> newN;
+
+            for(int i = gradientForOneData.size() - 1; i >= 0; --i)
+            {
+                gradientForOneData[i].calculateLayerGradient(activations[i], network.m_layers[i].getActivationDerivative(), n, network.m_layers[i], newN);
+                gradientForBatch[i].merge(gradientForOneData[i]);
+                n = newN;
+            }
         }
-    };
+    }
 
 
     NeuralNetwork()
@@ -316,20 +280,15 @@ public:
         int offset = 0;
         QSemaphore semaphore;
 
-        std::vector<NeuralNetworkThread*> threadPool;
+        std::vector<std::tuple<std::vector<NeuralNetworkLayer<ScalarType>>, ScalarType, std::thread>>  threadPool;
+        threadPool.resize(threadCount);
 
         for(int b = 0;b<threadCount;++b)
         {
             int currentBatchSize = batchSize + (b<batchRemain?1:0);
-
-            NeuralNetworkThread *thread = new NeuralNetworkThread(*this, miniBatch, offset, currentBatchSize,semaphore );
-            threadPool.push_back(thread);
+            std::get<2>(threadPool[b]) = std::thread(NeuralNetwork<ScalarType>::parallelTrainingKernel, std::ref(*this), std::ref(miniBatch), offset, currentBatchSize, std::ref(std::get<0>(threadPool[b])), std::ref(std::get<1>(threadPool[b])));
             offset += currentBatchSize;
-
-            thread->start();
         }
-
-        semaphore.acquire(threadCount);
 
         cost = 0.0;
 
@@ -339,15 +298,18 @@ public:
             gradient.push_back(layer);
         }
 
+        for(int b = 0;b<threadCount;++b)
+        {
+            std::get<2>(threadPool[b]).join();
+        }
+
         for (int e =0;e<threadPool.size();++e)
         {
-            cost += threadPool[e]->m_cost;
-            for(int i = threadPool[e]->m_gradientForBatch.size() - 1; i >= 0; --i)
+            cost += std::get<1>(threadPool[e]);
+            for(int i = std::get<0>(threadPool[e]).size() - 1; i >= 0; --i)
             {
-                gradient[i].merge( threadPool[e]->m_gradientForBatch[i]);
+                gradient[i].merge( std::get<0>(threadPool[e])[i]);
             }
-
-            delete threadPool[e];
         }
 
         for(size_t i = 0; i < gradient.size(); ++i)
