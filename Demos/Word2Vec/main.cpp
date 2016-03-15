@@ -2,6 +2,7 @@
 #include <QApplication>
 #include "Word2VecModels.h"
 #include "StanfordSentimentDataset.h"
+#include "NeuralNetwork.h"
 
 static void word2Vec()
 {
@@ -44,6 +45,7 @@ static void word2Vec()
 
 int main(int argc, char *argv[])
 {
+    testNeuralNetwork();
     QApplication a(argc, argv);
     Word2VecDialog w;
     w.show();

@@ -8,17 +8,15 @@ QT       += core gui widgets
 
 TARGET = FreeWill
 CONFIG   += c++14
+CONFIG += console
 CONFIG   -= app_bundle
 
-TEMPLATE = app
+TEMPLATE = lib
 
 SOURCES += main.cpp \
     GradientCheck.cpp \
     NeuralNetwork.cpp \
-    Word2VecDataset.cpp \
-    StanfordSentimentDataset.cpp \
-    dialog.cpp \
-    NeuralNetworkThread.cpp
+    Word2VecDataset.cpp
 
 HEADERS += \
     GradientCheck.h \
@@ -28,10 +26,4 @@ HEADERS += \
     CostFunctions.h \
     Word2VecCostFunctions.h \
     Word2VecModels.h \
-    Word2VecDataset.h \
-    StanfordSentimentDataset.h \
-    dialog.h \
-    NeuralNetworkThread.h
-
-FORMS += \
-    dialog.ui
+    Word2VecDataset.h

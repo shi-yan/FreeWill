@@ -267,7 +267,7 @@ void testNeuralNetworkGradientCheck()
         initialWeights.push_back(sweights[i]);
     }
 
-    if (gradientCheck<double>(neuralNetworkFunction, initialWeights, 1e-4))
+    if (gradientCheck<double>(neuralNetworkFunction2, initialWeights, 1e-4))
     {
         qDebug() << "gradient check passed!";
     }
@@ -404,7 +404,7 @@ void testXORNeuralNetwork2()
 void testNeuralNetwork()
 {
     testNeuralNetworkGradientCheck();
-    testXORNeuralNetwork2();
+   // testXORNeuralNetwork2();
 }
 
 

@@ -7,11 +7,12 @@
 #include <vector>
 #include "Word2VecCostFunctions.h"
 #include "Word2VecDataset.h"
-#include "StanfordSentimentDataset.h"
 #include <mutex>
 #include <thread>
 #include <chrono>
 #include <QDateTime>
+#include <QFile>
+#include <QDebug>
 
 template <class ScalarType>
 void skipgram(const std::string &currentWord,

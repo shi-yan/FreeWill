@@ -44,7 +44,14 @@ void derivativeMeanSquaredRectifier(const std::vector<ScalarType> &outputs, cons
 
     for(size_t i = 0; i < outputs.size(); ++i)
     {
-        derivatives[i] = 2.0 * (outputs[i] - labels[i]) / outputs.size();
+        if (outputs[i] >= 0)
+        {
+            derivatives[i] = 2.0 * (outputs[i] - labels[i]) / outputs.size();
+        }
+        else
+        {
+            derivatives[i] = 0;
+        }
     }
 }
 

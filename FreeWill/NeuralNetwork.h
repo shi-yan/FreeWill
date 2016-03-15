@@ -97,7 +97,7 @@ public:
                 previousInput = &activations[activations.size() - 1];
             }
 
-            float costForOneData = 0.0;
+            ScalarType costForOneData = 0.0;
             std::vector<ScalarType> derivativesWithRespectToOutputs;
 
             network.m_costFunction(*previousInput, miniBatch[b].getOutputs(), costForOneData);
