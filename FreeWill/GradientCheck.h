@@ -21,6 +21,7 @@ bool gradientCheck(std::function<ScalarType(const std::vector<ScalarType> &, std
 
     for(int i = x.size() - 1; i >= 0; --i)
     {
+
         x_1[i] = x[i] - epsilon;
         x_2[i] = x[i] + epsilon;
 
@@ -32,7 +33,7 @@ bool gradientCheck(std::function<ScalarType(const std::vector<ScalarType> &, std
         ScalarType reldiff = std::abs(numgrad - gradientAtX[i]) / std::max(1.0, (double)std::max(std::abs(numgrad), std::abs(gradientAtX[i])));
         if (reldiff > epsilon * 0.1)
         {
-            qDebug() << "gradient check at" << i << "failed";
+            qDebug() << "gradient check at" << i << "failed" << x[i];
             qDebug() << "the gradient is" << gradientAtX[i] << "the numberic gradient is" << numgrad;
             qDebug() << "the error:" << reldiff;
             return false;

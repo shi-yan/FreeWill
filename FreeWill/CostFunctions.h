@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cmath>
+#include "ActivationFunctions.h"
 
 template<class ScalarType>
 void crossEntropy(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, ScalarType &cost)
@@ -54,6 +55,30 @@ void derivativeMeanSquaredRectifier(const std::vector<ScalarType> &outputs, cons
         }
     }
 }
+
+//here outputs means last layer with activation but no cost function
+template<class ScalarType>
+void derivativeMeanSquaredtanh(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, std::vector<ScalarType> &derivatives)
+{
+    derivatives.resize(outputs.size());
+
+    for(size_t i = 0; i < outputs.size(); ++i)
+    {
+        ScalarType tanhv = outputs[i];
+        derivatives[i] = 2.0 * (tanhv - labels[i]) * (1.0 - tanhv * tanhv) / outputs.size();
+    }
+}
+
+template<class ScalarType>
+ScalarType derivativeMeanSquaredtanh2(ScalarType outputs, ScalarType labels)
+{
+    //derivatives.resize(outputs.size());
+
+        ScalarType tanhv = tanhHelper(outputs);
+        return 2.0 * (tanhv - labels) * (1.0 - tanhv * tanhv);
+}
+
+
 
 
 #endif // COSTFUNCTIONS

@@ -40,7 +40,7 @@ ScalarType rectifierDerivative(ScalarType in)
 }
 
 template<class ScalarType>
-static ScalarType tanh(ScalarType x)
+ScalarType tanhHelper(ScalarType x)
 {
   ScalarType y = exp(2.0 * x);
   return (y - 1) / (y + 1);
@@ -52,14 +52,17 @@ void tanh(const std::vector<ScalarType> &in, std::vector<ScalarType> &out)
     out.resize(in.size());
     for(size_t i = 0;i<in.size();++i)
     {
-        out[i] = tanh<ScalarType>(in[i]);
+        out[i] = tanhHelper<ScalarType>(in[i]);
     }
 }
 
+//this in is after activation tanh
 template<class ScalarType>
 ScalarType tanhDerivative(ScalarType in)
 {
-    return (1.0 - in * in);
+    ScalarType tanhv = in;
+    return (1.0 - tanhv * tanhv);
+    //return (1.0 - in * in);
 }
 
 template<class ScalarType>

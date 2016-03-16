@@ -7,8 +7,9 @@
 #include "CostFunctions.h"
 #include "GradientCheck.h"
 #include "TicTacToeDialog.h"
+#include <QStyleFactory>
 
-static double rate = 3.1;
+static double rate = 0.1;
 static unsigned int count = 0;
 
 
@@ -30,7 +31,7 @@ else
 }
 
 
-float getReward(NeuralNetwork<double> &network, std::vector<double> &position, int side)
+float getReward(NeuralNetwork<double> &network, std::vector<double> &position, int side, int depth)
 {
 if((position[0] == side && position[1] == side && position[2] == side) ||
    (position[3] == side && position[4] == side && position[5] == side) ||
@@ -43,10 +44,13 @@ if((position[0] == side && position[1] == side && position[2] == side) ||
 {
     if (side == 1)
     {
-        return 1;
+
+        return 1.0;//std::min(1.0, 0.5 + 0.05 * (18-depth));
     }
     else
-        return 0;
+    {
+        return -1.0;//std::max(0.0, 0.5 - 0.05 * (18-depth));
+    }
 }
 else
 {
@@ -60,29 +64,35 @@ else
 }
 
 
-void recursiveTrain(NeuralNetwork<double> &network, NeuralNetwork<double>::MiniBatch &miniBatch, int position[9], int side)
+void recursiveTrain(NeuralNetwork<double> &network, NeuralNetwork<double>::MiniBatch &miniBatch, int position[9], int side, int depth)
 {
 
 for(int i = 0;i<9;++i)
 {
-
-
+    if ((depth == 1 && i == 4) || (depth != 1))
     if (position[i] == 0)
     {
 
         position[i] = side;
-        float reward = 0.5;
+        float reward = 0.0;
         bool notset = true;
         bool hasWon = false;
         if (isWin(position,  side))
         {
             hasWon = true;
+
+
+
             if (side == 1)
             {
-                reward = 1;
+
+                reward = 1.0; //std::min(1.0, 0.5 + 0.05 * (18-depth));
             }
             else
-                reward = 0;
+            {
+                reward = -1.0; //std::max(0.0, 0.5 - 0.05 * (18-depth));
+            }
+
          }
         else
         {
@@ -100,7 +110,7 @@ for(int i = 0;i<9;++i)
                 }
                 inputs[k] = -side;
 
-                float q = getReward(network, inputs, -side);
+                float q = getReward(network, inputs, -side,depth+1);
 
                 if (notset)
                 {
@@ -149,7 +159,7 @@ for(int i = 0;i<9;++i)
 
         if (!hasWon)
         {
-            recursiveTrain(network, miniBatch, position, -side);
+            recursiveTrain(network, miniBatch, position, -side, depth +1);
         }
         position[i] = 0;
     }
@@ -229,7 +239,7 @@ for (int i = 0; i< 100000; ++i)
 {
     NeuralNetwork<double>::MiniBatch miniBatch;
 
-    recursiveTrain(network,miniBatch, position, 1);
+    recursiveTrain(network,miniBatch, position, 1 ,1);
 
     if (miniBatch.size())
     {
@@ -299,13 +309,38 @@ qDebug() << "third" << third;*/
 
 int main(int argc, char *argv[])
 {
+
+
     QApplication a(argc, argv);
+
+    qApp->setStyle(QStyleFactory::create("Fusion"));
+
+    QPalette darkPalette;
+    darkPalette.setColor(QPalette::Window, QColor(53,53,53));
+    darkPalette.setColor(QPalette::WindowText, Qt::white);
+    darkPalette.setColor(QPalette::Base, QColor(25,25,25));
+    darkPalette.setColor(QPalette::AlternateBase, QColor(53,53,53));
+    darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
+    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
+    darkPalette.setColor(QPalette::Text, Qt::white);
+    darkPalette.setColor(QPalette::Button, QColor(53,53,53));
+    darkPalette.setColor(QPalette::ButtonText, Qt::white);
+    darkPalette.setColor(QPalette::BrightText, Qt::red);
+    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+
+    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::HighlightedText, Qt::black);
+
+    qApp->setPalette(darkPalette);
+
+    qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
+
     NeuralNetwork<double> network;
     std::vector<unsigned int> layerCounts;
     layerCounts.push_back(15);
-    network.init(9,1,layerCounts, rectifier<double>, rectifierDerivative<double>, rectifier<double>, rectifierDerivative<double>, meanSquared<double>, derivativeMeanSquaredRectifier<double>);
+    network.init(9,1,layerCounts, tanh<double>, tanhDerivative<double>, tanh<double>, tanhDerivative<double>, meanSquared<double>, derivativeMeanSquaredtanh<double>);
 
-    /*QFile file("deepreinforce_r_1_100_751.sav");
+    QFile file("deepreinforce_r_1_15_double_898.sav");
 
     file.open(QIODevice::ReadOnly);
 
@@ -319,8 +354,8 @@ int main(int argc, char *argv[])
     network.assignWeights(data);
 
     srand(time(NULL));
-    */
-     network.randomWeights();
+
+   //  network.randomWeights();
 
      trainDRL(network);
 
