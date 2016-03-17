@@ -8,6 +8,7 @@
 #include "GradientCheck.h"
 #include "TicTacToeDialog.h"
 #include <QStyleFactory>
+#include "CostDialog.h"
 
 static double rate = 0.1;
 static unsigned int count = 0;
@@ -33,7 +34,7 @@ else
 
 float getReward(NeuralNetwork<double> &network, std::vector<double> &position, int side, int depth)
 {
-if((position[0] == side && position[1] == side && position[2] == side) ||
+/*if((position[0] == side && position[1] == side && position[2] == side) ||
    (position[3] == side && position[4] == side && position[5] == side) ||
    (position[6] == side && position[7] == side && position[8] == side) ||
    (position[0] == side && position[3] == side && position[6] == side)||
@@ -54,13 +55,13 @@ if((position[0] == side && position[1] == side && position[2] == side) ||
 }
 else
 {
-
+*/
     std::vector<double> outputs;
     network.getResult(position, outputs);
 
     float q = outputs[0];
     return q;
-}
+//}
 }
 
 
@@ -69,7 +70,7 @@ void recursiveTrain(NeuralNetwork<double> &network, NeuralNetwork<double>::MiniB
 
 for(int i = 0;i<9;++i)
 {
-    if ((depth == 1 && i == 4) || (depth != 1))
+  //  if ((depth == 1 && i == 4) || (depth == 3 && (i == 5 || i==3 || i==1 || i==7)) || (depth != 1 && depth !=3))
     if (position[i] == 0)
     {
 
@@ -240,24 +241,23 @@ for (int i = 0; i< 100000; ++i)
     NeuralNetwork<double>::MiniBatch miniBatch;
 
     recursiveTrain(network,miniBatch, position, 1 ,1);
-
+    double cost;
     if (miniBatch.size())
     {
-        double cost;
         std::vector<NeuralNetworkLayer<double>> gradient;
 
         network.forwardPropagateParallel(12, miniBatch, cost, gradient);
-        qDebug() << "cost" << cost << miniBatch.size();
+
         count++;
-        if (count%1000 == 0)
+        if (count%200 == 0)
         {
-            rate*=0.8;
+            rate*=0.9;
         }
         network.updateWeights(rate, gradient);
     }
 
     network.dumpWeights("deepreinforce_r_1_15_double", i);
-    qDebug() << "save file"<< i;
+    qDebug() << "save file"<< i << "cost"<< cost;
 }
 
 qDebug() << "Neural network for trainDRL has trained, now test:";
@@ -337,10 +337,10 @@ int main(int argc, char *argv[])
 
     NeuralNetwork<double> network;
     std::vector<unsigned int> layerCounts;
-    layerCounts.push_back(15);
+    layerCounts.push_back(20);
     network.init(9,1,layerCounts, tanh<double>, tanhDerivative<double>, tanh<double>, tanhDerivative<double>, meanSquared<double>, derivativeMeanSquaredtanh<double>);
 
-    QFile file("deepreinforce_r_1_15_double_898.sav");
+    QFile file("deepreinforce_r_1_15_double_250.sav");
 
     file.open(QIODevice::ReadOnly);
 
@@ -357,11 +357,15 @@ int main(int argc, char *argv[])
 
    //  network.randomWeights();
 
-     trainDRL(network);
+   //  trainDRL(network);
 
 
-    TicTacToeDialog dialog(network);
+    CostDialog cd;
 
-    dialog.show();
+    cd.show();
+
+   // TicTacToeDialog dialog(network);
+
+  //  dialog.show();
     return a.exec();
 }
