@@ -6,77 +6,69 @@
 #include "ActivationFunctions.h"
 
 template<class ScalarType>
-void crossEntropy(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, ScalarType &cost)
+void crossEntropySigmoidCPU(const ScalarType *outputs, unsigned int outputSize, const ScalarType *labels, ScalarType *cost, unsigned int batchSize, ScalarType *derivatives)
 {
-    cost = 0.0;
-    for(size_t i = 0; i < outputs.size(); ++i)
+    for(int e = 0;e<batchSize;++e)
     {
-        cost += labels[i]*log(outputs[i]) + (1 - labels[i])*log(1 - outputs[i]);
-    }
-    cost *= -1.0;
-}
-
-template<class ScalarType>
-void derivativeCrossEntropySigmoid(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, std::vector<ScalarType> &derivatives)
-{
-    derivatives.resize(outputs.size());
-
-    for(size_t i = 0; i < outputs.size(); ++i)
-    {
-        derivatives[i] = outputs[i] - labels[i];
-    }
-}
-
-template<class ScalarType>
-void meanSquared(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, ScalarType &cost)
-{
-    cost = 0.0;
-    for(size_t i = 0;i<outputs.size();++i)
-    {
-        cost += (outputs[i] - labels[i])*(outputs[i] - labels[i]);
-    }
-    cost /= (float) outputs.size();
-}
-
-template<class ScalarType>
-void derivativeMeanSquaredRectifier(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, std::vector<ScalarType> &derivatives)
-{
-    derivatives.resize(outputs.size());
-
-    for(size_t i = 0; i < outputs.size(); ++i)
-    {
-        if (outputs[i] >= 0)
+        cost[e] = 0.0;
+        for(size_t i = 0; i < outputSize; ++i)
         {
-            derivatives[i] = 2.0 * (outputs[i] - labels[i]) / outputs.size();
+            ScalarType output = outputs[e * outputSize + i];
+            ScalarType label = labels[e * outputSize + i];
+
+            cost[e] += label*log(output) + (1.0 - label)*log(1.0 - output);
+            derivatives[e*outputSize + i] = output - label;
         }
-        else
+        cost[e] *= -1.0;
+    }
+}
+
+template<class ScalarType>
+void meanSquaredRectifierCPU(const ScalarType *outputs, unsigned int outputSize, const ScalarType *labels, ScalarType *cost, unsigned int batchSize, ScalarType *derivatives)
+{
+    ScalarType norm = 1.0 / outputSize;
+    for(int e = 0;e<batchSize;++e)
+    {
+        cost[e] = 0.0;
+
+        for(size_t i = 0; i<outputSize; ++i)
         {
-            derivatives[i] = 0;
+            ScalarType output = outputs[e * outputSize + i];
+            ScalarType label = labels[e * outputSize + i];
+
+            cost[e] += (output - label) * (output - label);
+            derivatives[e*outputSize + i] = output >=0 ? 2.0 * (output - label) * norm : 0.0;
         }
+        cost[e] *= norm;
     }
 }
 
 //here outputs means last layer with activation but no cost function
-template<class ScalarType>
-void derivativeMeanSquaredtanh(const std::vector<ScalarType> &outputs, const std::vector<ScalarType> &labels, std::vector<ScalarType> &derivatives)
+/*template<class ScalarType>
+void derivativeMeanSquaredTanh(const ScalarType *outputs, unsigned int outputSize, const ScalarType *labels, ScalarType *derivatives, unsigned int batchSize)
 {
-    derivatives.resize(outputs.size());
 
-    for(size_t i = 0; i < outputs.size(); ++i)
+    for(int e = 0;e<batchSize;++e)
     {
-        ScalarType tanhv = outputs[i];
-        derivatives[i] = 2.0 * (tanhv - labels[i]) * (1.0 - tanhv * tanhv) / outputs.size();
+        for(size_t i = 0; i < outputSize; ++i)
+        {
+            ScalarType tanhv = outputs[i * batchSize + e];
+            derivatives[e*batchSize + i] = 2.0 * (tanhv - labels[i]) * (1.0 - tanhv * tanhv) / outputSize;
+        }
     }
 }
 
+*/
+
+/*
 template<class ScalarType>
-ScalarType derivativeMeanSquaredtanh2(ScalarType outputs, ScalarType labels)
+ScalarType derivativeMeanSquaredTanh2(ScalarType outputs, ScalarType labels)
 {
     //derivatives.resize(outputs.size());
 
         ScalarType tanhv = tanhHelper(outputs);
         return 2.0 * (tanhv - labels) * (1.0 - tanhv * tanhv);
-}
+}*/
 
 
 

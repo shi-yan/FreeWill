@@ -2,7 +2,7 @@
 #include "ActivationFunctions.h"
 #include "CostFunctions.h"
 #include "GradientCheck.h"
-
+/*
 static double sweights[] = { 0.35778736,  0.56078453,  1.08305124,  1.05380205, -1.37766937, -0.93782504,
   0.51503527,  0.51378595,  0.51504769 , 3.85273149 , 0.57089051,  1.13556564,
   0.95400176,  0.65139125, -0.31526924 , 0.75896922, -0.77282521, -0.23681861,
@@ -587,7 +587,7 @@ void testNeuralNetwork()
 {
     testNeuralNetworkGradientCheck();
  //   testXORNeuralNetwork3();
-}
+}*/
 
 
 

@@ -1,4 +1,7 @@
-#include <QApplication>
+//#include <QApplication>
+#include <set>
+#include <QByteArray>
+#include <QtTest>
 #include <QDebug>
 #include <vector>
 #include <NeuralNetwork.h>
@@ -6,6 +9,8 @@
 #include <CostFunctions.h>
 #include <GradientCheck.h>
 //#include "TicTacToeDialog.h"
+#include "UnitTests/MatrixMultiplicationUnitTests.h"
+#include <QElapsedTimer>
 
 /*
 
@@ -49,8 +54,8 @@ static void word2Vec()
 */
 
 
-int main(int argc, char *argv[])
-{
+//int main(int argc, char *argv[])
+//{
 /*    QApplication a(argc, argv);
 
     testGradientCheck();
@@ -84,4 +89,31 @@ int main(int argc, char *argv[])
 
 
     return a.exec();*/
+
+   /* QApplication a(argc, argv);
+
+
+    NeuralNetwork<float> network;
+    std::vector<unsigned int> layerCounts;
+    layerCounts.push_back(30);
+    network.init(9,1,layerCounts, sigmoid<float>, sigmoidDerivative<float>, sigmoid<float>, sigmoidDerivative<float>, crossEntropy<float>, derivativeCrossEntropySigmoid<float>);
+    srand(time(NULL));
+
+    network.randomWeights();
+
+    std::vector<float> inputs;
+    inputs.resize(9, 0.5);
+    std::vector<float> outputs;
+
+    QElapsedTimer et;
+    et.start();
+    for(int i =0;i<10000000;++i)
+    network.getResult(inputs, outputs);
+
+    qDebug() << "done" << et.elapsed();
+    return a.exec();
 }
+*/
+
+QTEST_MAIN(MatrixMultiplicationUnitTests)
+//#include "MatrixMultiplicationUnitTests.moc"

@@ -1,10 +1,11 @@
 #ifndef NEURALNETWORK_H
 #define NEURALNETWORK_H
 
+#include "Global.h"
 #include <vector>
 #include <QString>
 #include <time.h>
-#include "NeuralNetworkLayer.h"
+#include "FullyConnectedLayer.h"
 #include "ActivationFunctions.h"
 #include <QFile>
 #include <QThread>
@@ -12,74 +13,32 @@
 #include <thread>
 #include <tuple>
 
-template<class ScalarType>
-class NeuralNetwork
+namespace FreeWill
 {
-public:
-    std::vector<NeuralNetworkLayer<ScalarType>> m_layers;
-    unsigned int m_inputSize;
-    unsigned int m_outputSize;
-    std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, ScalarType&)> m_costFunction;
-    std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, std::vector<ScalarType>&)> m_costFunctionDerivative;
 
-public:
-    class TrainingData
+  /*  template<bool UseGpu = false, class ScalarType = float>
+    class NeuralNetwork
     {
-    private:
-        std::vector<ScalarType> m_inputs;
-        std::vector<ScalarType> m_outputs;
-
     public:
-        TrainingData():m_inputs(), m_outputs()
-        {}
 
-        TrainingData(std::vector<ScalarType> &inputs, std::vector<ScalarType> &outputs)
-            :m_inputs(inputs),
-              m_outputs(outputs)
-        {
-        }
+        std::vector<FullyConnectedLayer<UseGpu, ScalarType>> m_layers;
+        unsigned int m_inputSize;
+        unsigned int m_outputSize;
+        CostFunction m_costFunction;
 
-        TrainingData(const TrainingData &in)
-            :m_inputs(in.m_inputs),
-              m_outputs(in.m_outputs)
-        {}
+public:
 
-        void operator=(const TrainingData &in)
-        {
-            m_inputs = in.m_inputs;
-            m_outputs = in.m_outputs;
-        }
-
-        const std::vector<ScalarType> &getInputs() const
-        {
-            return m_inputs;
-        }
-
-        const std::vector<ScalarType> &getOutputs() const
-        {
-            return m_outputs;
-        }
-    };
-
-    typedef std::vector<NeuralNetwork<ScalarType>::TrainingData> MiniBatch;
-
-    static void parallelTrainingKernel(NeuralNetwork<ScalarType> &network, const NeuralNetwork<ScalarType>::MiniBatch &miniBatch, int offset, int size, std::vector<NeuralNetworkLayer<ScalarType>> &gradientForBatch, ScalarType &cost)
+    static void parallelTrainingKernel(NeuralNetwork<UseGpu, ScalarType> &network, ScalarType *input, ScalarType *label, int batchSize,  ScalarType &cost)
     {
         cost = 0.0;
 
-        for(size_t i = 0; i < network.m_layers.size(); ++i)
-        {
-            NeuralNetworkLayer<ScalarType> layer(network.m_layers[i].getInputSize(), network.m_layers[i].getOutputSize(), network.m_layers[i].getActivationFunction(), network.m_layers[i].getActivationDerivative());
-            gradientForBatch.push_back(layer);
-        }
-
         for(size_t b = offset; b< offset + size; ++b)
         {
-            std::vector<NeuralNetworkLayer<ScalarType>> gradientForOneData;
+            std::vector<FullyConnectedLayer<UseGpu, ScalarType>> gradientForOneData;
             gradientForOneData.reserve(network.m_layers.size());
             for(size_t i = 0; i < network.m_layers.size(); ++i)
             {
-                NeuralNetworkLayer<ScalarType> layer(network.m_layers[i].getInputSize(), network.m_layers[i].getOutputSize(), network.m_layers[i].getActivationFunction(), network.m_layers[i].getActivationDerivative());
+                FullyConnectedLayer<UseGpu, ScalarType> layer(network.m_layers[i].getInputSize(), network.m_layers[i].getOutputSize(), network.m_layers[i].getActivationFunction(), network.m_layers[i].getActivationDerivative());
                 gradientForOneData.push_back(layer);
             }
 
@@ -128,10 +87,10 @@ public:
 
     void init(unsigned int inputSize, unsigned int outputSize,
               const std::vector<unsigned int> &neuronCountsForAllLayers,
-              std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> activationForInnerLayers,
-              std::function<ScalarType (ScalarType in)> activationDerivativeForInnerLayers,
-              std::function<void (const std::vector<ScalarType>&, std::vector<ScalarType>&)> activationForLastLayer,
-              std::function<ScalarType (ScalarType in)> activationDerivativeForLastLayer,
+              std::function<ScalarType (const ScalarType)> activationForInnerLayers,
+              std::function<ScalarType (const ScalarType)> activationDerivativeForInnerLayers,
+              std::function<ScalarType (const ScalarType)> activationForLastLayer,
+              std::function<ScalarType (const ScalarType)> activationDerivativeForLastLayer,
               std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, ScalarType&)> costFunction,
               std::function<void (const std::vector<ScalarType>&, const std::vector<ScalarType>&, std::vector<ScalarType>&)> costFunctionDerivitive)
     {
@@ -144,13 +103,13 @@ public:
         for(size_t i = 0; i < neuronCountsForAllLayers.size(); ++i)
         {
             unsigned int layerSize = neuronCountsForAllLayers[i];
-            NeuralNetworkLayer<ScalarType> oneLayer(previousLayerSize, layerSize, activationForInnerLayers, activationDerivativeForInnerLayers);
+            FullyConnectedLayer<UseGpu, ScalarType> oneLayer(previousLayerSize, layerSize, activationForInnerLayers, activationDerivativeForInnerLayers);
 
             m_layers.push_back(oneLayer);
             previousLayerSize = layerSize;
         }
 
-        NeuralNetworkLayer<ScalarType> lastLayer(previousLayerSize, outputSize, activationForLastLayer, activationDerivativeForLastLayer);
+        FullyConnectedLayer<UseGpu, ScalarType> lastLayer(previousLayerSize, outputSize, activationForLastLayer, activationDerivativeForLastLayer);
 
         m_layers.push_back(lastLayer);
     }
@@ -210,23 +169,23 @@ public:
         outputs = *previousInput;
     }
 
-    void forwardPropagate(const NeuralNetwork<ScalarType>::MiniBatch &miniBatch, ScalarType &cost, std::vector<NeuralNetworkLayer<ScalarType>> &gradient)
+    void forwardPropagate(const NeuralNetwork<UseGpu, ScalarType>::MiniBatch &miniBatch, ScalarType &cost, std::vector<FullyConnectedLayer<UseGpu, ScalarType>> &gradient)
     {
         cost = 0.0;
 
         for(size_t i = 0; i < m_layers.size(); ++i)
         {
-            NeuralNetworkLayer<ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize(), m_layers[i].getActivationFunction(), m_layers[i].getActivationDerivative());
+            FullyConnectedLayer<UseGpu, ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize(), m_layers[i].getActivationFunction(), m_layers[i].getActivationDerivative());
             gradient.push_back(layer);
         }
 
         for(size_t b = 0; b<miniBatch.size(); ++b)
         {
-            std::vector<NeuralNetworkLayer<ScalarType>> gradientForOneData;
+            std::vector<FullyConnectedLayer<UseGpu, ScalarType>> gradientForOneData;
             gradientForOneData.reserve(m_layers.size());
             for(size_t i = 0; i < m_layers.size(); ++i)
             {
-                NeuralNetworkLayer<ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize(), m_layers[i].getActivationFunction(), m_layers[i].getActivationDerivative());
+                FullyConnectedLayer<UseGpu, ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize(), m_layers[i].getActivationFunction(), m_layers[i].getActivationDerivative());
                 gradientForOneData.push_back(layer);
             }
 
@@ -271,7 +230,7 @@ public:
         cost /= miniBatch.size();
     }
 
-    void forwardPropagateParallel(int threadCount, const NeuralNetwork<ScalarType>::MiniBatch &miniBatch, ScalarType &cost, std::vector<NeuralNetworkLayer<ScalarType>> &gradient)
+    void forwardPropagateParallel(int threadCount, const NeuralNetwork<UseGpu, ScalarType>::MiniBatch &miniBatch, ScalarType &cost, std::vector<FullyConnectedLayer<UseGpu, ScalarType>> &gradient)
     {
 
         int batchSize = miniBatch.size() / threadCount;
@@ -280,13 +239,13 @@ public:
         int offset = 0;
         QSemaphore semaphore;
 
-        std::vector<std::tuple<std::vector<NeuralNetworkLayer<ScalarType>>, ScalarType, std::thread>>  threadPool;
+        std::vector<std::tuple<std::vector<FullyConnectedLayer<UseGpu, ScalarType>>, ScalarType, std::thread>>  threadPool;
         threadPool.resize(threadCount);
 
         for(int b = 0;b<threadCount;++b)
         {
             int currentBatchSize = batchSize + (b<batchRemain?1:0);
-            std::get<2>(threadPool[b]) = std::thread(NeuralNetwork<ScalarType>::parallelTrainingKernel, std::ref(*this), std::ref(miniBatch), offset, currentBatchSize, std::ref(std::get<0>(threadPool[b])), std::ref(std::get<1>(threadPool[b])));
+            std::get<2>(threadPool[b]) = std::thread(NeuralNetwork<UseGpu, ScalarType>::parallelTrainingKernel, std::ref(*this), std::ref(miniBatch), offset, currentBatchSize, std::ref(std::get<0>(threadPool[b])), std::ref(std::get<1>(threadPool[b])));
             offset += currentBatchSize;
         }
 
@@ -294,7 +253,7 @@ public:
 
         for(size_t i = 0; i < m_layers.size(); ++i)
         {
-            NeuralNetworkLayer<ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize(), m_layers[i].getActivationFunction(), m_layers[i].getActivationDerivative());
+            FullyConnectedLayer<UseGpu, ScalarType> layer(m_layers[i].getInputSize(), m_layers[i].getOutputSize(), m_layers[i].getActivationFunction(), m_layers[i].getActivationDerivative());
             gradient.push_back(layer);
         }
 
@@ -320,15 +279,15 @@ public:
         cost /= miniBatch.size();
     }
 
-    void updateWeights(ScalarType rate, const std::vector<NeuralNetworkLayer<ScalarType>> &gradient)
+    void updateWeights(ScalarType rate, const std::vector<FullyConnectedLayer<UseGpu, ScalarType>> &gradient)
     {
         for(size_t i = 0; i< m_layers.size(); ++i)
         {
             m_layers[i].updateWeights(rate, gradient[i]);
         }
     }
-};
-
-void testNeuralNetwork();
+};*/
+}
+//void testNeuralNetwork();
 
 #endif // NEURALNETWORK_H
