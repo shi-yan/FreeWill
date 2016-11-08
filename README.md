@@ -15,3 +15,6 @@ The implementation is purely on CPU, but later I may extend it to GPU.
 I'm also interested in creating a UI for this library.
 
 The first goal of this project is matching https://github.com/karpathy/convnetjs feature wise.
+
+To build:
+CMAKE_PREFIX_PATH=/home/shiy/Qt/5.7/gcc_64 cmake .. -DCMAKE_BUILD_TYPE=debug

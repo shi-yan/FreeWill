@@ -5,7 +5,6 @@ SET (CMAKE_C_COMPILER /usr/bin/gcc)
 SET (CMAKE_C_FLAGS          "-std=gnu++14 -march=x86-64 -m64")
 SET (CMAKE_CXX_COMPILER /usr/bin/g++)
 SET (CMAKE_CXX_FLAGS        "-std=c++1y -march=x86-64 -m64 -fno-omit-frame-pointer -fPIC -I/usr/local/include -Wall -Wextra -Woverloaded-virtual -Wno-unused-local-typedefs")
-SET (CMAKE_INCLUDE_SYSTEM_FLAG_CXX "isystem")
 
 set (CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}" CACHE STRING "c flags")
 set (CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}" CACHE STRING "c++ flags")
@@ -29,6 +28,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_STANDARD 14)
 
 find_package(Qt5Core REQUIRED)
+include_directories(${Qt5Core_INCLUDE_DIRS})
+add_definitions(${Qt5Core_DEFINITIONS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
+
+
+find_package(Qt5Test REQUIRED)
+include_directories(${Qt5Test_INCLUDE_DIRS})
 
 get_target_property(QtCore_Location Qt5::Core LOCATION)
 
@@ -36,6 +42,8 @@ MESSAGE("Using Qt version ${Qt5Core_VERSION} under ${QtCore_Location}")
 
 set(FreeWill_SOURCES 
     Blob/Blob.cpp 
-    Main.cpp)
+    FreeWillUnitTest.cpp)
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
+target_link_libraries(FreeWillUnitTest Qt5::Core)
+target_link_libraries(FreeWillUnitTest Qt5::Test)
