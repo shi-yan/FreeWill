@@ -10,3 +10,6 @@ namespace FreeWill
 		GPU_CUDA       = 0x4
 	} DeviceType;
 }
+
+#define DEVICE_SPECIFIC(devices) \
+    template<DeviceType T = DeviceUsed, typename Enabled = typename std::enable_if<(T & devices) != 0> >
