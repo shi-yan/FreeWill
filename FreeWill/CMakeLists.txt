@@ -1,10 +1,10 @@
 cmake_minimum_required (VERSION 3.5)
 project (FreeWill)
 
-SET (CMAKE_C_COMPILER /usr/bin/gcc)
-SET (CMAKE_C_FLAGS          "-std=gnu++14 -march=x86-64 -m64")
+SET (CMAKE_C_COMPILER /Users/shiyan/clang/build/bin/clang)
+SET (CMAKE_C_FLAGS          "-std=gnu++1z -march=x86-64 -m64")
 SET (CMAKE_CXX_COMPILER /usr/bin/g++)
-SET (CMAKE_CXX_FLAGS        "-std=c++1y -march=x86-64 -m64 -fno-omit-frame-pointer -fPIC -I/usr/local/include -Wall -Wextra -Woverloaded-virtual -Wno-unused-local-typedefs")
+SET (CMAKE_CXX_FLAGS        "-std=c++1z -march=x86-64 -m64 -fno-omit-frame-pointer -fPIC -I/usr/local/include -Wall -Wextra -Woverloaded-virtual -Wno-unused-local-typedefs")
 
 set (CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}" CACHE STRING "c flags")
 set (CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}" CACHE STRING "c++ flags")

@@ -17,6 +17,14 @@ namespace FreeWill
         const unsigned int m_height;
         const unsigned int m_width;
         DataType *m_data;
+
+        Blob_data(const std::string &name, unsigned int batchSize, unsigned int depth, unsigned int height, unsigned int width)
+            :m_name(name),
+              m_batchSize(batchSize),
+              m_depth(depth),
+              m_height(height),
+              m_width(width)
+        {}
     };
 
 	template<DeviceType DeviceUsed = CPU, typename DataType = float>
@@ -46,7 +54,9 @@ namespace FreeWill
              const unsigned int depth,
              const unsigned int height,
              const unsigned int width,
-             const std::string &name = "no_name");
+             const std::string &name = "no_name")
+            :Blob_data<DataType>(name, batchSize, depth, height, width)
+        {}
     };
 
 
