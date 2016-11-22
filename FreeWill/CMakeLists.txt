@@ -1,9 +1,12 @@
 cmake_minimum_required (VERSION 3.5)
 project (FreeWill)
 
-SET (CMAKE_C_COMPILER /Users/shiyan/clang/build/bin/clang)
+SET (Qt5Core_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Core)
+SET (Qt5Test_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Test)
+SET (CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/qt5)
+#SET (CMAKE_C_COMPILER /Users/shiyan/clang/build/bin/clang)
 SET (CMAKE_C_FLAGS          "-std=gnu++1z -march=x86-64 -m64")
-SET (CMAKE_CXX_COMPILER /usr/bin/g++)
+#SET (CMAKE_CXX_COMPILER /usr/bin/clang++)
 SET (CMAKE_CXX_FLAGS        "-std=c++1z -march=x86-64 -m64 -fno-omit-frame-pointer -fPIC -I/usr/local/include -Wall -Wextra -Woverloaded-virtual -Wno-unused-local-typedefs")
 
 set (CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}" CACHE STRING "c flags")
@@ -41,7 +44,7 @@ get_target_property(QtCore_Location Qt5::Core LOCATION)
 MESSAGE("Using Qt version ${Qt5Core_VERSION} under ${QtCore_Location}")
 
 set(FreeWill_SOURCES 
-    Blob/Blob.cpp 
+    Tensor/Tensor.cpp 
     FreeWillUnitTest.cpp)
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
