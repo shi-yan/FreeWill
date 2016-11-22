@@ -1,6 +1,9 @@
 #ifndef SHAPE_H
 #define SHAPE_H
 
+#include <initializer_list>
+#include <algorithm>
+
 namespace FreeWill
 {
     template<int Dimension>
@@ -19,7 +22,21 @@ namespace FreeWill
             *this = shape;
         }
 
-        unsigned int getSize()
+        Shape(const unsigned int in[Dimension])
+        {
+            #pragma unroll
+            for(int i = 0; i < Dimension; ++i)
+            {
+                m_dim[i] = in[i];
+            }
+        }
+
+        Shape(const std::initializer_list<unsigned int> &li)
+        {
+            std::copy(li.begin(), li.begin() + std::min(li.size(), (unsigned long) Dimension), m_dim); 
+        }
+
+        unsigned int getSize() const 
         {
 		    unsigned int size = 0;
             #pragma unroll
@@ -39,7 +56,21 @@ namespace FreeWill
             }
         }
 
-        bool operator==(const Shape<Dimension> &shape)
+        void operator=(const unsigned int in[Dimension])
+        {
+            #pragma unroll
+            for(int i = 0; i < Dimension; ++i)
+            {
+                m_dim[i] = in[i];
+            }
+        }
+
+        void operator=(const std::initializer_list<unsigned int> &li)
+        {
+            std::copy(li.begin(), li.begin() + std::min(li.size(), (unsigned long) Dimension), m_dim);
+        }
+
+        bool operator==(const Shape<Dimension> &shape) const 
         {
             #pragma unroll
             for(int i = 0; i < Dimension; ++i)
@@ -52,10 +83,15 @@ namespace FreeWill
             return true;
         }
 
-        unsigned int operator[](unsigned int i)
+        unsigned int &operator[](unsigned int i)
         {
             return m_dim[i];
         }
     };
+
+    Shape<1> createShape(unsigned int size);
+    Shape<2> createShape(unsigned int batchSize, unsigned int size);
+    Shape<3> createShape(unsigned int batchSize, unsigned int height, unsigned int width);
 }
+
 #endif
