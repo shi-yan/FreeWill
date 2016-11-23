@@ -36,7 +36,7 @@ namespace FreeWill
             std::copy(li.begin(), li.begin() + std::min(li.size(), (unsigned long) Dimension), m_dim); 
         }
 
-        unsigned int getSize() const 
+        unsigned int size() const 
         {
 		    unsigned int size = 0;
             #pragma unroll

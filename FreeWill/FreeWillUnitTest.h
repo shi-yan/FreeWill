@@ -6,4 +6,5 @@ class FreeWillUnitTest : public QObject
 
 private slots:
     void blobTest();
+    void tensorTest();
 };

@@ -40,5 +40,14 @@ void FreeWillUnitTest::blobTest()
     //QVERIFY(str.toUpper() == "HELLO");
 }
 
+void FreeWillUnitTest::tensorTest()
+{
+    FreeWill::Tensor<4, FreeWill::CPU_NAIVE, float> tensor({64, 0, 32, 32});
+    tensor.init();
+    tensor.randomize();
+
+    QVERIFY(1 == 1);
+}
+
 QTEST_MAIN(FreeWillUnitTest)
 #include "FreeWillUnitTest.moc"
