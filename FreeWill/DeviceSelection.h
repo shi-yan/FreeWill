@@ -1,3 +1,6 @@
+#ifndef DEVICESELECTION_H
+#define DEVICESELECTION_H
+
 
 namespace FreeWill 
 {
@@ -13,3 +16,5 @@ namespace FreeWill
 
 #define DEVICE_SPECIFIC(devices) \
     template<DeviceType T = DeviceUsed, typename Enabled = typename std::enable_if<(T & devices) != 0> >
+
+#endif
