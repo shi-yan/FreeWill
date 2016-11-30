@@ -83,6 +83,11 @@ namespace FreeWill
             return true;
         }
 
+        bool operator!=(const Shape<Dimension> &shape) const
+        {
+            return !operator==(shape);
+        }
+
         unsigned int &operator[](unsigned int i)
         {
             return m_dim[i];

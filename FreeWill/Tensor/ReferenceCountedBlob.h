@@ -5,7 +5,7 @@
 #include <cstring>
 #include <algorithm>
 #include <random>
-
+#include <cstdio>
 
 namespace FreeWill
 {
@@ -20,36 +20,36 @@ namespace FreeWill
             return ++ counter;
         }
 
-        unsigned int decrease()
+        int decrease()
         {
             return -- counter;
         }
     };
 
-    template<DeviceType DeviceUsed, typename DataType = float>
+    template<DeviceType DeviceUsed>
     class ReferenceCountedBlob
     {
     private:
-        unsigned int m_size;
+        unsigned int m_sizeInByte;
         ReferenceCounter *m_referenceCounter;
-        DataType *m_dataHandle;
+        unsigned char *m_dataHandle;
 
         void cleanup()
         {
             if (m_referenceCounter->decrease() == 0)
             {
-                delete m_dataHandle;
+                free(m_dataHandle);
                 delete m_referenceCounter;
             }
             
             m_referenceCounter = nullptr;
             m_dataHandle = nullptr;
-            m_size = 0;
+            m_sizeInByte = 0;
         }
 
     public:
         ReferenceCountedBlob()
-            :m_size(0),
+            :m_sizeInByte(0),
             m_referenceCounter(nullptr),
             m_dataHandle(nullptr)
         {
@@ -57,15 +57,15 @@ namespace FreeWill
             m_referenceCounter->increase();
         }
 
-        ReferenceCountedBlob(const ReferenceCountedBlob<DeviceUsed, DataType> &blob)
-            :m_size(0),
+        ReferenceCountedBlob(const ReferenceCountedBlob<DeviceUsed> &blob)
+            :m_sizeInByte(0),
             m_referenceCounter(nullptr),
             m_dataHandle(nullptr)
         {
             if (blob.m_dataHandle) 
             {
                 m_referenceCounter = blob.m_referenceCounter;
-                m_size = blob.m_size;
+                m_sizeInByte = blob.m_sizeInByte;
                 m_dataHandle = blob.m_dataHandle;
                 m_referenceCounter->increase();
             }
@@ -76,15 +76,20 @@ namespace FreeWill
             }
         }
 
-        bool alloc(unsigned int size)
+        unsigned char * dataHandle() 
+        {
+            return m_dataHandle;
+        }
+
+        bool alloc(unsigned int sizeInByte)
         {
             if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
             {
-                m_dataHandle = new DataType[size];
+                m_dataHandle = (unsigned char *) malloc(sizeInByte);
                 if (m_dataHandle) 
                 {
-                    m_size = size;
-                    std::memset(m_dataHandle, sizeof(DataType) * size, 0);
+                    m_sizeInByte = sizeInByte;
+                    std::memset(m_dataHandle, sizeInByte, 0);
                     return true;
                 }
                 else
@@ -98,7 +103,7 @@ namespace FreeWill
             }
         }
 
-        void randomize()
+/*        void randomize()
         {
             if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
             {
@@ -111,15 +116,15 @@ namespace FreeWill
                  }
             }
         }
-
-        ReferenceCountedBlob<DeviceUsed, DataType> deepCopy() const 
+*/
+        ReferenceCountedBlob<DeviceUsed> deepCopy() const 
         {
-            ReferenceCountedBlob<DeviceUsed, DataType> copy;
-            copy.alloc(m_size);
+            ReferenceCountedBlob<DeviceUsed> copy;
+            copy.alloc(m_sizeInByte);
 
             if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
             {
-                std::copy(m_dataHandle, m_dataHandle + m_size, copy.m_dataHandle);
+                std::copy(m_dataHandle, m_dataHandle + m_sizeInByte, copy.m_dataHandle);
             }
             else if constexpr ((DeviceUsed & GPU) != 0)
             {
@@ -128,36 +133,35 @@ namespace FreeWill
             return copy;
         }
 
-        void operator=(const ReferenceCountedBlob<DeviceUsed, DataType> &blob)
+        void operator=(const ReferenceCountedBlob<DeviceUsed> &blob)
         {
             if (blob.m_dataHandle)
             {
                 cleanup();
                 m_referenceCounter = blob.m_referenceCounter;
                 m_referenceCounter->increase();
-                m_size = blob.m_size;
+                m_sizeInByte = blob.m_sizeInByte;
                 m_dataHandle = blob.m_dataHandle;
-                
             }
         }
 
-        void operator==(const ReferenceCountedBlob<DeviceUsed, DataType> &blob) const 
+        void operator==(const ReferenceCountedBlob<DeviceUsed> &blob) const 
         {
             return m_dataHandle == blob.m_dataHandle;
         }
 
-        DataType operator[](unsigned int index) const
+        unsigned char operator[](unsigned int index) const
         {
-            if (m_dataHandle && index < m_size)
+            if (m_dataHandle && index < m_sizeInByte)
             {
                 return *(m_dataHandle + index);
             }
             return 0;
         }
 
-        unsigned int size() const
+        unsigned int sizeInByte() const
         {
-            return m_size;
+            return m_sizeInByte;
         }
         
         ~ReferenceCountedBlob()
