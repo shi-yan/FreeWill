@@ -69,7 +69,7 @@ namespace FreeWill
                  std::uniform_real_distribution<DataType> dis(0, 1);
                  DataType *bits = (DataType *) m_data.dataHandle();
                  unsigned int size = m_shape.size();
-                 for (int n = 0; n < size; ++n) 
+                 for (unsigned int n = 0; n < size; ++n) 
                  {
                      bits[n] = dis(gen);
                  } 

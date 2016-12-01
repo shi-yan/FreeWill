@@ -4,7 +4,7 @@
 #include "Model.h"
 #include "Operator/Operator.h"
 #include "Operator/ElementwiseAdd.h"
-
+#include "Operator/Sigmoid.h"
 
 void FreeWillUnitTest::blobTest()
 {
@@ -88,6 +88,23 @@ void FreeWillUnitTest::operatorTest()
     {
         QVERIFY(result[i] == (tensorA[i] + tensorB[i]));
     }
+}
+
+void FreeWillUnitTest::operatorSigmoidTest()
+{
+    FreeWill::Tensor<4, FreeWill::CPU_NAIVE, float> input({64,0,32,32});
+    input.init();
+    input.randomize();
+
+    FreeWill::Tensor<4, FreeWill::CPU_NAIVE, float> output({64,0,32,32});
+    output.init();
+
+    FreeWill::Sigmoid<4, FreeWill::CPU_NAIVE, float> sigmoid;
+    sigmoid.setInput(&input);
+    sigmoid.setOutput(&output);
+
+    sigmoid.init();
+    sigmoid.evaluate();
 }
 
 QTEST_MAIN(FreeWillUnitTest)
