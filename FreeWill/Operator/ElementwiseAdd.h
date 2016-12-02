@@ -7,12 +7,12 @@
 
 namespace FreeWill
 {
-    template<int Dimension = 1, DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<DeviceType DeviceUsed = CPU, typename DataType = float>
     class ElementwiseAdd : public Operator<DeviceUsed>
     {
-        Tensor<Dimension, DeviceUsed, DataType> *m_operandA;
-        Tensor<Dimension, DeviceUsed, DataType> *m_operandB;
-        Tensor<Dimension, DeviceUsed, DataType> *m_result;
+        Tensor<DeviceUsed, DataType> *m_operandA;
+        Tensor<DeviceUsed, DataType> *m_operandB;
+        Tensor<DeviceUsed, DataType> *m_result;
     public:
         ElementwiseAdd()
             :Operator<DeviceUsed>(),
@@ -23,17 +23,17 @@ namespace FreeWill
 
         }
 
-        void setOperandA(Tensor<Dimension, DeviceUsed, DataType> *operandA)
+        void setOperandA(Tensor<DeviceUsed, DataType> *operandA)
         {
             m_operandA = operandA;
         }
 
-        void setOperandB(Tensor<Dimension, DeviceUsed, DataType> *operandB)
+        void setOperandB(Tensor< DeviceUsed, DataType> *operandB)
         {
             m_operandB = operandB;
         }
 
-        void setResult(Tensor<Dimension, DeviceUsed, DataType> *result)
+        void setResult(Tensor< DeviceUsed, DataType> *result)
         {
             m_result = result;
         }

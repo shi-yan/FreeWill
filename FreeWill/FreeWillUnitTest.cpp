@@ -44,11 +44,11 @@ void FreeWillUnitTest::blobTest()
 
 void FreeWillUnitTest::tensorTest()
 {
-    FreeWill::Tensor<4, FreeWill::CPU_NAIVE, float> tensor({64, 0, 32, 32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensor({64, 0, 32, 32});
     tensor.init();
     tensor.randomize();
 
-    auto tensor2 = new FreeWill::Tensor<1, FreeWill::CPU_NAIVE, float>({10});
+    auto tensor2 = new FreeWill::Tensor< FreeWill::CPU_NAIVE, float>({10});
 
     delete tensor2;
 
@@ -61,19 +61,19 @@ void FreeWillUnitTest::operatorTest()
 {
 //    FreeWill::Operator<FreeWill::CPU> o;
 
-    FreeWill::Tensor<4, FreeWill::CPU_NAIVE, float> tensorA({64, 0, 32, 32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensorA({64, 0, 32, 32});
     tensorA.init();
     tensorA.randomize();
 
-    FreeWill::Tensor<4, FreeWill::CPU_NAIVE, float> tensorB({64, 0, 32, 32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensorB({64, 0, 32, 32});
     tensorB.init();
     tensorB.randomize();
 
-    FreeWill::Tensor<4, FreeWill::CPU_NAIVE, float> result({64, 0, 32, 32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> result({64, 0, 32, 32});
     result.init();
     
 
-    FreeWill::ElementwiseAdd<4, FreeWill::CPU_NAIVE, float> elementAdd;
+    FreeWill::ElementwiseAdd< FreeWill::CPU_NAIVE, float> elementAdd;
     elementAdd.setOperandA(&tensorA);
     elementAdd.setOperandB(&tensorB);
     elementAdd.setResult(&result);
@@ -92,14 +92,14 @@ void FreeWillUnitTest::operatorTest()
 
 void FreeWillUnitTest::operatorSigmoidTest()
 {
-    FreeWill::Tensor<4, FreeWill::CPU_NAIVE, float> input({64,0,32,32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> input({64,0,32,32});
     input.init();
     input.randomize();
 
-    FreeWill::Tensor<4, FreeWill::CPU_NAIVE, float> output({64,0,32,32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> output({64,0,32,32});
     output.init();
 
-    FreeWill::Sigmoid<4, FreeWill::CPU_NAIVE, float> sigmoid;
+    FreeWill::Sigmoid< FreeWill::CPU_NAIVE, float> sigmoid;
     sigmoid.setInput(&input);
     sigmoid.setOutput(&output);
 

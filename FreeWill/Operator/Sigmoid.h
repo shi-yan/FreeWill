@@ -8,7 +8,7 @@
 namespace FreeWill
 {
 
-    template<int Dimension = 1, DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<DeviceType DeviceUsed = CPU, typename DataType = float>
     class Sigmoid : public Operator<DeviceUsed>
     {
     public:
@@ -46,18 +46,18 @@ namespace FreeWill
             }
         }
 
-        void setInput(Tensor<Dimension, DeviceUsed, DataType> *input)
+        void setInput(Tensor< DeviceUsed, DataType> *input)
         {
             m_input = input;
         }
 
-        void setOutput(Tensor<Dimension, DeviceUsed, DataType> *output)
+        void setOutput(Tensor< DeviceUsed, DataType> *output)
         {
             m_output = output;
         }   
     private:
-        Tensor<Dimension, DeviceUsed, DataType> *m_input;
-        Tensor<Dimension, DeviceUsed, DataType> *m_output;   
+        Tensor<DeviceUsed, DataType> *m_input;
+        Tensor<DeviceUsed, DataType> *m_output;   
     };
 
 }

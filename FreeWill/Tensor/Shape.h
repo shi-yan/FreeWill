@@ -6,26 +6,37 @@
 
 namespace FreeWill
 {
-    template<int Dimension>
     class Shape
     {
     private:
-        unsigned int m_dim[Dimension] = {0};
+        unsigned int *m_dim;
+        unsigned int m_size;
 
     public:
+        Shape(unsigned int size)
+        {
+            m_size = size;
+            m_dim = new unsigned int[m_size];
+        }
+
         Shape()
+            :m_dim(nullptr),
+             m_size(0)
         {
         }
 
-        Shape(const Shape<Dimension> &shape)
+        Shape(const Shape &shape)
         {
             *this = shape;
         }
 
-        Shape(const unsigned int in[Dimension])
+        Shape(const unsigned int *in, unsigned int size)
         {
+            delete [] m_dim;
+            m_dim = new unsigned int [size];
+            m_size = size;
             #pragma unroll
-            for(int i = 0; i < Dimension; ++i)
+            for(unsigned int i = 0; i < size; ++i)
             {
                 m_dim[i] = in[i];
             }
@@ -33,47 +44,48 @@ namespace FreeWill
 
         Shape(const std::initializer_list<unsigned int> &li)
         {
-            std::copy(li.begin(), li.begin() + std::min(li.size(), (unsigned long) Dimension), m_dim); 
+            *this = li;
         }
 
         unsigned int size() const 
         {
 		    unsigned int size = 0;
             #pragma unroll
-            for(int i = 0; i < Dimension; ++i)
+            for(unsigned int i = 0; i < m_size; ++i)
             {
                 size += m_dim[i];
             }
             return size;
         }
 
-        void operator=(const Shape<Dimension> &shape)
+        void operator=(const Shape &shape)
         {
+            delete [] m_dim;
+            m_dim = new unsigned int[shape.m_size];
+            m_size = shape.m_size;
             #pragma unroll
-            for(int i = 0; i < Dimension; ++i)
+            for(unsigned int i = 0; i < m_size; ++i)
             {
                 m_dim[i] = shape.m_dim[i];
             }
         }
 
-        void operator=(const unsigned int in[Dimension])
-        {
-            #pragma unroll
-            for(int i = 0; i < Dimension; ++i)
-            {
-                m_dim[i] = in[i];
-            }
-        }
-
         void operator=(const std::initializer_list<unsigned int> &li)
         {
-            std::copy(li.begin(), li.begin() + std::min(li.size(), (unsigned long) Dimension), m_dim);
+            delete [] m_dim;
+            m_dim = new unsigned int[li.size()];
+            m_size = li.size();
+            std::copy(li.begin(), li.begin() + m_size, m_dim); 
         }
 
-        bool operator==(const Shape<Dimension> &shape) const 
+        bool operator==(const Shape &shape) const 
         {
+            if (m_size != shape.m_size)
+            {
+                return false;
+            }
             #pragma unroll
-            for(int i = 0; i < Dimension; ++i)
+            for(unsigned int i = 0; i < m_size; ++i)
             {
                 if (m_dim[i] != shape.m_dim[i])
                 {
@@ -83,7 +95,7 @@ namespace FreeWill
             return true;
         }
 
-        bool operator!=(const Shape<Dimension> &shape) const
+        bool operator!=(const Shape &shape) const
         {
             return !operator==(shape);
         }
@@ -92,11 +104,13 @@ namespace FreeWill
         {
             return m_dim[i];
         }
-    };
 
-    Shape<1> createShape(unsigned int size);
-    Shape<2> createShape(unsigned int batchSize, unsigned int size);
-    Shape<3> createShape(unsigned int batchSize, unsigned int height, unsigned int width);
+        ~Shape()
+        {
+            delete [] m_dim;
+            m_size = 0;
+        }
+    };
 }
 
 #endif

@@ -27,16 +27,16 @@ namespace FreeWill
        virtual ~TensorBase() {}
     };
     
-    template<int Dimension = 1, DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<DeviceType DeviceUsed = CPU, typename DataType = float>
     class Tensor : public TensorBase<DeviceUsed>
     {
     private:
-        Shape<Dimension> m_shape;
+        Shape m_shape;
         std::string m_name;
         using TensorBase<DeviceUsed>::m_data;
         
     public:
-        Tensor(const Shape<Dimension> &shape = Shape<Dimension>(),
+        explicit Tensor(const Shape &shape = Shape(),
 	       const std::string &name = "no_name")
             :TensorBase<DeviceUsed>(),
             m_shape(shape),
@@ -44,7 +44,7 @@ namespace FreeWill
 	    {
 	    }
 
-        Tensor(const Tensor &in)
+        explicit Tensor(const Tensor &in)
             :TensorBase<DeviceUsed>(in.m_data),
             m_shape(in.m_shape),
             m_name(in.m_name)
@@ -80,14 +80,14 @@ namespace FreeWill
             }
         }
 
-        void operator=(const Tensor<Dimension, DeviceUsed, DataType> &in)
+        void operator=(const Tensor<DeviceUsed, DataType> &in)
         {
             m_shape = in.m_shape;
             m_name = in.m_name;
             m_data = in.m_data;
         }
 
-        const Shape<Dimension> & shape() const
+        const Shape & shape() const
         {
             return m_shape;
         }

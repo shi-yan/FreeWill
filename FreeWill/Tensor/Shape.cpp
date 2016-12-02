@@ -1,5 +1,5 @@
 #include "Shape.h"
-
+/*
 FreeWill::Shape<1> createShape(unsigned int size)
 {
     FreeWill::Shape<1> shape;
@@ -16,4 +16,4 @@ FreeWill::Shape<3> createShape(unsigned int batchSize, unsigned int height, unsi
 {
     return FreeWill::Shape<3>({width, height, batchSize});
 }
-
+*/
