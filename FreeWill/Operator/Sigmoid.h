@@ -13,7 +13,7 @@ namespace FreeWill
     {
     public:
         Sigmoid()
-            :Operator<DeviceUsed>(),
+            :Operator<DeviceUsed>({"Input"}, {"Output"}),
             m_input(nullptr),
             m_output(nullptr)
         {}  

@@ -15,15 +15,25 @@ namespace FreeWill
     class TensorBase
     {
     protected:
+
+       Shape m_shape;
+
        ReferenceCountedBlob<DeviceUsed> m_data;
-       TensorBase() 
+       TensorBase(const Shape &shape = Shape()) 
+           :m_shape(shape),
+            m_data()
        {}
 
-       TensorBase(const ReferenceCountedBlob<DeviceUsed> &data)
-           :m_data(data)
+       TensorBase(const ReferenceCountedBlob<DeviceUsed> &data, const Shape &shape = Shape())
+           :m_shape(shape),
+               m_data(data)
        {}
-
     public:
+       virtual const Shape &shape() const
+       {
+            return m_shape;
+       }
+
        virtual ~TensorBase() {}
     };
     
@@ -31,22 +41,22 @@ namespace FreeWill
     class Tensor : public TensorBase<DeviceUsed>
     {
     private:
-        Shape m_shape;
+        using TensorBase<DeviceUsed>::m_shape;
         std::string m_name;
         using TensorBase<DeviceUsed>::m_data;
         
     public:
+        using TensorBase<DeviceUsed>::shape;
+
         explicit Tensor(const Shape &shape = Shape(),
 	       const std::string &name = "no_name")
-            :TensorBase<DeviceUsed>(),
-            m_shape(shape),
+            :TensorBase<DeviceUsed>(shape),
             m_name(name)
 	    {
 	    }
 
         explicit Tensor(const Tensor &in)
-            :TensorBase<DeviceUsed>(in.m_data),
-            m_shape(in.m_shape),
+            :TensorBase<DeviceUsed>(in.m_data, in.shape()),
             m_name(in.m_name)
         {
         }
@@ -85,11 +95,6 @@ namespace FreeWill
             m_shape = in.m_shape;
             m_name = in.m_name;
             m_data = in.m_data;
-        }
-
-        const Shape & shape() const
-        {
-            return m_shape;
         }
 
         DataType &operator[](unsigned int i)

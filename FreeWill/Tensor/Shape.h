@@ -14,6 +14,8 @@ namespace FreeWill
 
     public:
         Shape(unsigned int size)
+            :m_dim(nullptr),
+            m_size(0)
         {
             m_size = size;
             m_dim = new unsigned int[m_size];
@@ -26,11 +28,15 @@ namespace FreeWill
         }
 
         Shape(const Shape &shape)
+            :m_dim(nullptr),
+            m_size(0)
         {
             *this = shape;
         }
 
         Shape(const unsigned int *in, unsigned int size)
+            :m_dim(nullptr),
+            m_size(0)
         {
             delete [] m_dim;
             m_dim = new unsigned int [size];
@@ -43,6 +49,8 @@ namespace FreeWill
         }
 
         Shape(const std::initializer_list<unsigned int> &li)
+            :m_dim(nullptr),
+             m_size(0)
         {
             *this = li;
         }

@@ -74,9 +74,9 @@ void FreeWillUnitTest::operatorTest()
     
 
     FreeWill::ElementwiseAdd< FreeWill::CPU_NAIVE, float> elementAdd;
-    elementAdd.setOperandA(&tensorA);
-    elementAdd.setOperandB(&tensorB);
-    elementAdd.setResult(&result);
+    elementAdd.setInputParameter("Operand", &tensorA);
+    elementAdd.setInputParameter("Operand", &tensorB);
+    elementAdd.setOutputParameter("Result", &result);
 
     elementAdd.init();
     elementAdd.evaluate();

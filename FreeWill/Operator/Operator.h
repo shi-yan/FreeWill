@@ -15,62 +15,86 @@ namespace FreeWill
     class Operator
     {
     protected:
-        enum Direction
-        {
-            Input,
-            Output
-        };
-
         struct ParameterDescriptor
         {
             std::string m_name;
-            enum Direction m_direction;
-            std::vector<TensorBase<DeviceUsed> *> m_tensorList;
-            unsigned int m_min;
-            unsigned int m_max;
+            std::vector<TensorBase<DeviceUsed>*> m_tensors;
         };
         
-        struct ParameterInitDescriptor
-        {
-            std::string m_name;
-            enum Direction m_direction;
-            unsigned int m_min;
-            unsigned int m_max;
-        };
-
-        std::map<std::string, struct ParameterDescriptor > parameters;
+        std::map<std::string, struct ParameterDescriptor > m_inputParameters;
+        std::map<std::string, struct ParameterDescriptor > m_outputParameters;
 
     public:
-        Operator(std::initializer_list<struct ParameterInitDescriptor > &parameterList)
-        {
-/*            std::initializer_list<struct ParameterInitDescriptor>::iter iter = parameterList.begin();
+        Operator() = delete;
 
-            for(; iter != parameterList.end(); ++iter)
+        Operator(const std::initializer_list<std::string > &inputParameterList, 
+                 const std::initializer_list<std::string > &outputParameterList)
+        {
+            typename std::initializer_list<std::string>::iterator iterInput = inputParameterList.begin();
+
+            for(; iterInput != inputParameterList.end(); ++iterInput)
             {
                 struct ParameterDescriptor d;
-                d.m_name = (*iter).m_name;
-                d.m_direction = (*iter).m_direction;
-                d.m_min = (*iter).m_min;
-                d.m_max = (*iter).m_max;
-                parameters[(*iter).m_name] = d;
-            }            
-  */      }
-        Operator(){}
+                d.m_name = (*iterInput);
+                m_inputParameters[(*iterInput)] = d;
+            }
+
+           typename std::initializer_list<std::string>::iterator iterOutput = outputParameterList.begin(); 
+
+           for (; iterOutput != outputParameterList.end(); ++iterOutput)
+           {
+                struct ParameterDescriptor d;
+                d.m_name = (*iterOutput);
+                m_outputParameters[(*iterOutput)] = d;
+           }
+        }
+        
         virtual void evaluate() = 0;
         virtual bool init() = 0;
        
-      
         virtual ~Operator(){};
 
-        virtual int inputCount() {return 0;};
-        virtual int outputCount() {return 0;};
-
-        virtual void setParameter(const std::string &name, TensorBase<DeviceUsed> *tensor)
+        virtual int inputCount() 
         {
-           if (parameters.find(name) != parameters.end())
+            typename std::map<std::string, struct ParameterDescriptor>::iterator iter = m_inputParameters.begin();
+
+            unsigned int result = 0;
+            for (; iter != m_inputParameters.end(); ++iter)
+            {
+                result += (*iter).second.m_tensors.size();
+            }
+
+            return result;
+        }
+
+        virtual int outputCount()
+        {
+            typename std::map<std::string, struct ParameterDescriptor>::iterator iter = m_outputParameters.begin();
+
+            unsigned int result = 0;
+
+            for (; iter != m_outputParameters.end(); ++iter)
+            {
+                result += (*iter).second.m_tensors.size();
+            }
+
+            return result;
+        }
+
+        virtual void setInputParameter(const std::string &name, TensorBase<DeviceUsed> *tensor)
+        {
+           if (m_inputParameters.find(name) != m_inputParameters.end())
            {
-               parameters[name].m_tensorList.push_back(tensor);
+               m_inputParameters[name].m_tensors.push_back(tensor);
            } 
+        }
+
+        virtual void setOutputParameter(const std::string &name, TensorBase<DeviceUsed> *tensor)
+        {
+            if (m_outputParameters.find(name) != m_outputParameters.end())
+            {
+                m_outputParameters[name].m_tensors.push_back(tensor);
+            }
         }
     };
 }

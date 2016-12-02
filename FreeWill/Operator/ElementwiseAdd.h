@@ -10,44 +10,30 @@ namespace FreeWill
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
     class ElementwiseAdd : public Operator<DeviceUsed>
     {
-        Tensor<DeviceUsed, DataType> *m_operandA;
-        Tensor<DeviceUsed, DataType> *m_operandB;
-        Tensor<DeviceUsed, DataType> *m_result;
-    public:
+   public:
         ElementwiseAdd()
-            :Operator<DeviceUsed>(),
-            m_operandA(nullptr),
-            m_operandB(nullptr),
-            m_result(nullptr)
+            :Operator<DeviceUsed>({"Operand"}, {"Result"})
         {
-
-        }
-
-        void setOperandA(Tensor<DeviceUsed, DataType> *operandA)
-        {
-            m_operandA = operandA;
-        }
-
-        void setOperandB(Tensor< DeviceUsed, DataType> *operandB)
-        {
-            m_operandB = operandB;
-        }
-
-        void setResult(Tensor< DeviceUsed, DataType> *result)
-        {
-            m_result = result;
         }
 
         virtual bool init() override
         {
-            if (!m_operandA || !m_operandB || !m_result)
+            if (Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors.size() < 1)
             {
                 return false;
-            }            
+            }
 
-            if (m_operandA->shape() != m_operandB->shape() || m_operandA->shape() != m_result->shape())
+            if (Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors.size() != 1)
             {
                 return false;
+            }
+
+            for(int i = 0; i< Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors.size(); ++i)
+            {
+               if(Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[i]->shape() != Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors[0]->shape())
+               {
+                return false;
+               }
             }
 
             return true;
@@ -57,10 +43,16 @@ namespace FreeWill
         {
             if constexpr (DeviceUsed == CPU_NAIVE)
             {
-                unsigned int size = m_operandA->shape().size();
+
+                Tensor<DeviceUsed, DataType> *result = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors[0];
+                Tensor<DeviceUsed, DataType> *operandA = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[0];
+                Tensor<DeviceUsed, DataType> *operandB = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[1];
+
+                unsigned int size = result->shape().size();
+
                 for(unsigned int e = 0; e<size; ++e)
                 {
-                    (*m_result)[e] = (*m_operandA)[e] + (*m_operandB)[e];                    
+                    (*result)[e] = (*operandA)[e] + (*operandB)[e];                    
                 }
             }
             else
