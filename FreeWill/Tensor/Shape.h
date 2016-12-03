@@ -57,13 +57,18 @@ namespace FreeWill
 
         unsigned int size() const 
         {
-		    unsigned int size = 0;
+		    unsigned int size = 1;
             #pragma unroll
             for(unsigned int i = 0; i < m_size; ++i)
             {
-                size += m_dim[i];
+                size *= m_dim[i];
             }
             return size;
+        }
+
+        unsigned int dimension() const
+        {
+            return m_size;
         }
 
         void operator=(const Shape &shape)
@@ -109,6 +114,11 @@ namespace FreeWill
         }
 
         unsigned int &operator[](unsigned int i)
+        {
+            return m_dim[i];
+        }
+
+        unsigned int operator[](unsigned int i) const
         {
             return m_dim[i];
         }

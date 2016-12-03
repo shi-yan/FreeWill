@@ -124,8 +124,19 @@ namespace FreeWill
 
         virtual void clear()
         {
-            m_inputParameters.clear();
-            m_outputParameters.clear();
+            typename std::map<std::string, struct ParameterDescriptor>::iterator iterInput = m_inputParameters.begin();
+
+            for (; iterInput != m_inputParameters.end(); ++iterInput)
+            {
+                (*iterInput).second.m_tensors.clear();
+            }
+
+            typename std::map<std::string, struct ParameterDescriptor>::iterator iterOutput = m_outputParameters.begin();
+
+            for (; iterOutput != m_outputParameters.end(); ++iterOutput)
+            {
+                (*iterOutput).second.m_tensors.clear();
+            } 
         }
     };
 }

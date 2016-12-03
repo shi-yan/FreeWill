@@ -45,7 +45,8 @@ MESSAGE("Using Qt version ${Qt5Core_VERSION} under ${QtCore_Location}")
 
 set(FreeWill_SOURCES 
     Tensor/Tensor.cpp
-    Tensor/Shape.cpp 
+    Tensor/Shape.cpp
+    FreeWillUnitTestTensor.cpp
     FreeWillUnitTest.cpp)
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})

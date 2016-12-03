@@ -1,96 +1,12 @@
 #include "FreeWillUnitTest.h"
 #include "Tensor/Tensor.h"
 #include "Tensor/ReferenceCountedBlob.h"
-#include "Model.h"
 #include "Operator/Operator.h"
 #include "Operator/ElementwiseAdd.h"
 #include "Operator/Sigmoid.h"
 #include "Operator/SigmoidDerivative.h"
-
-
-void FreeWillUnitTest::blobTest()
-{
-    FreeWill::ReferenceCountedBlob<FreeWill::CPU_NAIVE> blob1;
-    blob1.alloc(10);
-
-    QVERIFY(blob1.sizeInByte() == 10);
-
-    FreeWill::ReferenceCountedBlob<FreeWill::CPU_NAIVE> blob2;
-    blob2 = blob1;
-
-    for(unsigned int i = 0; i < blob1.sizeInByte(); ++ i)
-    {
-        QVERIFY(blob1[i] == blob2[i]);
-    }
-
-    {
-        FreeWill::ReferenceCountedBlob<FreeWill::CPU_NAIVE> blob3;
-        blob3 = blob1.deepCopy();
-
-        QVERIFY(blob3.sizeInByte() == blob1.sizeInByte());
-
-        for(unsigned int i = 0; i < blob2.sizeInByte(); ++ i)
-        {
-            QVERIFY(blob3[i] == blob2[i]);
-        }
-    }
-
-    for(unsigned int i = 0; i < blob1.sizeInByte(); ++ i)
-    {
-        QVERIFY(blob1[i] == blob2[i]);
-    }
-
-    //QString str = "Hello";
-    //QVERIFY(str.toUpper() == "HELLO");
-}
-
-void FreeWillUnitTest::tensorTest()
-{
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensor({64, 0, 32, 32});
-    tensor.init();
-    tensor.randomize();
-
-    auto tensor2 = new FreeWill::Tensor< FreeWill::CPU_NAIVE, float>({10});
-
-    delete tensor2;
-
-
-
-    QVERIFY(1 == 1);
-}
-
-void FreeWillUnitTest::operatorTest()
-{
-//    FreeWill::Operator<FreeWill::CPU> o;
-
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensorA({64, 0, 32, 32});
-    tensorA.init();
-    tensorA.randomize();
-
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensorB({64, 0, 32, 32});
-    tensorB.init();
-    tensorB.randomize();
-
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> result({64, 0, 32, 32});
-    result.init();
-    
-
-    FreeWill::ElementwiseAdd< FreeWill::CPU_NAIVE, float> elementAdd;
-    elementAdd.setInputParameter("Operand", &tensorA);
-    elementAdd.setInputParameter("Operand", &tensorB);
-    elementAdd.setOutputParameter("Result", &result);
-
-    elementAdd.init();
-    elementAdd.evaluate();
-
-
-    unsigned int size = tensorA.shape().size();
-
-    for(unsigned int i = 0; i<size; ++i)
-    {
-        QVERIFY(result[i] == (tensorA[i] + tensorB[i]));
-    }
-}
+#include "Operator/SigmoidCrossEntropy.h"
+#include "Operator/SigmoidCrossEntropyDerivative.h"
 
 void FreeWillUnitTest::operatorSigmoidTest()
 {
@@ -121,7 +37,7 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
     FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> sigmoid;
     sigmoid.setInputParameter("Input", &input);
     sigmoid.setOutputParameter("Output", &output);
-    sigmoid.init();
+    QVERIFY(sigmoid.init());
     sigmoid.evaluate();
 
     const double epsilon = 0.001;
@@ -140,21 +56,19 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
     output_smaller.init();
     
     
-    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> sigmoid_larger;
-    
-    sigmoid_larger.setInputParameter("Input", &input_larger);
-    sigmoid_larger.setOutputParameter("Output", &output_larger);
+    sigmoid.clear(); 
+    sigmoid.setInputParameter("Input", &input_larger);
+    sigmoid.setOutputParameter("Output", &output_larger);
 
-    sigmoid_larger.init();
-    sigmoid_larger.evaluate();
+    QVERIFY(sigmoid.init());
+    sigmoid.evaluate();
 
-    
-    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> sigmoid_smaller;
-    sigmoid_smaller.setInputParameter("Input", &input_smaller);
-    sigmoid_smaller.setOutputParameter("Output", &output_smaller);
+    sigmoid.clear();
+    sigmoid.setInputParameter("Input", &input_smaller);
+    sigmoid.setOutputParameter("Output", &output_smaller);
 
-    sigmoid_smaller.init();
-    sigmoid_smaller.evaluate();
+    QVERIFY(sigmoid.init());
+    sigmoid.evaluate();
 
 
 
@@ -165,12 +79,125 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
     sigmoidDerivative.setInputParameter("Input", &output);
     sigmoidDerivative.setOutputParameter("Output", &input);
 
-    sigmoidDerivative.init();
+    QVERIFY(sigmoidDerivative.init());
     sigmoidDerivative.evaluate();
 
     qDebug() << "Gradient check for sigmoid:" << fakeDerivative << " (fake), " << input[0] << " (real)";
 
     QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
+}
+
+void FreeWillUnitTest::operatorSigmoidCrossEntropyTest()
+{
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({10,64});
+    input.init();
+    input.randomize();
+
+    //FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({10, 64});
+    //output.init();
+    //output.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> label({10, 64});
+    label.init();
+    label.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({64});
+    cost.init();
+    cost.randomize();
+
+    FreeWill::SigmoidCrossEntropy<FreeWill::CPU_NAIVE, float> sigmoidCrossEntropy;
+    sigmoidCrossEntropy.setInputParameter("Input", &input);
+    sigmoidCrossEntropy.setInputParameter("Label", &label);
+    sigmoidCrossEntropy.setOutputParameter("Cost", &cost);
+
+    QVERIFY(sigmoidCrossEntropy.init());
+    sigmoidCrossEntropy.evaluate();
+
+
+
+}
+
+void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
+{
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({10,64});
+    input.init();
+    input.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> label({10,64});
+    label.init();
+    label.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({64});
+    cost.init();
+    cost.randomize();
+
+    const double epsilon = 0.001;
+
+    FreeWill::SigmoidCrossEntropy<FreeWill::CPU_NAIVE, float> sigmoidCrossEntropy;
+    sigmoidCrossEntropy.setInputParameter("Input", &input);
+    sigmoidCrossEntropy.setInputParameter("Label", &label);
+    sigmoidCrossEntropy.setOutputParameter("Cost", &cost);
+
+    QVERIFY(sigmoidCrossEntropy.init());
+
+    sigmoidCrossEntropy.evaluate();
+
+    printf("cost:%f\n",cost[0]);
+
+    unsigned int batchSize = 64;
+    unsigned int vectorSize = 10;
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fakeGradient({10,64});
+    fakeGradient.init();
+
+    for(unsigned int e = 0;e<batchSize;++e)
+    {
+        for(unsigned int i = 0;i<vectorSize;++i)
+        {
+            float cost_larger = 0;
+            float original = input[e*vectorSize + i];
+            input[e*vectorSize + i] = original + epsilon;
+
+            sigmoidCrossEntropy.evaluate();
+
+            cost_larger = cost[e];
+
+            input[e*vectorSize + i] = original - epsilon;
+
+            float cost_smaller = 0;
+
+            sigmoidCrossEntropy.evaluate();
+
+            cost_smaller = cost[e];
+
+printf("l:%f, s:%f ,%f\n", cost_larger, cost_smaller, (cost_larger-cost_smaller) / (2.0*epsilon));
+            fakeGradient[e*vectorSize + i] = (cost_larger - cost_smaller) / (2.0 * epsilon);
+
+            input[e*vectorSize + i] = original;
+        }
+    }
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realGradient({10,64});
+    realGradient.init();
+
+    FreeWill::SigmoidCrossEntropyDerivative<FreeWill::CPU_NAIVE, float> sigmoidCrossEntropyDerivative;
+    sigmoidCrossEntropyDerivative.setInputParameter("Input", &input);
+    sigmoidCrossEntropyDerivative.setInputParameter("Label", &label);
+    sigmoidCrossEntropyDerivative.setOutputParameter("Output", &realGradient);
+
+    QVERIFY(sigmoidCrossEntropyDerivative.init());
+
+    sigmoidCrossEntropyDerivative.evaluate();
+
+    
+    
+    unsigned int size = realGradient.shape().size();
+    for(unsigned int i = 0; i<size; ++i)
+    {
+        qDebug() << fakeGradient[i] << ";" << realGradient[i];
+        QVERIFY(std::abs(fakeGradient[i] - realGradient[i]) < epsilon);
+    }    
+
 }
 
 QTEST_MAIN(FreeWillUnitTest)

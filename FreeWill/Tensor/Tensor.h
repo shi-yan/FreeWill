@@ -68,6 +68,8 @@ namespace FreeWill
             {
                 return m_data.alloc(size * sizeof(DataType));
             }
+
+            return false;
 	    }
 
         void randomize()
