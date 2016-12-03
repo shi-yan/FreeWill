@@ -9,4 +9,5 @@ private slots:
     void tensorTest();
     void operatorTest();
     void operatorSigmoidTest();
+    void operatorSigmoidDerivativeTest();
 };

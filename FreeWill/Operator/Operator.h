@@ -101,6 +101,32 @@ namespace FreeWill
                 m_outputParameters[name].m_tensors.push_back(tensor);
             }
         }
+
+        virtual TensorBase<DeviceUsed> * input(const std::string &name, unsigned int index = 0)
+        {
+            if (m_inputParameters.find(name) != m_inputParameters.end())
+            {
+                return m_inputParameters[name].m_tensors[index];
+            }
+
+            return 0;
+        }
+
+        virtual TensorBase<DeviceUsed> * output(const std::string &name, unsigned int index = 0)
+        {
+            if (m_outputParameters.find(name) != m_outputParameters.end())
+            {
+                return m_outputParameters[name].m_tensors[index];
+            }
+
+            return 0;
+        }
+
+        virtual void clear()
+        {
+            m_inputParameters.clear();
+            m_outputParameters.clear();
+        }
     };
 }
 #endif

@@ -5,6 +5,8 @@
 #include "Operator/Operator.h"
 #include "Operator/ElementwiseAdd.h"
 #include "Operator/Sigmoid.h"
+#include "Operator/SigmoidDerivative.h"
+
 
 void FreeWillUnitTest::blobTest()
 {
@@ -105,6 +107,70 @@ void FreeWillUnitTest::operatorSigmoidTest()
 
     sigmoid.init();
     sigmoid.evaluate();
+}
+
+void FreeWillUnitTest::operatorSigmoidDerivativeTest()
+{
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({1});
+    input.init();
+    input.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({1});
+    output.init();
+
+    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> sigmoid;
+    sigmoid.setInputParameter("Input", &input);
+    sigmoid.setOutputParameter("Output", &output);
+    sigmoid.init();
+    sigmoid.evaluate();
+
+    const double epsilon = 0.001;
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input_larger({1});
+    input_larger.init();
+    input_larger[0] = input[0] + epsilon;
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output_larger({1});
+    output_larger.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input_smaller({1});
+    input_smaller.init();
+    input_smaller[0] = input[0] - epsilon;
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output_smaller({1});
+    output_smaller.init();
+    
+    
+    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> sigmoid_larger;
+    
+    sigmoid_larger.setInputParameter("Input", &input_larger);
+    sigmoid_larger.setOutputParameter("Output", &output_larger);
+
+    sigmoid_larger.init();
+    sigmoid_larger.evaluate();
+
+    
+    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> sigmoid_smaller;
+    sigmoid_smaller.setInputParameter("Input", &input_smaller);
+    sigmoid_smaller.setOutputParameter("Output", &output_smaller);
+
+    sigmoid_smaller.init();
+    sigmoid_smaller.evaluate();
+
+
+
+    float fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon); 
+    
+
+    FreeWill::SigmoidDerivative<FreeWill::CPU_NAIVE, float> sigmoidDerivative;
+    sigmoidDerivative.setInputParameter("Input", &output);
+    sigmoidDerivative.setOutputParameter("Output", &input);
+
+    sigmoidDerivative.init();
+    sigmoidDerivative.evaluate();
+
+    qDebug() << "Gradient check for sigmoid:" << fakeDerivative << " (fake), " << input[0] << " (real)";
+
+    QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
 }
 
 QTEST_MAIN(FreeWillUnitTest)
