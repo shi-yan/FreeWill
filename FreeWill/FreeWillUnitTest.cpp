@@ -100,8 +100,8 @@ void FreeWillUnitTest::operatorSigmoidTest()
     output.init();
 
     FreeWill::Sigmoid< FreeWill::CPU_NAIVE, float> sigmoid;
-    sigmoid.setInput(&input);
-    sigmoid.setOutput(&output);
+    sigmoid.setInputParameter("Input", &input);
+    sigmoid.setOutputParameter("Output", &output);
 
     sigmoid.init();
     sigmoid.evaluate();

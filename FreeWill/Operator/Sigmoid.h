@@ -11,21 +11,23 @@ namespace FreeWill
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
     class Sigmoid : public Operator<DeviceUsed>
     {
+    protected:
+        using Operator<DeviceUsed>::m_inputParameters;
+        using Operator<DeviceUsed>::m_outputParameters;
+
     public:
         Sigmoid()
-            :Operator<DeviceUsed>({"Input"}, {"Output"}),
-            m_input(nullptr),
-            m_output(nullptr)
+            :Operator<DeviceUsed>({"Input"}, {"Output"})
         {}  
 
         bool init() override
         {
-            if (!m_input || !m_output)
+            if (m_inputParameters["Input"].m_tensors.size() != 1 || m_outputParameters["Output"].m_tensors.size() != 1)
             {
                 return false;
             }
 
-            if (m_input->shape() != m_output->shape())
+            if (m_inputParameters["Input"].m_tensors[0]->shape() != m_outputParameters["Output"].m_tensors[0]->shape())
             {
                 return false;
             }
@@ -37,28 +39,18 @@ namespace FreeWill
         {
             if constexpr ((DeviceUsed & (CPU_SIMD | CPU_NAIVE)) != 0)
             {
-                unsigned int size = m_input->shape().size();
+                unsigned int size = m_inputParameters["Input"].m_tensors[0]->shape().size();
 
-                for(size_t i = 0; i < size; ++i)
+                Tensor<DeviceUsed, DataType> *inputTensor = (Tensor<DeviceUsed, DataType> *) m_inputParameters["Input"].m_tensors[0];
+                Tensor<DeviceUsed, DataType> *outputTensor = (Tensor<DeviceUsed, DataType> *) m_outputParameters["Output"].m_tensors[0];
+
+                for(unsigned int i = 0; i < size; ++i)
                 {
-                    (*m_output)[i] = 1 / (1 + exp(-(*m_input)[i]));
+                    (*outputTensor)[i] = 1 / (1 + exp(-(*inputTensor)[i]));
                 }
             }
         }
-
-        void setInput(Tensor< DeviceUsed, DataType> *input)
-        {
-            m_input = input;
-        }
-
-        void setOutput(Tensor< DeviceUsed, DataType> *output)
-        {
-            m_output = output;
-        }   
-    private:
-        Tensor<DeviceUsed, DataType> *m_input;
-        Tensor<DeviceUsed, DataType> *m_output;   
-    };
+     };
 
 }
 #endif

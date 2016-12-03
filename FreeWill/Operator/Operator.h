@@ -19,6 +19,11 @@ namespace FreeWill
         {
             std::string m_name;
             std::vector<TensorBase<DeviceUsed>*> m_tensors;
+
+            TensorBase<DeviceUsed> * operator[](unsigned int index)
+            {
+                return m_tensors[index];
+            }
         };
         
         std::map<std::string, struct ParameterDescriptor > m_inputParameters;
