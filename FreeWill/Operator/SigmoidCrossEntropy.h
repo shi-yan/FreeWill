@@ -57,8 +57,10 @@ namespace FreeWill
                 (*_cost)[e] = 0;
                 for(size_t i = 0; i < vectorSize; ++i)
                 {
-                    (*_cost)[e] += (*_label)[e * vectorSize + i]*log((*_input)[e * vectorSize + i]) 
-                        + (1.0 - (*_label)[e*vectorSize +i])*log(1.0 - (*_input)[e*vectorSize+i]);
+                    DataType _inputSigmoid = 1.0 / (1.0 + exp(-(*_input)[e* vectorSize + i]));
+ 
+                    (*_cost)[e] += (*_label)[e * vectorSize + i]*log(_inputSigmoid) 
+                        + (1.0 - (*_label)[e*vectorSize +i])*log(1.0 - _inputSigmoid);
                 }
             
                 (*_cost)[e] *= -1.0;

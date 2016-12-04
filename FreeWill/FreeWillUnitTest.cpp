@@ -142,7 +142,7 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
 
     sigmoidCrossEntropy.evaluate();
 
-    printf("cost:%f\n",cost[0]);
+    //printf("cost:%f\n",cost[0]);
 
     unsigned int batchSize = 64;
     unsigned int vectorSize = 10;
@@ -159,7 +159,6 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
             input[e*vectorSize + i] = original + epsilon;
 
             sigmoidCrossEntropy.evaluate();
-
             cost_larger = cost[e];
 
             input[e*vectorSize + i] = original - epsilon;
@@ -170,7 +169,7 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
 
             cost_smaller = cost[e];
 
-printf("l:%f, s:%f ,%f\n", cost_larger, cost_smaller, (cost_larger-cost_smaller) / (2.0*epsilon));
+            //printf("l:%f, s:%f ,%f\n", cost_larger, cost_smaller, (cost_larger-cost_smaller) / (2.0*epsilon));
             fakeGradient[e*vectorSize + i] = (cost_larger - cost_smaller) / (2.0 * epsilon);
 
             input[e*vectorSize + i] = original;
@@ -194,7 +193,7 @@ printf("l:%f, s:%f ,%f\n", cost_larger, cost_smaller, (cost_larger-cost_smaller)
     unsigned int size = realGradient.shape().size();
     for(unsigned int i = 0; i<size; ++i)
     {
-        qDebug() << fakeGradient[i] << ";" << realGradient[i];
+        //qDebug() << fakeGradient[i] << ";" << realGradient[i];
         QVERIFY(std::abs(fakeGradient[i] - realGradient[i]) < epsilon);
     }    
 
