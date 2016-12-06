@@ -57,9 +57,9 @@ namespace FreeWill
             {
                 for(unsigned int i = 0; i < vectorSize; ++i)
                 {
-                    DataType _inputSigmoid = 1.0 / (1.0 + exp(-(*_input)[e*vectorSize + i]));
+                   // DataType _inputSigmoid = 1.0 / (1.0 + exp(-(*_input)[e*vectorSize + i]));
  
-                    (*_output)[e * vectorSize + i] = _inputSigmoid - (*_label)[e * vectorSize + i];
+                    (*_output)[e * vectorSize + i] = (*_input)[e*vectorSize + i] - (*_label)[e * vectorSize + i];
                 }
             }
         }

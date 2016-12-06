@@ -6,14 +6,14 @@
 namespace FreeWill
 {
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
-    class SigmoidCrossEntropy : public Operator<DeviceUsed>
+    class CrossEntropy : public Operator<DeviceUsed>
     {
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
 
     public:
-        SigmoidCrossEntropy()
+        CrossEntropy()
             :Operator<DeviceUsed>({"Input", "Label"},{"Cost"})
         {}
 
@@ -57,10 +57,10 @@ namespace FreeWill
                 (*_cost)[e] = 0;
                 for(size_t i = 0; i < vectorSize; ++i)
                 {
-                    DataType _inputSigmoid = 1.0 / (1.0 + exp(-(*_input)[e* vectorSize + i]));
+                    //DataType _inputSigmoid = 1.0 / (1.0 + exp(-(*_input)[e* vectorSize + i]));
  
-                    (*_cost)[e] += (*_label)[e * vectorSize + i]*log(_inputSigmoid) 
-                        + (1.0 - (*_label)[e*vectorSize +i])*log(1.0 - _inputSigmoid);
+                    (*_cost)[e] += (*_label)[e * vectorSize + i]*log((*_input)[e * vectorSize + i]) 
+                        + (1.0 - (*_label)[e*vectorSize +i])*log(1.0 - (*_input)[e* vectorSize + i]);
                 }
             
                 (*_cost)[e] *= -1.0;
