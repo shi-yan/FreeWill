@@ -343,7 +343,7 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
     QVERIFY(sigmoidCrossEntropyDerivative.init());
     sigmoidCrossEntropyDerivative.evaluate();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realGradient({5, 11});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realGradient({5, 11, 1});
     realGradient.init();
     
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realInputGradient({10, 1});

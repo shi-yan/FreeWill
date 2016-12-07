@@ -33,8 +33,9 @@ namespace FreeWill
             }
 
             if (input("Weight")->shape().dimension()!=2 || 
-                    output("WeightGrad")->shape().dimension()!=2 || 
-                    input("Weight")->shape() != output("WeightGrad")->shape())
+                    output("WeightGrad")->shape().dimension()!=3 || 
+                    input("Weight")->shape()[0] != output("WeightGrad")->shape()[0] ||
+                    input("Weight")->shape()[1] != output("WeightGrad")->shape()[1])
             {
                 return false;
             }
@@ -55,6 +56,15 @@ namespace FreeWill
                 return false;
             }
 
+            unsigned int batchSize = input("PrevActivation")->shape()[1];
+
+            if (output("WeightGrad")->shape()[2] != batchSize || 
+                    output("InputGrad")->shape()[1] != batchSize || 
+                    input("OutputGrad")->shape()[1]!=batchSize)
+            {
+                return false;
+            }
+
             return true;
         }
 
@@ -62,37 +72,52 @@ namespace FreeWill
         {
            unsigned int outputSize = input("Weight")->shape()[0];
            unsigned int inputSize = input("PrevActivation")->shape()[0];
+            unsigned int batchSize = input("PrevActivation")->shape()[1];
+
+            unsigned int weightSize = outputSize * inputSize;
+
+            if (m_hasBias)
+            {
+                weightSize += outputSize;
+            }
 
            Tensor<DeviceUsed, DataType> *preActivation = (Tensor<DeviceUsed, DataType> *) input("PrevActivation");
            Tensor<DeviceUsed, DataType> *outputGrad = (Tensor<DeviceUsed, DataType> *) input("OutputGrad");
            Tensor<DeviceUsed, DataType> *weightGrad = (Tensor<DeviceUsed, DataType> *) output("WeightGrad");
 
-           for(unsigned int e = 0; e<inputSize; ++e)
-           {
-                for(unsigned int i =0;i<outputSize;++i)
-                {
-                    (*weightGrad)[e * outputSize + i] = (*preActivation)[e] * (*outputGrad)[i];
-                }
-           }     
+            for(unsigned int b = 0;b<batchSize;++b)
+            {
 
-           if (m_hasBias)
-           {
-                for(unsigned int i =0;i<outputSize;++i)
+                for(unsigned int e = 0; e<inputSize; ++e)
                 {
-                    (*weightGrad)[inputSize * outputSize + i] = (*outputGrad)[i];
+                    for(unsigned int i =0;i<outputSize;++i)
+                    {
+                        (*weightGrad)[ b*weightSize + e * outputSize + i] = (*preActivation)[e] * (*outputGrad)[i];
+                    }
+                }     
+
+                if (m_hasBias)
+                {
+                    for(unsigned int i =0;i<outputSize;++i)
+                    {
+                        (*weightGrad)[b*weightSize + inputSize * outputSize + i] = (*outputGrad)[i];
+                    }
                 }
-           }
+            }
 
            Tensor<DeviceUsed, DataType> *inputGrad = (Tensor<DeviceUsed, DataType> *) output("InputGrad");
             Tensor<DeviceUsed, DataType> *weight = (Tensor<DeviceUsed, DataType> *) input("Weight");
 
-            for(unsigned int i = 0;i<inputSize;++i)
+            for (unsigned int b = 0; b < batchSize; ++b)
             {
-                (*inputGrad)[i] = 0;
-
-                for (unsigned int e = 0;e<outputSize;++e)
+                for(unsigned int i = 0;i<inputSize;++i)
                 {
-                    (*inputGrad)[i] = (*weight)[i * outputSize + e] * (*outputGrad)[e];
+                    (*inputGrad)[b *inputSize +  i] = 0;
+
+                    for (unsigned int e = 0;e<outputSize;++e)
+                    {
+                        (*inputGrad)[b*inputSize + i] += (*weight)[i * outputSize + e] * (*outputGrad)[b*outputSize + e];
+                    }
                 }
             }
         }        
