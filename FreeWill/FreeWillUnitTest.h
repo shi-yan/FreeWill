@@ -12,4 +12,5 @@ private slots:
     void operatorSigmoidDerivativeTest();
     void operatorSigmoidCrossEntropyTest();
     void operatorSigmoidCrossEntropyDerivativeTest();
+    void operatorDotProductWithBiasTest();
 };

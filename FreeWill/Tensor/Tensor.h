@@ -72,6 +72,18 @@ namespace FreeWill
             return false;
 	    }
 
+        bool init(const std::initializer_list<DataType> &initList)
+        {
+            if (!init())
+            {
+                return false;
+            }
+
+            unsigned int size = m_shape.size();
+            std::copy(initList.begin(), initList.begin() + (initList.size()>size?size:initList.size()), (DataType*) m_data.dataHandle());
+            return true;
+        }
+
         void randomize()
         {
             if constexpr ((DeviceUsed & (CPU_SIMD | CPU_NAIVE)) != 0)
