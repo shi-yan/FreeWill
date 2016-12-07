@@ -22,7 +22,7 @@ namespace FreeWill
 
         virtual bool init()
         {
-            if(input("Input")==0 || input("Weight")==0)
+            if(input("Input")==0 || input("Weight")==0 || output("Output") == 0)
             {
                 return false;
             }
@@ -80,7 +80,7 @@ namespace FreeWill
 
                     if (m_hasBias)
                     {
-                        (*_output)[b * outputSize + o] += (*_input)[inputSize * outputSize + o];
+                        (*_output)[b * outputSize + o] += (*_weight)[inputSize * outputSize + o];
                     }
                 }
             }        
