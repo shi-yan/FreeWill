@@ -258,48 +258,48 @@ void FreeWillUnitTest::operatorDotProductWithBiasTest()
 
 void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
 {
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({10, 1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> input({10, 1});
     input.init();
     input.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weight({5, 11});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> weight({5, 11});
     weight.init();
     weight.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({5, 1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> output({5, 1});
     output.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fakeWeightGrad({5, 11});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> fakeWeightGrad({5, 11, 1});
     fakeWeightGrad.init();
 
-    FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> dotProductWithBias(true);
+    FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, double> dotProductWithBias(true);
     dotProductWithBias.setInputParameter("Input", &input);
     dotProductWithBias.setInputParameter("Weight", &weight);
     dotProductWithBias.setOutputParameter("Output", &output);
 
     QVERIFY(dotProductWithBias.init());
 
-    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> sigmoid;
+    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, double> sigmoid;
     sigmoid.setInputParameter("Input", &output);
     sigmoid.setOutputParameter("Output", &output);
 
     QVERIFY(sigmoid.init());
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> label({5,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> label({5,1});
     label.init();
     label.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> cost({1});
     cost.init();
 
-    FreeWill::CrossEntropy<FreeWill::CPU_NAIVE, float> crossEntropy;
+    FreeWill::CrossEntropy<FreeWill::CPU_NAIVE, double> crossEntropy;
     crossEntropy.setInputParameter("Input", &output);
     crossEntropy.setInputParameter("Label", &label);
     crossEntropy.setOutputParameter("Cost", &cost);
 
     QVERIFY(crossEntropy.init());
 
-    unsigned int gradientSize = fakeWeightGrad.shape().size();
+    unsigned int gradientSize = weight.shape().size();
 
     const float epsilon = 0.001;
     
@@ -326,16 +326,20 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
         crossEntropy.evaluate();
 
         cost_small = cost[0];
-
+        //qDebug() << "large" << cost_large << "small" << cost_small;
         fakeWeightGrad[i] = (cost_large - cost_small) / (2.0 * epsilon);
 
         weight[i]=original;
     }
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> l1Grad({5,1});
+    dotProductWithBias.evaluate();
+    sigmoid.evaluate();
+    crossEntropy.evaluate();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> l1Grad({5,1});
     l1Grad.init();
 
-    FreeWill::SigmoidCrossEntropyDerivative<FreeWill::CPU_NAIVE, float> sigmoidCrossEntropyDerivative;
+    FreeWill::SigmoidCrossEntropyDerivative<FreeWill::CPU_NAIVE, double> sigmoidCrossEntropyDerivative;
     sigmoidCrossEntropyDerivative.setInputParameter("Input" , &output);
     sigmoidCrossEntropyDerivative.setInputParameter("Label", &label);
     sigmoidCrossEntropyDerivative.setOutputParameter("Output", &l1Grad);
@@ -343,13 +347,13 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
     QVERIFY(sigmoidCrossEntropyDerivative.init());
     sigmoidCrossEntropyDerivative.evaluate();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realGradient({5, 11, 1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> realGradient({5,11,1});
     realGradient.init();
-    
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realInputGradient({10, 1});
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> realInputGradient({10, 1});
     realInputGradient.init();
 
-    FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBiasDerivative(true);
+    FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, double> dotProductWithBiasDerivative(true);
     dotProductWithBiasDerivative.setInputParameter("PrevActivation", &input);
     dotProductWithBiasDerivative.setInputParameter("OutputGrad", &l1Grad);
     dotProductWithBiasDerivative.setInputParameter("Weight", &weight);
@@ -364,7 +368,7 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
     for(unsigned int i = 0;i<gradientSize;++i)
     {
         //qDebug() << "realGradient" << realGradient[i] << "fakeWeightGrad" << fakeWeightGrad[i] << i;
-        QVERIFY(std::abs(realGradient[i] - fakeWeightGrad[i]) < epsilon);
+        QVERIFY(std::abs(realGradient[i] - fakeWeightGrad[i]) <= epsilon);
     }
     
 }

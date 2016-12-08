@@ -47,7 +47,8 @@ set(FreeWill_SOURCES
     Tensor/Tensor.cpp
     Tensor/Shape.cpp
     FreeWillUnitTestTensor.cpp
-    FreeWillUnitTest.cpp)
+    FreeWillUnitTest.cpp
+    FreeWillUnitTestXOR.cpp)
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
 target_link_libraries(FreeWillUnitTest Qt5::Core)

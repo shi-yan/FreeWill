@@ -30,7 +30,8 @@ namespace FreeWill
 
             for(unsigned int i = 0; i< Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors.size(); ++i)
             {
-               if(Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[i]->shape() != Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors[0]->shape())
+               if(Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[i]->shape().size() 
+                       != Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors[0]->shape().size())
                {
                 return false;
                }

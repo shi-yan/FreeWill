@@ -92,7 +92,7 @@ namespace FreeWill
                 {
                     for(unsigned int i =0;i<outputSize;++i)
                     {
-                        (*weightGrad)[ b*weightSize + e * outputSize + i] = (*preActivation)[e] * (*outputGrad)[i];
+                        (*weightGrad)[ b*weightSize + e * outputSize + i] = (*preActivation)[b*inputSize + e] * (*outputGrad)[b*outputSize + i];
                     }
                 }     
 
@@ -100,7 +100,7 @@ namespace FreeWill
                 {
                     for(unsigned int i =0;i<outputSize;++i)
                     {
-                        (*weightGrad)[b*weightSize + inputSize * outputSize + i] = (*outputGrad)[i];
+                        (*weightGrad)[b*weightSize + inputSize * outputSize + i] = (*outputGrad)[b*outputSize + i];
                     }
                 }
             }

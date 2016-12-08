@@ -50,8 +50,8 @@ namespace FreeWill
             unsigned int batchSize = _input->shape()[1];
             unsigned int vectorSize = _input->shape()[0];
 
-            printf("batchSize %d vectorSize %d\n", batchSize, vectorSize);
-            printf("%d, %d, %d\n", _input->shape().size(), _output->shape().size(), _label->shape().size());
+            //printf("batchSize %d vectorSize %d\n", batchSize, vectorSize);
+            //printf("%d, %d, %d\n", _input->shape().size(), _output->shape().size(), _label->shape().size());
 
             for(unsigned int e = 0;e<batchSize;++e)
             {
