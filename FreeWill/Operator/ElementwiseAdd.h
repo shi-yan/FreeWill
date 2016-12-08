@@ -10,10 +10,17 @@ namespace FreeWill
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
     class ElementwiseAdd : public Operator<DeviceUsed>
     {
+        DataType m_rate;
    public:
-        ElementwiseAdd()
-            :Operator<DeviceUsed>({"Operand"}, {"Result"})
+        ElementwiseAdd(DataType rate = 1.0f)
+            :Operator<DeviceUsed>({"Operand"}, {"Result"}),
+            m_rate(rate)
         {
+        }
+
+        void setRate(DataType rate)
+        {
+            m_rate = rate;
         }
 
         virtual bool init() override
@@ -53,7 +60,7 @@ namespace FreeWill
 
                 for(unsigned int e = 0; e<size; ++e)
                 {
-                    (*result)[e] = (*operandA)[e] + (*operandB)[e];                    
+                    (*result)[e] = (*operandA)[e] + (*operandB)[e]*m_rate;
                 }
             }
             else

@@ -34,6 +34,11 @@ namespace FreeWill
             return m_shape;
        }
 
+       void clear()
+       {
+        m_data.clear();
+       }
+
        virtual ~TensorBase() {}
     };
     
@@ -48,6 +53,7 @@ namespace FreeWill
     public:
         using TensorBase<DeviceUsed>::shape;
 
+        
         explicit Tensor(const Shape &shape = Shape(),
 	       const std::string &name = "no_name")
             :TensorBase<DeviceUsed>(shape),

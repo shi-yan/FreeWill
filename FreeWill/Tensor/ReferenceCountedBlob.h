@@ -76,6 +76,11 @@ namespace FreeWill
             }
         }
 
+        void clear()
+        {
+            std::memset(m_dataHandle, m_sizeInByte, 0);
+        }
+
         unsigned char * dataHandle() 
         {
             return m_dataHandle;
