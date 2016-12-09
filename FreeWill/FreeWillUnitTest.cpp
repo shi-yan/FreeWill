@@ -42,7 +42,8 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
     QVERIFY(sigmoid.init());
     sigmoid.evaluate();
 
-    const double epsilon = 0.001;
+    const float epsilon = 0.001;
+    //const float threshold = 1e-5; 
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input_larger({1});
     input_larger.init();
@@ -56,7 +57,6 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output_smaller({1});
     output_smaller.init();
-    
     
     sigmoid.clear(); 
     sigmoid.setInputParameter("Input", &input_larger);
@@ -72,8 +72,6 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
     QVERIFY(sigmoid.init());
     sigmoid.evaluate();
 
-
-
     float fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon); 
     
 
@@ -84,7 +82,7 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
     QVERIFY(sigmoidDerivative.init());
     sigmoidDerivative.evaluate();
 
-    qDebug() << "Gradient check for sigmoid:" << fakeDerivative << " (fake), " << input[0] << " (real)";
+    //qDebug() << "Gradient check for sigmoid:" << fakeDerivative << " (fake), " << input[0] << " (real)";
 
     QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
 }
@@ -114,9 +112,6 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyTest()
 
     QVERIFY(crossEntropy.init());
     crossEntropy.evaluate();
-
-
-
 }
 
 void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
@@ -143,7 +138,8 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
     
     QVERIFY(sigmoid.init());
 
-    const double epsilon = 0.001;
+    const float epsilon = 0.001;
+    //const float threshold = 1e-5;
 
     FreeWill::CrossEntropy<FreeWill::CPU_NAIVE, float> crossEntropy;
     crossEntropy.setInputParameter("Input", &output);
@@ -152,8 +148,7 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
 
     QVERIFY(crossEntropy.init());
 
-//    crossEntropy.evaluate();
-
+    //crossEntropy.evaluate();
     //printf("cost:%f\n",cost[0]);
 
     unsigned int batchSize = 64;
@@ -202,13 +197,11 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
     QVERIFY(sigmoidCrossEntropyDerivative.init());
 
     sigmoidCrossEntropyDerivative.evaluate();
-
-    
     
     unsigned int size = realGradient.shape().size();
     for(unsigned int i = 0; i<size; ++i)
     {
-//        qDebug() << fakeGradient[i] << ";" << realGradient[i];
+        //qDebug() << fakeGradient[i] << ";" << realGradient[i];
         QVERIFY(std::abs(fakeGradient[i] - realGradient[i]) < epsilon);
     }    
 
@@ -247,7 +240,7 @@ void FreeWillUnitTest::operatorDotProductWithBiasTest()
 
     dotProductWithBias.evaluate();
 
-    const float epsilon = 0.01;
+    const float epsilon = 0.001;
 
     for(int i = 0; i<6;++i)
     {
@@ -258,41 +251,41 @@ void FreeWillUnitTest::operatorDotProductWithBiasTest()
 
 void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
 {
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> input({10, 1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({10, 1});
     input.init();
     input.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> weight({5, 11});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weight({5, 11});
     weight.init();
     weight.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> output({5, 1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({5, 1});
     output.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> fakeWeightGrad({5, 11, 1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fakeWeightGrad({5, 11, 1});
     fakeWeightGrad.init();
 
-    FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, double> dotProductWithBias(true);
+    FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> dotProductWithBias(true);
     dotProductWithBias.setInputParameter("Input", &input);
     dotProductWithBias.setInputParameter("Weight", &weight);
     dotProductWithBias.setOutputParameter("Output", &output);
 
     QVERIFY(dotProductWithBias.init());
 
-    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, double> sigmoid;
+    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> sigmoid;
     sigmoid.setInputParameter("Input", &output);
     sigmoid.setOutputParameter("Output", &output);
 
     QVERIFY(sigmoid.init());
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> label({5,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> label({5,1});
     label.init();
     label.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> cost({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({1});
     cost.init();
 
-    FreeWill::CrossEntropy<FreeWill::CPU_NAIVE, double> crossEntropy;
+    FreeWill::CrossEntropy<FreeWill::CPU_NAIVE, float> crossEntropy;
     crossEntropy.setInputParameter("Input", &output);
     crossEntropy.setInputParameter("Label", &label);
     crossEntropy.setOutputParameter("Cost", &cost);
@@ -301,7 +294,8 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
 
     unsigned int gradientSize = weight.shape().size();
 
-    const float epsilon = 1e-4;
+    const float epsilon = 0.001;
+    //const float threshold = 1e-5;
     
     for(unsigned int i =0;i<gradientSize;++i)
     {
@@ -336,10 +330,10 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
     sigmoid.evaluate();
     crossEntropy.evaluate();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> l1Grad({5,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> l1Grad({5,1});
     l1Grad.init();
 
-    FreeWill::SigmoidCrossEntropyDerivative<FreeWill::CPU_NAIVE, double> sigmoidCrossEntropyDerivative;
+    FreeWill::SigmoidCrossEntropyDerivative<FreeWill::CPU_NAIVE, float> sigmoidCrossEntropyDerivative;
     sigmoidCrossEntropyDerivative.setInputParameter("Input" , &output);
     sigmoidCrossEntropyDerivative.setInputParameter("Label", &label);
     sigmoidCrossEntropyDerivative.setOutputParameter("Output", &l1Grad);
@@ -367,8 +361,8 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
 
     for(unsigned int i = 0;i<gradientSize;++i)
     {
-        qDebug() << "realGradient" << realGradient[i] << "fakeWeightGrad" << fakeWeightGrad[i] << i;
-        QVERIFY(std::abs(realGradient[i] - fakeWeightGrad[i]) <= 1e-5);
+        //qDebug() << "realGradient" << realGradient[i] << "fakeWeightGrad" << fakeWeightGrad[i] << i;
+        QVERIFY(std::abs(realGradient[i] - fakeWeightGrad[i]) < 2.0 * epsilon);
     }
     
 }

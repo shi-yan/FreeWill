@@ -94,17 +94,15 @@ namespace FreeWill
         {
             if constexpr ((DeviceUsed & (CPU_SIMD | CPU_NAIVE)) != 0)
             {
-               /*  std::random_device rd;
-                 std::mt19937 gen(rd());
-                 std::uniform_real_distribution<DataType> dis(0, 1);
-                */
-                DataType *bits = (DataType *) m_data.dataHandle();
+                 //std::random_device rd;
+                 //std::mt19937 gen(rd());
+                 //std::uniform_real_distribution<DataType> dis(0, 1);
+                 DataType *bits = (DataType *) m_data.dataHandle();
                  unsigned int size = m_shape.size();
                  for (unsigned int n = 0; n < size; ++n) 
                  {
-               //      bits[n] = dis(gen);
-               //
-               bits[n] = (double) rand() / (double) RAND_MAX;
+                     //bits[n] = dis(gen);
+                     bits[n] = (double) rand() / (double) RAND_MAX;
                  } 
             }
             else

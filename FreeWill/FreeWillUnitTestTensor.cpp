@@ -3,6 +3,12 @@
 #include "Tensor/ReferenceCountedBlob.h"
 #include "Operator/Operator.h"
 #include "Operator/ElementwiseAdd.h"
+#include <time.h>
+
+void FreeWillUnitTest::initTestCase()
+{
+    srand(time(NULL));
+}
 
 void FreeWillUnitTest::blobTest()
 {

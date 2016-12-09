@@ -192,7 +192,8 @@ void FreeWillUnitTest::xorTest()
     QVERIFY(mergeWithSecondLayer.init());
 
     float overallCost = 0.0;
-    QBENCHMARK {
+    //QBENCHMARK 
+    {
     for(unsigned int i = 1; i< 1000000; ++i)
     {
         /*std::random_device rd;

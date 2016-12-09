@@ -3,8 +3,8 @@
 class FreeWillUnitTest : public QObject
 {
 	Q_OBJECT
-
 private slots:
+    void initTestCase();    
     void blobTest();
     void tensorTest();
     void operatorTest();
