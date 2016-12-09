@@ -78,7 +78,7 @@ namespace FreeWill
 
         void clear()
         {
-            std::memset(m_dataHandle, m_sizeInByte, 0);
+            std::memset(m_dataHandle, 0, m_sizeInByte);
         }
 
         unsigned char * dataHandle() 
@@ -94,7 +94,11 @@ namespace FreeWill
                 if (m_dataHandle) 
                 {
                     m_sizeInByte = sizeInByte;
-                    std::memset(m_dataHandle, sizeInByte, 0);
+
+                    //printf("memset: %d\n", sizeInByte);
+                    std::memset(m_dataHandle,0,  sizeInByte);
+
+                    //printf("memset result: %d, %d, %d, %d, %d\n", m_dataHandle[0], m_dataHandle[1], m_dataHandle[2], m_dataHandle[3], m_dataHandle[4]);
                     return true;
                 }
                 else

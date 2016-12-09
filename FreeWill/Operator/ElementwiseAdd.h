@@ -58,6 +58,8 @@ namespace FreeWill
 
                 unsigned int size = result->shape().size();
 
+                //printf("elementwise add size: %d\n", size);
+
                 for(unsigned int e = 0; e<size; ++e)
                 {
                     (*result)[e] = (*operandA)[e] + (*operandB)[e]*m_rate;

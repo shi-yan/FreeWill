@@ -43,7 +43,26 @@ void FreeWillUnitTest::xorTest()
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerWeight({1, 3});
     secondLayerWeight.init();
     secondLayerWeight.randomize();
+/*
+    firstLayerWeight[0] = 0.1;
+    firstLayerWeight[1] = 0.2;
+    firstLayerWeight[2] = 0.3;
+    firstLayerWeight[3] = 0.4;
+    firstLayerWeight[4] = 0.5;
+    firstLayerWeight[5] = 0.6;
+    
+    secondLayerWeight[0] = 0.7;
+    secondLayerWeight[1] = 0.8;
+    secondLayerWeight[2] = 0.9;
 
+
+    printf("--------\n");
+    printf("%f, %f, %f, %f, %f, %f\n",firstLayerWeight[0],
+            firstLayerWeight[1], firstLayerWeight[2], firstLayerWeight[3], firstLayerWeight[4], firstLayerWeight[5]);
+    printf("%f,%f,%f\n",secondLayerWeight[0], secondLayerWeight[1], secondLayerWeight[2]);
+    printf("--------\n");
+*/
+//    return;
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerWeightDerivative({1,3,1});
     secondLayerWeightDerivative.init();
 
@@ -132,13 +151,21 @@ void FreeWillUnitTest::xorTest()
     
     QVERIFY(firstLayerDotProductWithBiasDerivative.init()); 
 
-
+//qDebug() << "#############################";
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> accumuFirstLayerWeight({2,3,1});
     accumuFirstLayerWeight.init();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> accumuSecondLayerWeight({1,3,1});
     accumuSecondLayerWeight.init();
 
+  /*  qDebug() << "second accum grad" << accumuSecondLayerWeight[0] << accumuSecondLayerWeight[1] << accumuSecondLayerWeight[2];
+        qDebug() << "first accum grad" << accumuFirstLayerWeight[0] << accumuFirstLayerWeight[1] << accumuFirstLayerWeight[2]
+            << accumuFirstLayerWeight[3] << accumuFirstLayerWeight[4] << accumuFirstLayerWeight[5];
+
+
+
+    qDebug() << "##################";
+*/
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumuGradForFirstLayer;
     accumuGradForFirstLayer.setInputParameter("Operand", &accumuFirstLayerWeight);
     accumuGradForFirstLayer.setInputParameter("Operand", &firstLayerWeightDerivative);
@@ -151,7 +178,7 @@ void FreeWillUnitTest::xorTest()
     accumuGradForSecondLayer.setOutputParameter("Result", &accumuSecondLayerWeight);
     QVERIFY(accumuGradForSecondLayer.init());
 
-    float learningRate = 0.2;
+    float learningRate = 0.02;
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> mergeWithFirstLayer(-learningRate*0.25);
     mergeWithFirstLayer.setInputParameter("Operand", &firstLayerWeight);
     mergeWithFirstLayer.setInputParameter("Operand", &accumuFirstLayerWeight);
@@ -165,18 +192,19 @@ void FreeWillUnitTest::xorTest()
     QVERIFY(mergeWithSecondLayer.init());
 
     float overallCost = 0.0;
-
-    for(int i = 0; i< 10000000; ++i)
+    QBENCHMARK {
+    for(unsigned int i = 1; i< 1000000; ++i)
     {
         /*std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_int_distribution<int> dis(0, 1);
         */
 
-       /* int a = dis(gen);
+        /*int a = dis(gen);
         int b = dis(gen);
         int c = a ^ b;
-*/
+        */
+
         int a = i & 0x1;
         int b = (i >> 1) & 0x1;
         int c = a^b;
@@ -185,14 +213,19 @@ void FreeWillUnitTest::xorTest()
         label[0] = c;
 
         firstLayerFullyConnected.evaluate();
+//        qDebug() << "first before sigmoid" << firstLayerActivation[0] << firstLayerActivation[1];
         firstLayerSigmoid.evaluate();
 
         secondLayerFullyConnected.evaluate();
         secondLayerSigmoid.evaluate();
         crossEntropy.evaluate();
+  //      qDebug() << "input" << input[0] << input[1];
+  //      qDebug() << "first" << firstLayerActivation[0] << firstLayerActivation[1];
+  //      qDebug() << "result" << secondLayerActivation[0] << "cost" << cost[0];
 
+        //return;
 
- //       qDebug() << "a" << a <<"b" <<b <<"c" << c << "cost" << cost[0];
+        //qDebug() << "a" << a <<"b" <<b <<"c" << c << "cost" << cost[0];
 
         overallCost += cost[0];
         sigmoidCrossEntropyDerivative.evaluate();
@@ -200,25 +233,38 @@ void FreeWillUnitTest::xorTest()
         firstLayerSigmoidDerivative.evaluate();
         firstLayerDerivativeTimesSigmoidDerivitive.evaluate();
         firstLayerDotProductWithBiasDerivative.evaluate();
-       /* qDebug() << "-------------";
+        /* qDebug() << "-------------";
         qDebug() << "second layer sigmoid neuron" << secondLayerNeuronDerivative[0];
         
         qDebug() << "first layer sigmoid neuron" << firstLayerSigmoidNeuron[0] << firstLayerSigmoidNeuron[1] ;
         qDebug() << "first layer neuron deriv" << firstLayerNeuronDerivative[0] << firstLayerNeuronDerivative[1];
-        qDebug() << "input" << input[0] << input[1];
-        qDebug() << "second grad" << secondLayerWeightDerivative[0] << secondLayerWeightDerivative[1] << secondLayerWeightDerivative[2];
-        qDebug() << "first grad" << firstLayerWeightDerivative[0] << firstLayerWeightDerivative[1] << firstLayerWeightDerivative[2] 
-            << firstLayerWeightDerivative[3] << firstLayerWeightDerivative[4] << firstLayerWeightDerivative[5];
-*/
-         if (i%500000 == 0 && i!=0)
+        qDebug() << "input" << input[0] << input[1];*/
+    //    qDebug() << "second grad" << secondLayerWeightDerivative[0] << secondLayerWeightDerivative[1] << secondLayerWeightDerivative[2];
+    //    qDebug() << "first grad" << firstLayerWeightDerivative[0] << firstLayerWeightDerivative[1] << firstLayerWeightDerivative[2] 
+      //      << firstLayerWeightDerivative[3] << firstLayerWeightDerivative[4] << firstLayerWeightDerivative[5];
+        
+        //return;
+        
+
+        if (i%500000 == 0 && i!=0)
         {
            learningRate*=0.5;
         }
+      //  qDebug() << "second accum grad" << accumuSecondLayerWeight[0] << accumuSecondLayerWeight[1] << accumuSecondLayerWeight[2];
+      //  qDebug() << "first accum grad" << accumuFirstLayerWeight[0] << accumuFirstLayerWeight[1] << accumuFirstLayerWeight[2]
+        //    << accumuFirstLayerWeight[3] << accumuFirstLayerWeight[4] << accumuFirstLayerWeight[5];
+
+
+     
         accumuGradForFirstLayer.evaluate();
         accumuGradForSecondLayer.evaluate();
 
+//        qDebug() << "second accum grad" << accumuSecondLayerWeight[0] << accumuSecondLayerWeight[1] << accumuSecondLayerWeight[2];
+  //      qDebug() << "first accum grad" << accumuFirstLayerWeight[0] << accumuFirstLayerWeight[1] << accumuFirstLayerWeight[2]
+    //        << accumuFirstLayerWeight[3] << accumuFirstLayerWeight[4] << accumuFirstLayerWeight[5];
 
-        if (i%4 == 0 && i!=0)
+
+        //if (i%4 == 0 && i!=0)
         {
           /*   qDebug() << "-------------";
         qDebug() << "second layer sigmoid neuron" << secondLayerNeuronDerivative[0];
@@ -229,22 +275,64 @@ void FreeWillUnitTest::xorTest()
         qDebug() << "second grad" << secondLayerWeightDerivative[0] << secondLayerWeightDerivative[1] << secondLayerWeightDerivative[2];
         qDebug() << "first grad" << firstLayerWeightDerivative[0] << firstLayerWeightDerivative[1] << firstLayerWeightDerivative[2] 
             << firstLayerWeightDerivative[3] << firstLayerWeightDerivative[4] << firstLayerWeightDerivative[5];
-*/
+        */
 
+        
             if (i%2000 == 0)
             {
                 //qDebug() <<  "cost" << overallCost*0.25;
-                printf("cost: %f\n", overallCost*0.25);
+//                printf("cost: %f\n", overallCost);
+
+//                qDebug() << "============================";
             }
-           overallCost = 0.0;
-           mergeWithFirstLayer.setRate(-learningRate * 0.25);
-           mergeWithSecondLayer.setRate(-learningRate * 0.25);
+        
+            overallCost = 0.0;
+            mergeWithFirstLayer.setRate(-learningRate );
+            mergeWithSecondLayer.setRate(-learningRate );
             mergeWithFirstLayer.evaluate();
             mergeWithSecondLayer.evaluate();
+
+  //          printf("updated weights: %f, %f, %f, %f,%f, %f\n", firstLayerWeight[0], firstLayerWeight[1], firstLayerWeight[2], firstLayerWeight[3], firstLayerWeight[4],
+    //                firstLayerWeight[5]);
+
+      //      printf("update weights: %f, %f, %f\n", secondLayerWeight[0], secondLayerWeight[1],secondLayerWeight[2]);
+
+        //    qDebug() << "****";
+
             accumuFirstLayerWeight.clear();
             accumuSecondLayerWeight.clear();
         }
+
+
     }
 
+
+
+    }
+
+    qDebug() << cost[0];
+
+    for (int i = 0; i< 4 ;++i)
+    {
+    
+        int a = i & 0x1;
+        int b = (i >> 1) & 0x1;
+
+        int c = a ^ b ;
+
+
+        input[0] = a;
+        input[1] = b;
+        label[0] = c;
+
+        firstLayerFullyConnected.evaluate();
+//        qDebug() << "first before sigmoid" << firstLayerActivation[0] << firstLayerActivation[1];
+        firstLayerSigmoid.evaluate();
+
+        secondLayerFullyConnected.evaluate();
+        secondLayerSigmoid.evaluate();
+ 
+        qDebug() << "test" << i << ": a" << a << "b" << b << "c" << c << "nn result:" << secondLayerActivation[0];
+    }
 }
 
