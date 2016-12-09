@@ -48,32 +48,45 @@ void FreeWillUnitTest::blobTest()
 
 void FreeWillUnitTest::tensorTest()
 {
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensor({64, 0, 32, 32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensor({64, 32, 32});
     tensor.init();
+    
+    unsigned int tensorSize = tensor.shape().size();
+
+    for(unsigned int i = 0;i<tensorSize;++i)
+    {
+        QVERIFY(tensor[i] == 0);
+    }
+
     tensor.randomize();
+
+    tensor.clear();
+
+    for(unsigned int i = 0;i<tensorSize;++i)
+    {
+        QVERIFY(tensor[i] == 0);
+    }
 
     auto tensor2 = new FreeWill::Tensor< FreeWill::CPU_NAIVE, float>({10});
 
     delete tensor2;
 
-
-
-    QVERIFY(1 == 1);
+    //QVERIFY(1 == 1);
 }
 
 void FreeWillUnitTest::operatorTest()
 {
 //    FreeWill::Operator<FreeWill::CPU> o;
 
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensorA({64, 0, 32, 32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensorA({64,  32, 32});
     tensorA.init();
     tensorA.randomize();
 
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensorB({64, 0, 32, 32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensorB({64,  32, 32});
     tensorB.init();
     tensorB.randomize();
 
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> result({64, 0, 32, 32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> result({64,  32, 32});
     result.init();
     
 
