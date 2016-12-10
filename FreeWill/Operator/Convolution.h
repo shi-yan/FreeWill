@@ -48,7 +48,7 @@ namespace FreeWill
                 return false;
             }
 
-            if (input("Output")->shape().dimension() != 4)
+            if (output("Output")->shape().dimension() != 4)
             {
                 return false;
             }
