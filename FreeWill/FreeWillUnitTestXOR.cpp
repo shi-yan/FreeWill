@@ -186,7 +186,7 @@ void FreeWillUnitTest::xorTest()
     mergeWithSecondLayer.setOutputParameter("Result", &secondLayerWeight);
     QVERIFY(mergeWithSecondLayer.init());
 
-    float overallCost = 0.0;
+    //float overallCost = 0.0;
     
     for(unsigned int i = 1; i< 1000000; ++i)
     {
@@ -218,7 +218,7 @@ void FreeWillUnitTest::xorTest()
         //      qDebug() << "first" << firstLayerActivation[0] << firstLayerActivation[1];
         //      qDebug() << "result" << secondLayerActivation[0] << "cost" << cost[0];
 
-        overallCost += cost[0];
+        //overallCost += cost[0];
         sigmoidCrossEntropyDerivative.evaluate();
         secondLayerDotProductWithBiasDerivative.evaluate();
         firstLayerSigmoidDerivative.evaluate();
@@ -249,7 +249,7 @@ void FreeWillUnitTest::xorTest()
         //      qDebug() << "first accum grad" << accumuFirstLayerWeight[0] << accumuFirstLayerWeight[1] << accumuFirstLayerWeight[2]
         //        << accumuFirstLayerWeight[3] << accumuFirstLayerWeight[4] << accumuFirstLayerWeight[5];
 
-        //if (i%4 == 0 && i!=0)
+        if (i%4 == 0 && i!=0)
         {
           /*   qDebug() << "-------------";
             qDebug() << "second layer sigmoid neuron" << secondLayerNeuronDerivative[0];
@@ -261,16 +261,16 @@ void FreeWillUnitTest::xorTest()
             << firstLayerWeightDerivative[3] << firstLayerWeightDerivative[4] << firstLayerWeightDerivative[5];
             */
        
-            if (i%2000 == 0)
-            {
+            //if (i%2000 == 0)
+            //{
                 //qDebug() <<  "cost" << overallCost*0.25;
                 //printf("cost: %f\n", overallCost);
                 //qDebug() << "============================";
-            }
+            //}
         
-            overallCost = 0.0;
-            mergeWithFirstLayer.setRate(-learningRate );
-            mergeWithSecondLayer.setRate(-learningRate );
+            //overallCost = 0.0;
+            mergeWithFirstLayer.setRate(-learningRate * 0.25);
+            mergeWithSecondLayer.setRate(-learningRate * 0.25);
             mergeWithFirstLayer.evaluate();
             mergeWithSecondLayer.evaluate();
 
