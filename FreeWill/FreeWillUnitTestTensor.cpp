@@ -7,7 +7,7 @@
 
 void FreeWillUnitTest::initTestCase()
 {
-    srand(time(NULL));
+    srand(/*time(NULL)*/0);
 }
 
 void FreeWillUnitTest::blobTest()

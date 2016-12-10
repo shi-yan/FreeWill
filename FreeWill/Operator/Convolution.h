@@ -1,7 +1,7 @@
 #ifndef CONVOLUTION_H
 #define CONVOLUTION_H
 
-
+#include <QDebug>
 #include "Operator.h"
 
 namespace FreeWill
@@ -78,20 +78,22 @@ namespace FreeWill
                 return false;
             }
 
-            unsigned int newWidth = (originalWidth - filterSize + 2*m_zeroPaddingX) / m_strideX;
-            unsigned int newHeight = (originalHeight - filterSize + 2*m_zeroPaddingY) / m_strideY;
+            unsigned int newWidth = (originalWidth - filterSize + 2*m_zeroPaddingX) / m_strideX + 1;
+            unsigned int newHeight = (originalHeight - filterSize + 2*m_zeroPaddingY) / m_strideY + 1;
+
+            //qDebug() << "output" << output("Output")->shape()[1] <<";"<< output("Output")->shape()[2];
 
             if (output("Output")->shape()[1] != newWidth || output("Output")->shape()[2] != newHeight)
             {
                 return false;
             }
 
-            if (input("Bias")->shape().dimension() != 2)
+            if (input("Bias")->shape().dimension() != 1)
             {
                 return false;
             }
 
-            if (input("Bias")->shape()[1] != input("FeatureMap")->shape()[3])
+            if (input("Bias")->shape()[0] != input("FeatureMap")->shape()[3])
             {
                 return false;
             }
@@ -125,8 +127,8 @@ namespace FreeWill
             unsigned int channelCount = _featureMap->shape()[0];
 
             
-            unsigned int newWidth = (originalWidth - featureMapLength + 2 * m_zeroPaddingX ) / m_strideX;
-            unsigned int newHeight = (originalHeight - featureMapLength + 2 * m_zeroPaddingY) / m_strideY;
+            unsigned int newWidth = (originalWidth - featureMapLength + 2 * m_zeroPaddingX ) / m_strideX + 1;
+            unsigned int newHeight = (originalHeight - featureMapLength + 2 * m_zeroPaddingY) / m_strideY + 1;
 
             unsigned int batchSize = _input->shape()[3];
 
@@ -153,20 +155,31 @@ namespace FreeWill
                                     int realX = x + startX;
                                     int realY = y + startY;
 
-                                    if ((realX >= 0 && realX < (int)originalWidth) && (y>=0 && y< (int)originalHeight))
+                                    if ((realX >= 0 && realX < (int)originalWidth) 
+                                            && (realY>=0 && realY< (int)originalHeight))
                                     {
-                                        unsigned int originalBaseIndex = (b* originalHeight * originalWidth + realY*originalWidth + realX)*channelCount;
+                                        unsigned int originalBaseIndex = (b* originalHeight * originalWidth + realY*originalWidth + realX)
+                                            *channelCount;
                                 
                                         for(unsigned int c = 0;c<channelCount;++c)
                                         {
-                                            (*_output)[resultBaseIndex + k] += (*_featureMap)[(k * (featureMapLength * featureMapLength) + y*featureMapLength +x) * channelCount + c]
+                                            (*_output)[resultBaseIndex + k] += 
+                                                (*_featureMap)[(k * (featureMapLength * featureMapLength) + 
+                                                        y*featureMapLength +x) * channelCount + c]
                                                 * (*_input)[originalBaseIndex + c];
                                         }
+                                        
+                                        //qDebug() << "base index" << realX << ";" << realY << ";" <<originalWidth <<";"<< originalBaseIndex;
+                                        //qDebug() << "feature map" << (*_featureMap)[(k * (featureMapLength * featureMapLength) +
+                                        //            y*featureMapLength +x) * channelCount + 0];                                   
+                                        //qDebug() << (*_input)[originalBaseIndex ];
                                     }
                                 }
                             }
 
-                            (*_output)[resultBaseIndex + k] += (*_bias)[b*featureMapCount + k]; 
+                            //qDebug() << "result loc" << resultBaseIndex + k;
+
+                            (*_output)[resultBaseIndex + k] += (*_bias)[k]; 
                         }
                     }
                 }
