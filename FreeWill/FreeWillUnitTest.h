@@ -10,6 +10,7 @@ private slots:
     void operatorTest();
     void operatorSigmoidTest();
     void operatorSigmoidDerivativeTest();
+    void operatorReLUDerivativeTest();
     void operatorSigmoidCrossEntropyTest();
     void operatorSigmoidCrossEntropyDerivativeTest();
     void operatorDotProductWithBiasTest();

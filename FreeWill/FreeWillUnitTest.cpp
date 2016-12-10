@@ -9,14 +9,16 @@
 #include "Operator/SigmoidCrossEntropyDerivative.h"
 #include "Operator/DotProductWithBias.h"
 #include "Operator/DotProductWithBiasDerivative.h"
+#include "Operator/ReLU.h"
+#include "Operator/ReLUDerivative.h"
 
 void FreeWillUnitTest::operatorSigmoidTest()
 {
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> input({64,0,32,32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> input({64,32,32});
     input.init();
     input.randomize();
 
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> output({64,0,32,32});
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> output({64,32,32});
     output.init();
 
     FreeWill::Sigmoid< FreeWill::CPU_NAIVE, float> sigmoid;
@@ -366,6 +368,69 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
     }
     
 }
+
+void FreeWillUnitTest::operatorReLUDerivativeTest()
+{
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({1});
+    input.init();
+    input.randomize();
+    input[0] = input[0] - 0.5;
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({1});
+    output.init();
+
+    FreeWill::ReLU<FreeWill::CPU_NAIVE, float> relu;
+    relu.setInputParameter("Input", &input);
+    relu.setOutputParameter("Output", &output);
+    QVERIFY(relu.init());
+    relu.evaluate();
+
+    const float epsilon = 0.001;
+    //const float threshold = 1e-5; 
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input_larger({1});
+    input_larger.init();
+    input_larger[0] = input[0] + epsilon;
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output_larger({1});
+    output_larger.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input_smaller({1});
+    input_smaller.init();
+    input_smaller[0] = input[0] - epsilon;
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output_smaller({1});
+    output_smaller.init();
+    
+    relu.clear(); 
+    relu.setInputParameter("Input", &input_larger);
+    relu.setOutputParameter("Output", &output_larger);
+
+    QVERIFY(relu.init());
+    relu.evaluate();
+
+    relu.clear();
+    relu.setInputParameter("Input", &input_smaller);
+    relu.setOutputParameter("Output", &output_smaller);
+
+    QVERIFY(relu.init());
+    relu.evaluate();
+
+    float fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon); 
+    
+
+    FreeWill::ReLUDerivative<FreeWill::CPU_NAIVE, float> reluDerivative;
+    reluDerivative.setInputParameter("Input", &output);
+    reluDerivative.setOutputParameter("Output", &input);
+
+    QVERIFY(reluDerivative.init());
+    reluDerivative.evaluate();
+
+    //qDebug() << "Gradient check for sigmoid:" << fakeDerivative << " (fake), " << input[0] << " (real)";
+
+    QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
+}
+
+
 
 QTEST_MAIN(FreeWillUnitTest)
 #include "FreeWillUnitTest.moc"
