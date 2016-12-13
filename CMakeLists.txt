@@ -54,14 +54,17 @@ get_target_property(QtCore_Location Qt5::Core LOCATION)
 
 MESSAGE("Using Qt version ${Qt5Core_VERSION} under ${QtCore_Location}")
 
-set(FreeWill_SOURCES 
-    Tensor/Tensor.cpp
-    Tensor/Shape.cpp
-    FreeWillUnitTestTensor.cpp
-    FreeWillUnitTest.cpp
-    FreeWillUnitTestXOR.cpp
-    FreeWillUnitTestConvNet.cpp)
+#set(FreeWill_SOURCES 
+#    Tensor/Tensor.cpp
+#    Tensor/Shape.cpp
+#    FreeWillUnitTestTensor.cpp
+#    FreeWillUnitTest.cpp
+#    FreeWillUnitTestXOR.cpp
+#    FreeWillUnitTestConvNet.cpp)
 
-add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
-target_link_libraries(FreeWillUnitTest Qt5::Core)
-target_link_libraries(FreeWillUnitTest Qt5::Test)
+#add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
+#target_link_libraries(FreeWillUnitTest Qt5::Core)
+#target_link_libraries(FreeWillUnitTest Qt5::Test)
+
+add_subdirectory("FreeWill")
+add_subdirectory("Demos")
