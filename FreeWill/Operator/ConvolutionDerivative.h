@@ -55,7 +55,7 @@ namespace FreeWill
                 return false;
             }
 
-            if (output("OutputGrad")->shape().dimension() != 4)
+            if (input("OutputGrad")->shape().dimension() != 4)
             {
                 return false;
             }
@@ -90,7 +90,7 @@ namespace FreeWill
 
             //qDebug() << "output" << output("Output")->shape()[1] <<";"<< output("Output")->shape()[2];
 
-            if (output("OutputGrad")->shape()[1] != newWidth || output("OutputGrad")->shape()[2] != newHeight)
+            if (input("OutputGrad")->shape()[1] != newWidth || input("OutputGrad")->shape()[2] != newHeight)
             {
                 return false;
             }
@@ -105,12 +105,12 @@ namespace FreeWill
                 return false;
             }
 
-            if (input("FeatureMap")->shape()[3] != output("OutputGrad")->shape()[0])
+            if (input("FeatureMap")->shape()[3] != input("OutputGrad")->shape()[0])
             {
                 return false;
             }
 
-            if (input("PrevActivation")->shape()[3] != output("OutputGrad")->shape()[3])
+            if (input("PrevActivation")->shape()[3] != input("OutputGrad")->shape()[3])
             {
                 return false;
             }

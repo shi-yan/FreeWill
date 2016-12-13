@@ -17,4 +17,5 @@ private slots:
     void operatorDotProductWithBiasDerivativeTest();
     void xorTest();
     void convNetTest();
+    void convDerivativeTest();
 };
