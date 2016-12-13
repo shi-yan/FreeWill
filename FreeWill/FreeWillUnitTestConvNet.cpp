@@ -116,7 +116,7 @@ void FreeWillUnitTest::convDerivativeTest()
     biasGrad.init();
 
 
-    FreeWill::ConvolutionDerivative<FreeWill::CPU, float> convolutionDerivative;
+    FreeWill::ConvolutionDerivative<FreeWill::CPU, float> convolutionDerivative(2,2,1,1);
     convolutionDerivative.setInputParameter("PrevActivation", &prevActivaion);
     convolutionDerivative.setInputParameter("FeatureMap", &featureMaps);
     convolutionDerivative.setInputParameter("OutputGrad", &outputGrad);
@@ -174,13 +174,13 @@ void FreeWillUnitTest::convDerivativeTest()
         bias[i] = biasArray[i];
     }
 
-    FreeWill::Convolution<FreeWill::CPU, float> convolution;
+    FreeWill::Convolution<FreeWill::CPU, float> convolution(2,2,1,1);
     convolution.setInputParameter("Input", &input);
     convolution.setInputParameter("FeatureMap", &featureMaps);
     convolution.setInputParameter("Bias", &bias);
 
     convolution.setOutputParameter("Output", &output);
-
+  
     QVERIFY(convolution.init());
 
     FreeWill::Sigmoid<FreeWill::CPU, float> sigmoid;
@@ -213,6 +213,10 @@ void FreeWillUnitTest::convDerivativeTest()
 
     for(unsigned int i = 0;i<featureMapSize;++i)
     {
+        output.clear();
+        flatOutput.clear();
+        cost.clear();
+
         float origin = featureMaps[i];
 
         float cost_big = 0;
@@ -226,11 +230,17 @@ void FreeWillUnitTest::convDerivativeTest()
         for(unsigned int e = 0;e<outputSize;++e)
         {
             flatOutput[e] = output[e];
+       //     printf("\n %f", flatOutput[e]);
         }
 
         crossEntropy.evaluate();
 
         cost_big = cost[0];
+
+
+        output.clear();
+        flatOutput.clear();
+        cost.clear();
 
         float cost_small = 0;
 
@@ -243,18 +253,27 @@ void FreeWillUnitTest::convDerivativeTest()
         for(unsigned int e=0;e<outputSize;++e)
         {
             flatOutput[e] = output[e];
+         //   printf(", %f\n", flatOutput[e] );
         }
 
         crossEntropy.evaluate();
 
         cost_small = cost[0];
 
+       // qDebug() << "cost big" << cost_big << "cost small" << cost_small;
+
         float fakeGrad = (cost_big - cost_small) / (2.0*epsilon);
 
         fakeFeatureMapGrad[i] = fakeGrad;
 
         featureMaps[i] = origin;
+
+       // return;
     }
+
+    output.clear();
+    flatOutput.clear();
+    cost.clear();
 
     convolution.evaluate();
     sigmoid.evaluate();
@@ -287,6 +306,10 @@ void FreeWillUnitTest::convDerivativeTest()
 
    for(unsigned int i = 0;i<featureMapSize;++i)
    {
-    qDebug() << "fake" << fakeFeatureMapGrad[i] << "real" << featureMapGrad[i];
+     //qDebug() << "fake" << fakeFeatureMapGrad[i] << "real" << featureMapGrad[i];
+   
+     //qDebug()<< "diff" << std::abs(fakeFeatureMapGrad[i] - featureMapGrad[i]);
+     
+     QVERIFY(std::abs(fakeFeatureMapGrad[i] - featureMapGrad[i]) < 0.01);
    } 
 }

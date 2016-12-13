@@ -82,6 +82,7 @@ namespace FreeWill
             unsigned int newHeight = (originalHeight - filterSize + 2*m_zeroPaddingY) / m_strideY + 1;
 
             //qDebug() << "output" << output("Output")->shape()[1] <<";"<< output("Output")->shape()[2];
+            //qDebug() << "newwidth" << newWidth << "newHeight" << newHeight;
 
             if (output("Output")->shape()[1] != newWidth || output("Output")->shape()[2] != newHeight)
             {
