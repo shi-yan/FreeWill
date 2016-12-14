@@ -1,5 +1,6 @@
 #include "endian.h"
 #include "Tensor/Tensor.h"
+#include "Operator/MaxPooling.h"
 #include <cstdio>
 
 int main()
