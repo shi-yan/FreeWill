@@ -12,7 +12,7 @@
 #include "Operator/ReLU.h"
 #include "Operator/ReLUDerivative.h"
 #include "Operator/Softmax.h"
-#include "Operator/SigmoidDerivative.h"
+#include "Operator/SoftmaxDerivative.h"
 
 void FreeWillUnitTest::operatorSigmoidTest()
 {
@@ -437,6 +437,9 @@ void FreeWillUnitTest::SoftmaxTest()
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({3,1});
     input.init();
 
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({3,1});
+    output.init();
+
     FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> label({1});
     label.init();
 
@@ -447,6 +450,7 @@ void FreeWillUnitTest::SoftmaxTest()
     softmax.setInputParameter("Input" , &input);
     softmax.setInputParameter("Label", &label);
     softmax.setOutputParameter("Cost", &cost);
+    softmax.setOutputParameter("Output", &output);
 
     QVERIFY(softmax.init());   
 
@@ -466,6 +470,101 @@ void FreeWillUnitTest::SoftmaxTest()
 
 void FreeWillUnitTest::SoftmaxDerivativeTest()
 {
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({3,1});
+    input.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fakeGrad({3,1});
+    fakeGrad.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({3,1});
+    output.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> label({1});
+    label.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({1});
+    cost.init();
+
+    FreeWill::Softmax<FreeWill::CPU_NAIVE, float> softmax;
+    softmax.setInputParameter("Input" , &input);
+    softmax.setInputParameter("Label", &label);
+    softmax.setOutputParameter("Cost", &cost);
+    softmax.setOutputParameter("Output", &output);
+
+    QVERIFY(softmax.init());   
+
+    input[0] = -2.85;
+    input[1] = 0.86;
+    input[2] = 0.28;
+    label[0] = 2;
+
+    //softmax.evaluate();
+    
+    //qDebug() << "softmax cost" << cost[0];
+    //
+    //float groundTruth = 1.04;
+
+    //QVERIFY(std::abs(cost[0] - groundTruth) < 0.01); 
+    //
+    
+    const float epsilon = 0.001;
+
+    for(unsigned int e = 0; e<input.shape()[0];++e)
+    {
+        float original = input[e];
+
+        float cost_large = 0.0;
+
+        input[e] = original + epsilon;
+        
+        softmax.evaluate();
+
+        cost_large = cost[0];
+
+        cost.clear();
+        output.clear();
+
+        float cost_small = 0.0;
+
+        input[e] = original - epsilon;
+
+        softmax.evaluate();
+
+        cost_small = cost[0];
+
+        cost.clear();
+        output.clear();
+
+        fakeGrad[e] = (cost_large - cost_small) / (2.0 * epsilon);
+
+        input[e] = original;
+    }
+
+    cost.clear();
+    output.clear();
+    softmax.evaluate();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputGrad({3,1});
+    inputGrad.init();
+
+    FreeWill::SoftmaxDerivative<FreeWill::CPU_NAIVE, float> softmaxDerivative;
+    softmaxDerivative.setInputParameter("Output", &output);
+    softmaxDerivative.setInputParameter("Label", &label);
+    softmaxDerivative.setOutputParameter("InputGrad", &inputGrad);
+
+
+    QVERIFY(softmaxDerivative.init());
+
+    softmaxDerivative.evaluate();
+
+    for(unsigned int i = 0;i<inputGrad.shape()[0];++i)
+    {
+        //qDebug() << "fake" << fakeGrad[i] << "real" << inputGrad[i];
+        QVERIFY((fakeGrad[i] - inputGrad[i]) < epsilon);
+    }
+
+    
+
 }
 
 QTEST_MAIN(FreeWillUnitTest)

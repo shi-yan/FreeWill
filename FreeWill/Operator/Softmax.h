@@ -14,13 +14,18 @@ namespace FreeWill
         using Operator<DeviceUsed>::output;
 
     public:
-        Softmax() : Operator<DeviceUsed>({"Input", "Label"},{"Cost"})
+        Softmax() : Operator<DeviceUsed>({"Input", "Label"},{"Cost","Output"})
         {
         }
 
         virtual bool init() override 
         {
-            if (!input("Input") || !input("Label") || !output("Cost"))
+            if (!input("Input") || !input("Label") || !output("Cost") || !output("Output"))
+            {
+                return false;
+            }
+
+            if (input("Input")->shape() != output("Output")->shape())
             {
                 return false;
             }
@@ -50,6 +55,7 @@ namespace FreeWill
             Tensor<DeviceUsed, DataType> *_input = (Tensor<DeviceUsed, DataType> *) input("Input");
             Tensor<DeviceUsed, unsigned int> *_label = (Tensor<DeviceUsed, unsigned int> *) input("Label");
             Tensor<DeviceUsed, DataType> *_cost = (Tensor<DeviceUsed, DataType> *) output("Cost");
+            Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) output("Output");
 
             unsigned int batchSize = _input->shape()[1];
 
@@ -76,12 +82,20 @@ namespace FreeWill
 
                     v = std::exp(v);
 
+                    (*_output)[b*vectorSize + i] = v;
+
                     if (i == label)
                     {
                         (*_cost)[b] = v;
                     }
 
                     expSum += v;
+
+                }
+
+                for(unsigned int i=0;i<vectorSize;++i)
+                {
+                    (*_output)[b*vectorSize+i] = (*_output)[b*vectorSize+i] / expSum;
                 }
 
                 (*_cost)[b] /= expSum;
