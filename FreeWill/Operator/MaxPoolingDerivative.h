@@ -82,11 +82,11 @@ namespace FreeWill
                         for(unsigned int depth = 0;depth<depthSize;++depth)
                         {
                             unsigned int index = (b*outputWidth*outputHeight + y*outputWidth +x)*depthSize + depth;
-                            unsigned int inputX = _switchX[index];
-                            unsigned int inputY = _switchY[index];
+                            unsigned int inputX = (*_switchX)[index];
+                            unsigned int inputY = (*_switchY)[index];
 
-                            _inputGrad[(b*outputWidth*outputHeight*4 + inputY*outputWidth*2 + inputX)*depthSize + depth] = 
-                                _outputGrad[index];
+                            (*_inputGrad)[(b*outputWidth*outputHeight*4 + inputY*outputWidth*2 + inputX)*depthSize + depth] = 
+                                (*_outputGrad)[index];
                         }
                     }
                 }

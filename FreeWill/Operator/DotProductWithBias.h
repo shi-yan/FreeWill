@@ -2,6 +2,7 @@
 #define DOTPRODUCTWITHBIAS_H
 
 #include "Operator.h"
+//#include <QDebug>
 
 namespace FreeWill
 {
@@ -42,7 +43,8 @@ namespace FreeWill
             {
                 return false;
             }
-
+            //qDebug() << "weight" << input("Weight")->shape()[1];
+            //qDebug() << "inputsize" << inputSize + 1;
             
             if(input("Weight")->shape()[1] != inputSize + (m_hasBias?1:0))
             {

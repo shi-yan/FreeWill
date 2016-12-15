@@ -123,6 +123,14 @@ namespace FreeWill
             DataType *bits = (DataType *) m_data.dataHandle();
             return *(bits + i);
         }
+
+        void reshape(const Shape &newShape)
+        {
+            if (newShape.size() == m_shape.size())
+            {
+                m_shape = newShape;
+            }
+        }
     };
 }
 

@@ -30,7 +30,7 @@ namespace FreeWill
                 return false;
             }
 
-            if (input("Output")->shape().dimension() != 4)
+            if (output("Output")->shape().dimension() != 4)
             {
                 return false;
             }
@@ -93,19 +93,19 @@ namespace FreeWill
                         for(unsigned int depth = 0;depth<depthSize;++depth)
                         {
 
-                            DataType a = _input[(b * oldWidth * oldHeight + y*2*oldWidth + x*2)*depthSize + depth];
-                            DataType b = _input[(b * oldWidth * oldHeight + y*2*oldWidth + x*2 + 1)*depthSize + depth];
-                            DataType c = _input[(b * oldWidth * oldHeight + (y*2+1)*oldWidth + x*2)*depthSize + depth];
-                            DataType d = _input[(b * oldWidth * oldHeight + (y*2+1)*oldWidth + x*2 + 1)*depthSize +depth];
+                            DataType a = (*_input)[(b * oldWidth * oldHeight + y*2*oldWidth + x*2)*depthSize + depth];
+                            DataType _b = (*_input)[(b * oldWidth * oldHeight + y*2*oldWidth + x*2 + 1)*depthSize + depth];
+                            DataType c = (*_input)[(b * oldWidth * oldHeight + (y*2+1)*oldWidth + x*2)*depthSize + depth];
+                            DataType d = (*_input)[(b * oldWidth * oldHeight + (y*2+1)*oldWidth + x*2 + 1)*depthSize +depth];
                         
                             DataType max = a;
                             unsigned int locationX = x*2;
                             unsigned int locationY = y*2;
-                            if (b > max)
+                            if (_b > max)
                             {
                                 locationX = x*2+1;
                                 locationY = y*2;
-                                max = b;
+                                max = _b;
                             }
 
                             if (c > max)
@@ -122,9 +122,9 @@ namespace FreeWill
                                 max = d;
                             }
 
-                            _output[(b * newWidth*newHeight + newWidth * y + x)*depthSize + depth] = max;
-                            _switchX[(b* newWidth*newHeight + newWidth *y +x)*depthSize + depth] = locationX;
-                            _switchY[(b* newWidth*newHeight + newWidth *y +x)*depthSize + depth] = locationY;
+                            (*_output)[(b * newWidth*newHeight + newWidth * y + x)*depthSize + depth] = max;
+                            (*_switchX)[(b* newWidth*newHeight + newWidth *y +x)*depthSize + depth] = locationX;
+                            (*_switchY)[(b* newWidth*newHeight + newWidth *y +x)*depthSize + depth] = locationY;
                         }
                     }
                 }
