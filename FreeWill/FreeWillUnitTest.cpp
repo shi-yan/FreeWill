@@ -11,6 +11,8 @@
 #include "Operator/DotProductWithBiasDerivative.h"
 #include "Operator/ReLU.h"
 #include "Operator/ReLUDerivative.h"
+#include "Operator/Softmax.h"
+#include "Operator/SigmoidDerivative.h"
 
 void FreeWillUnitTest::operatorSigmoidTest()
 {
@@ -430,7 +432,41 @@ void FreeWillUnitTest::operatorReLUDerivativeTest()
     QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
 }
 
+void FreeWillUnitTest::SoftmaxTest()
+{
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({3,1});
+    input.init();
 
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> label({1});
+    label.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({1});
+    cost.init();
+
+    FreeWill::Softmax<FreeWill::CPU_NAIVE, float> softmax;
+    softmax.setInputParameter("Input" , &input);
+    softmax.setInputParameter("Label", &label);
+    softmax.setOutputParameter("Cost", &cost);
+
+    QVERIFY(softmax.init());   
+
+    input[0] = -2.85;
+    input[1] = 0.86;
+    input[2] = 0.28;
+    label[0] = 2;
+
+    softmax.evaluate();
+    
+    //qDebug() << "softmax cost" << cost[0];
+    //
+    float groundTruth = 1.04;
+
+    QVERIFY(std::abs(cost[0] - groundTruth) < 0.01); 
+}
+
+void FreeWillUnitTest::SoftmaxDerivativeTest()
+{
+}
 
 QTEST_MAIN(FreeWillUnitTest)
 #include "FreeWillUnitTest.moc"

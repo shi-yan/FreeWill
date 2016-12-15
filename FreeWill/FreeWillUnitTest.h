@@ -18,4 +18,6 @@ private slots:
     void xorTest();
     void convNetTest();
     void convDerivativeTest();
+    void SoftmaxTest();
+    void SoftmaxDerivativeTest();
 };

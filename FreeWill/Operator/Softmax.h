@@ -57,36 +57,36 @@ namespace FreeWill
             {
                 unsigned int vectorSize = _input->shape()[0];
 
-                DataType maximum = _input[b * vectorSize];
+                DataType maximum = (*_input)[b * vectorSize];
 
                 for(unsigned int i = 1;i<vectorSize;++i)
                 {
-                    if (_input[b*vectorSize + i] > maximum)
+                    if ((*_input)[b*vectorSize + i] > maximum)
                     {
-                        maximum = _input[b*vectorSize + i];
+                        maximum = (*_input)[b*vectorSize + i];
                     }
                 }
 
                 DataType expSum = 0;
-                unsigned int label = _label[b];
+                unsigned int label = (*_label)[b];
 
                 for(unsigned int i=0;i<vectorSize;++i)
                 {
-                    DataType v = _input[b*vectorSize + i] - maximum;
+                    DataType v = (*_input)[b*vectorSize + i] - maximum;
 
                     v = std::exp(v);
 
                     if (i == label)
                     {
-                        _cost[b] = v;
+                        (*_cost)[b] = v;
                     }
 
                     expSum += v;
                 }
 
-                _cost[b] /= expSum;
+                (*_cost)[b] /= expSum;
 
-                _cost[b] = log(_cost[b]);
+                (*_cost)[b] = -log((*_cost)[b]);
             
             }
         }
