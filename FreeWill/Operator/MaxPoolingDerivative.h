@@ -64,8 +64,8 @@ namespace FreeWill
         {
             Tensor<DeviceUsed, DataType> *_inputGrad = (Tensor<DeviceUsed, DataType> *) output("InputGrad");
             Tensor<DeviceUsed, DataType> *_outputGrad = (Tensor<DeviceUsed, DataType> *) input("OutputGrad");
-            Tensor<DeviceUsed, DataType> *_switchX = (Tensor<DeviceUsed, DataType>*) input("SwitchX");
-            Tensor<DeviceUsed, DataType> *_switchY = (Tensor<DeviceUsed, DataType> *) input("SwitchY");
+            Tensor<DeviceUsed, unsigned int> *_switchX = (Tensor<DeviceUsed, unsigned int>*) input("SwitchX");
+            Tensor<DeviceUsed, unsigned int> *_switchY = (Tensor<DeviceUsed, unsigned int> *) input("SwitchY");
 
 
             unsigned int outputWidth = _outputGrad->shape()[1];
