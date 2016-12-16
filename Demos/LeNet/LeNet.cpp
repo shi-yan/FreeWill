@@ -285,9 +285,47 @@ int main()
 
     VERIFY_INIT(convDerivative.init());
 
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchConvWeight({1,5,5,20});
+    batchConvWeight.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchConvBias({20});
+    batchConvBias.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchFullyConnected1Weight({100,20*12*12+1,1});
+    batchFullyConnected1Weight.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchFullyConnected2Weight({10,100+1,1});
+    batchFullyConnected2Weight.init();
+
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumulateConvWeight;
+    accumulateConvWeight.setInputParameter("Operand", &batchConvWeight);
+    accumulateConvWeight.setInputParameter("Operand", &convFeatureMapGrad);
+    accumulateConvWeight.setOutputParameter("Result", &batchConvWeight);
+    VERIFY_INIT(accumulateConvWeight.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumulateConvBias;
+    accumulateConvBias.setInputParameter("Operand", &batchConvBias);
+    accumulateConvBias.setInputParameter("Operand", &convBiasGrad);
+    accumulateConvBias.setOutputParameter("Result", &batchConvBias);
+    VERIFY_INIT(accumulateConvBias.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumulateFullyConnected1Weight;
+    accumulateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1WeightGrad);
+    accumulateFullyConnected1Weight.setInputParameter("Operand", &batchFullyConnected1Weight);
+    accumulateFullyConnected1Weight.setOutputParameter("Result", &batchFullyConnected1Weight);
+    VERIFY_INIT(accumulateFullyConnected1Weight.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumulateFullyConnected2Weight;
+    accumulateFullyConnected2Weight.setInputParameter("Operand", &batchFullyConnected2Weight);
+    accumulateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2WeightGrad);
+    accumulateFullyConnected2Weight.setOutputParameter("Result", &batchFullyConnected2Weight);
+    VERIFY_INIT(accumulateFullyConnected2Weight.init());
+
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateConvWeight;
     updateConvWeight.setInputParameter("Operand", &featureMap);
-    updateConvWeight.setInputParameter("Operand", &convFeatureMapGrad);
+    updateConvWeight.setInputParameter("Operand", &batchConvWeight);
     updateConvWeight.setOutputParameter("Result", &featureMap);
 
     VERIFY_INIT(updateConvWeight.init());
@@ -295,33 +333,37 @@ int main()
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateConvBias;
 
     updateConvBias.setInputParameter("Operand", &bias);
-    updateConvBias.setInputParameter("Operand", &convBiasGrad);
+    updateConvBias.setInputParameter("Operand", &batchConvBias);
     updateConvBias.setOutputParameter("Result", &bias);
 
     VERIFY_INIT(updateConvBias.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected1Weight;
     updateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1Weight);
-    updateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1WeightGrad);
+    updateFullyConnected1Weight.setInputParameter("Operand", &batchFullyConnected1Weight);
     updateFullyConnected1Weight.setOutputParameter("Result", &fullyConnected1Weight);
 
     VERIFY_INIT(updateFullyConnected1Weight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected2Weight;
     updateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2Weight);
-    updateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2WeightGrad);
+    updateFullyConnected2Weight.setInputParameter("Operand", &batchFullyConnected2Weight);
     updateFullyConnected2Weight.setOutputParameter("Result", &fullyConnected2Weight);
 
     VERIFY_INIT(updateFullyConnected2Weight.init());
 
     float learningRate = 0.01;
 
-    for(unsigned int e = 1;e<100000;++e)
+    //openData();
+    //loadOneData(image, label);
+    int batchSize = 500;
+    float overallCost = 0.0;
+    for(unsigned int e = 1;e<=60;++e)
     {
         openData();
 
     
-        for(unsigned int i = 0;i<numOfImage;++i)
+        for(unsigned int i = 1;i<=numOfImage;++i)
         {
             //openData();
             loadOneData(image, label);
@@ -337,8 +379,8 @@ int main()
             fullyConnected2.evaluate();
             softmax.evaluate();
 
-            qDebug() << "cost" << cost[0];
-
+            //qDebug() << "cost" << cost[0];
+            overallCost += cost[0];
             //backward
             softmaxDerivative.evaluate();
             dotProductWithBias2Derivative.evaluate();
@@ -352,16 +394,37 @@ int main()
             convSigmoidDerivativeTimesOutputGrad.evaluate();
             convDerivative.evaluate();
 
-            //update weight
-            updateConvWeight.setRate(-learningRate);        
-            updateConvWeight.evaluate();
-            updateConvBias.setRate(-learningRate);
-            updateConvBias.evaluate();
-            updateFullyConnected1Weight.setRate(-learningRate);
-            updateFullyConnected1Weight.evaluate();
-            updateFullyConnected2Weight.setRate(-learningRate);
-            updateFullyConnected2Weight.evaluate();        
 
+            accumulateConvWeight.evaluate();
+            accumulateConvBias.evaluate();
+            accumulateFullyConnected1Weight.evaluate();
+            accumulateFullyConnected2Weight.evaluate();
+
+            if (i%batchSize == 0)
+            {
+                qDebug() << "cost" << overallCost / (float) batchSize;
+                overallCost = 0.0;
+
+                //update weight
+                updateConvWeight.setRate(-learningRate/(float)batchSize);        
+                updateConvWeight.evaluate();
+                updateConvBias.setRate(-learningRate/(float)batchSize);
+                updateConvBias.evaluate();
+                updateFullyConnected1Weight.setRate(-learningRate/(float)batchSize);
+                updateFullyConnected1Weight.evaluate();
+                updateFullyConnected2Weight.setRate(-learningRate/(float)batchSize);
+                updateFullyConnected2Weight.evaluate();        
+            
+                batchConvWeight.clear();
+                batchConvBias.clear();
+                batchFullyConnected1Weight.clear();
+                batchFullyConnected2Weight.clear();
+           
+               if (i%20000 == 0)
+               {
+                learningRate *= 0.6;
+               } 
+            }
             //clean up
         
             convOutput.clear();
@@ -386,11 +449,12 @@ int main()
         
         }
     
-        if (e % 10000 == 0)
+        /*if (e % 10000 == 0)
         {
             learningRate *= 0.8;
-        }
+        }*/
         closeData();
     }
+    //closeData();
     return 0;
 }
