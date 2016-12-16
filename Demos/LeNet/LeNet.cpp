@@ -13,7 +13,9 @@
 #include "Operator/DotProductWithBiasDerivative.h"
 #include "Operator/Sigmoid.h"
 #include "Operator/SigmoidDerivative.h"
+#include "Operator/ElementwiseProduct.h"
 #include <QDebug>
+#include "Operator/ElementwiseAdd.h"
 
 static FILE *datafp = 0;
 static FILE *labelfp = 0;
@@ -52,12 +54,12 @@ void openData()
     numOfRow = be32toh(numOfRow);
     numOfColumn = be32toh(numOfColumn);
 
-    printf("magic number: %x\n", magicNum);
-    printf("num of image: %d\n", numOfImage);
-    printf("num of row: %d\n", numOfRow);
-    printf("num of column: %d\n", numOfColumn);
-    printf("magic number label: %x\n", magicNumLabel);
-    printf("num of label: %d\n", labelCount);   
+//    printf("magic number: %x\n", magicNum);
+//    printf("num of image: %d\n", numOfImage);
+//    printf("num of row: %d\n", numOfRow);
+//    printf("num of column: %d\n", numOfColumn);
+//    printf("magic number label: %x\n", magicNumLabel);
+//    printf("num of label: %d\n", labelCount);   
 }
 
 void closeData()
@@ -89,9 +91,9 @@ void loadOneData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor
 
 int main()
 {
-    openData();
+    //openData();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> image({1,numOfColumn,numOfRow,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> image({1,28,28,1});
     image.init();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> label({1});
@@ -211,8 +213,17 @@ int main()
     VERIFY_INIT(dotProductWithBias2Derivative.init());
 
     FreeWill::SigmoidDerivative<FreeWill::CPU_NAIVE, float> sigmoidDerivative;
-    sigmoidDerivative.setInputParameter("Input", &fullyConnected1OutputGrad);
-    sigmoidDerivative.setOutputParameter("Output", &fullyConnected1OutputGrad);
+    sigmoidDerivative.setInputParameter("Input", &fullyConnected1Output);
+    sigmoidDerivative.setOutputParameter("Output", &fullyConnected1Output);
+
+    VERIFY_INIT(sigmoidDerivative.init());
+
+    FreeWill::ElementwiseProduct<FreeWill::CPU_NAIVE, float> fullyConnected1OutputGradTimesSigGrad;
+    fullyConnected1OutputGradTimesSigGrad.setInputParameter("OperandA", &fullyConnected1Output);
+    fullyConnected1OutputGradTimesSigGrad.setInputParameter("OperandB", &fullyConnected1OutputGrad);
+    fullyConnected1OutputGradTimesSigGrad.setOutputParameter("Output", &fullyConnected1OutputGrad);
+
+    VERIFY_INIT(fullyConnected1OutputGradTimesSigGrad.init());
 
     FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBias1Derivative;
     dotProductWithBias1Derivative.setInputParameter("PrevActivation", &poolingOutput);
@@ -250,6 +261,16 @@ int main()
     maxPoolingDerivative.setOutputParameter("InputGrad", &convOutputGrad);
     VERIFY_INIT(maxPoolingDerivative.init());
 
+    FreeWill::SigmoidDerivative<FreeWill::CPU_NAIVE, float> convSigmoidDerivative;
+    convSigmoidDerivative.setInputParameter("Input", &convOutput);
+    convSigmoidDerivative.setOutputParameter("Output", &convOutput);
+    VERIFY_INIT(convSigmoidDerivative.init());
+
+    FreeWill::ElementwiseProduct<FreeWill::CPU_NAIVE, float> convSigmoidDerivativeTimesOutputGrad;
+    convSigmoidDerivativeTimesOutputGrad.setInputParameter("OperandA", &convOutput);
+    convSigmoidDerivativeTimesOutputGrad.setInputParameter("OperandB", &convOutputGrad);
+    convSigmoidDerivativeTimesOutputGrad.setOutputParameter("Output", &convOutputGrad);
+
     FreeWill::ConvolutionDerivative<FreeWill::CPU_NAIVE, float> convDerivative;
     convDerivative.setInputParameter("PrevActivation", &image);
     convDerivative.setInputParameter("FeatureMap", &featureMap);
@@ -264,9 +285,112 @@ int main()
 
     VERIFY_INIT(convDerivative.init());
 
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateConvWeight;
+    updateConvWeight.setInputParameter("Operand", &featureMap);
+    updateConvWeight.setInputParameter("Operand", &convFeatureMapGrad);
+    updateConvWeight.setOutputParameter("Result", &featureMap);
 
+    VERIFY_INIT(updateConvWeight.init());
 
-    closeData();
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateConvBias;
 
+    updateConvBias.setInputParameter("Operand", &bias);
+    updateConvBias.setInputParameter("Operand", &convBiasGrad);
+    updateConvBias.setOutputParameter("Result", &bias);
+
+    VERIFY_INIT(updateConvBias.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected1Weight;
+    updateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1Weight);
+    updateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1WeightGrad);
+    updateFullyConnected1Weight.setOutputParameter("Result", &fullyConnected1Weight);
+
+    VERIFY_INIT(updateFullyConnected1Weight.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected2Weight;
+    updateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2Weight);
+    updateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2WeightGrad);
+    updateFullyConnected2Weight.setOutputParameter("Result", &fullyConnected2Weight);
+
+    VERIFY_INIT(updateFullyConnected2Weight.init());
+
+    float learningRate = 0.01;
+
+    for(unsigned int e = 1;e<100000;++e)
+    {
+        openData();
+
+    
+        for(unsigned int i = 0;i<numOfImage;++i)
+        {
+            //openData();
+            loadOneData(image, label);
+
+            //forward
+            convolution.evaluate();
+            convSigmoid.evaluate();
+            poolingOutput.reshape({20,12,12,1});
+            maxPooling.evaluate();
+            poolingOutput.reshape({20*12*12,1});
+            fullyConnected1.evaluate();
+            sigmoid1.evaluate();
+            fullyConnected2.evaluate();
+            softmax.evaluate();
+
+            qDebug() << "cost" << cost[0];
+
+            //backward
+            softmaxDerivative.evaluate();
+            dotProductWithBias2Derivative.evaluate();
+            sigmoidDerivative.evaluate();
+            fullyConnected1OutputGradTimesSigGrad.evaluate();
+            poolingOutputGrad.reshape({20*12*12,1});
+            dotProductWithBias1Derivative.evaluate();
+            poolingOutputGrad.reshape({20,12,12,1});
+            maxPooling.evaluate();
+            convSigmoidDerivative.evaluate();
+            convSigmoidDerivativeTimesOutputGrad.evaluate();
+            convDerivative.evaluate();
+
+            //update weight
+            updateConvWeight.setRate(-learningRate);        
+            updateConvWeight.evaluate();
+            updateConvBias.setRate(-learningRate);
+            updateConvBias.evaluate();
+            updateFullyConnected1Weight.setRate(-learningRate);
+            updateFullyConnected1Weight.evaluate();
+            updateFullyConnected2Weight.setRate(-learningRate);
+            updateFullyConnected2Weight.evaluate();        
+
+            //clean up
+        
+            convOutput.clear();
+            poolingOutput.clear();
+            poolingSwitchX.clear();
+            poolingSwitchY.clear();
+            fullyConnected1Output.clear();
+            fullyConnected2Output.clear();
+            softmaxOutput.clear();
+            cost.clear();
+            softmaxGrad.clear();
+            fullyConnected1OutputGrad.clear();
+            fullyConnected2WeightGrad.clear();
+            fullyConnected1WeightGrad.clear();
+            poolingOutputGrad.clear();
+            convOutputGrad.clear();
+            convBiasGrad.clear();
+            convFeatureMapGrad.clear();
+            inputGrad.clear();
+
+            //closeData();
+        
+        }
+    
+        if (e % 10000 == 0)
+        {
+            learningRate *= 0.8;
+        }
+        closeData();
+    }
     return 0;
 }
