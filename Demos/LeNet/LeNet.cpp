@@ -25,7 +25,7 @@ static unsigned int numOfColumn = 0;
 static unsigned int labelCount = 0;
 
 
-void openData()
+void openTrainData()
 {
     datafp = fopen("train-images-idx3-ubyte","rb");
     labelfp = fopen("train-labels-idx1-ubyte","rb");
@@ -62,14 +62,59 @@ void openData()
 //    printf("num of label: %d\n", labelCount);   
 }
 
-void closeData()
+void closeTrainData()
 {
     fclose(datafp);
     fclose(labelfp);
 }
 
+static FILE *testDatafp = 0;
+static FILE *testLabelfp = 0;
+static unsigned int numOfTestImage = 0;
+static unsigned int numOfTestRow = 0;
+static unsigned int numOfTestColumn = 0;
+static unsigned int labelTestCount = 0;
 
-void loadOneData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor<FreeWill::CPU, unsigned int> &label)
+void openTestData()
+{
+    //t10k-images-idx3-ubyte  t10k-labels-idx1-ubyte
+    testDatafp = fopen("t10k-images-idx3-ubyte","rb");
+    testLabelfp = fopen("t10k-labels-idx1-ubyte","rb");
+
+    unsigned int magicNum = 0;
+    numOfTestImage = 0;
+    numOfTestRow = 0;
+    numOfTestColumn = 0;
+
+    unsigned int magicNumLabel = 0;
+    labelTestCount = 0;
+
+    fread(&magicNumLabel, sizeof(unsigned int), 1, testLabelfp);
+    fread(&labelTestCount, sizeof(unsigned int ),1, testLabelfp);
+
+    magicNumLabel = be32toh(magicNumLabel);
+    labelTestCount = be32toh(labelTestCount);
+
+    fread(&magicNum, sizeof(unsigned int), 1, testDatafp);
+    fread(&numOfTestImage, sizeof(unsigned int), 1, testDatafp);
+    fread(&numOfTestRow, sizeof(unsigned int), 1, testDatafp);
+    fread(&numOfTestColumn, sizeof(unsigned int), 1, testDatafp);
+
+    magicNum = be32toh(magicNum);
+    numOfTestImage = be32toh(numOfTestImage);
+    numOfTestRow = be32toh(numOfTestRow);
+    numOfTestColumn = be32toh(numOfTestColumn);
+
+
+}
+
+void closeTestData()
+{
+    fclose(testDatafp);
+    fclose(testLabelfp);
+}
+
+void loadOneTrainData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor<FreeWill::CPU, unsigned int> &label)
 {
     
     for(unsigned int y = 0 ; y < numOfRow; ++y)
@@ -85,6 +130,26 @@ void loadOneData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor
     }
     unsigned char _label = 0;
     fread(&_label, sizeof(unsigned char), 1, labelfp);
+    //printf("lable: %d\n", label);
+    label[0] = _label;
+}
+
+void loadOneTestData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor<FreeWill::CPU, unsigned int> &label)
+{
+
+    for(unsigned int y = 0 ; y < numOfTestRow; ++y)
+    {
+        for(unsigned int x = 0;x< numOfTestColumn; ++x)
+        {
+            unsigned char pixel = 0;
+            fread(&pixel, sizeof(unsigned char), 1, testDatafp);
+            image[numOfTestColumn * y + x] = (float) pixel / 255.0f;
+            //printf("%3d,", pixel);
+        }
+        //printf("\n");
+    }
+    unsigned char _label = 0;
+    fread(&_label, sizeof(unsigned char), 1, testLabelfp);
     //printf("lable: %d\n", label);
     label[0] = _label;
 }
@@ -152,6 +217,12 @@ int main()
     convSigmoid.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convSigmoid.init());
     
+
+    /*FreeWill::ReLU<FreeWill::CPU, float> convReLU;
+    convReLU.setInputParameter("Input", &convOutput);
+    convReLU.setOutputParameter("Output", &convOutput);
+    VERIFY_INIT(convReLU.init());
+*/
     FreeWill::MaxPooling<FreeWill::CPU_NAIVE, float> maxPooling;
     maxPooling.setInputParameter("Input", &convOutput);
     maxPooling.setOutputParameter("Output", &poolingOutput);
@@ -172,6 +243,12 @@ int main()
     sigmoid1.setInputParameter("Input", &fullyConnected1Output);
     sigmoid1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(sigmoid1.init());
+
+/*    FreeWill::ReLU<FreeWill::CPU_NAIVE, float> ReLu1;
+    ReLu1.setInputParameter("Input", &fullyConnected1Output);
+    ReLu1.setOutputParameter("Output", &fullyConnected1Output);
+    VERIFY_INIT(ReLu1.init());
+*/
 
     FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> fullyConnected2;
     fullyConnected2.setInputParameter("Input", &fullyConnected1Output);
@@ -218,6 +295,12 @@ int main()
 
     VERIFY_INIT(sigmoidDerivative.init());
 
+/*    FreeWill::ReLUDerivative<FreeWill::CPU_NAIVE, float> reLUDerivative;
+    reLUDerivative.setInputParameter("Input", &fullyConnected1Output);
+    reLUDerivative.setOutputParameter("Output", &fullyConnected1Output);
+
+    VERIFY_INIT(reLUDerivative.init());
+*/
     FreeWill::ElementwiseProduct<FreeWill::CPU_NAIVE, float> fullyConnected1OutputGradTimesSigGrad;
     fullyConnected1OutputGradTimesSigGrad.setInputParameter("OperandA", &fullyConnected1Output);
     fullyConnected1OutputGradTimesSigGrad.setInputParameter("OperandB", &fullyConnected1OutputGrad);
@@ -266,6 +349,12 @@ int main()
     convSigmoidDerivative.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convSigmoidDerivative.init());
 
+
+/*    FreeWill::ReLUDerivative<FreeWill::CPU_NAIVE, float> convReLUDerivative;
+    convReLUDerivative.setInputParameter("Input", &convOutput);
+    convReLUDerivative.setOutputParameter("Output", &convOutput);
+    VERIFY_INIT(convReLUDerivative.init());
+*/
     FreeWill::ElementwiseProduct<FreeWill::CPU_NAIVE, float> convSigmoidDerivativeTimesOutputGrad;
     convSigmoidDerivativeTimesOutputGrad.setInputParameter("OperandA", &convOutput);
     convSigmoidDerivativeTimesOutputGrad.setInputParameter("OperandB", &convOutputGrad);
@@ -356,26 +445,32 @@ int main()
 
     //openData();
     //loadOneData(image, label);
-    int batchSize = 500;
+    int batchSize = 20;
     float overallCost = 0.0;
+    const int testInterval = 2000;
+
+
+
     for(unsigned int e = 1;e<=60;++e)
     {
-        openData();
+        openTrainData();
 
     
         for(unsigned int i = 1;i<=numOfImage;++i)
         {
             //openData();
-            loadOneData(image, label);
+            loadOneTrainData(image, label);
 
             //forward
             convolution.evaluate();
             convSigmoid.evaluate();
+            //convReLU.evaluate();
             poolingOutput.reshape({20,12,12,1});
             maxPooling.evaluate();
             poolingOutput.reshape({20*12*12,1});
             fullyConnected1.evaluate();
             sigmoid1.evaluate();
+            //ReLu1.evaluate();
             fullyConnected2.evaluate();
             softmax.evaluate();
 
@@ -385,12 +480,14 @@ int main()
             softmaxDerivative.evaluate();
             dotProductWithBias2Derivative.evaluate();
             sigmoidDerivative.evaluate();
+            //reLUDerivative.evaluate();
             fullyConnected1OutputGradTimesSigGrad.evaluate();
             poolingOutputGrad.reshape({20*12*12,1});
             dotProductWithBias1Derivative.evaluate();
             poolingOutputGrad.reshape({20,12,12,1});
             maxPooling.evaluate();
             convSigmoidDerivative.evaluate();
+            //convReLUDerivative.evaluate();
             convSigmoidDerivativeTimesOutputGrad.evaluate();
             convDerivative.evaluate();
 
@@ -402,7 +499,7 @@ int main()
 
             if (i%batchSize == 0)
             {
-                qDebug() << "cost" << overallCost / (float) batchSize;
+                qDebug() << e << i<< "cost" << overallCost / (float) batchSize << learningRate;
                 overallCost = 0.0;
 
                 //update weight
@@ -420,11 +517,70 @@ int main()
                 batchFullyConnected1Weight.clear();
                 batchFullyConnected2Weight.clear();
            
-               if (i%20000 == 0)
+               if (i%30000 == 0)
                {
-                learningRate *= 0.6;
+                learningRate *= 0.9;
                } 
             }
+
+            //test
+            //
+            if (i % testInterval == 0)
+            {
+                unsigned int correct = 0;
+                
+                openTestData();
+
+                for (unsigned int v = 0;v<numOfTestImage; ++v)
+                {
+                    convOutput.clear();
+                    poolingOutput.clear();
+                    poolingSwitchX.clear();
+                    poolingSwitchY.clear();
+                    fullyConnected1Output.clear();
+                    fullyConnected2Output.clear();
+                    softmaxOutput.clear();
+                    cost.clear();
+                    softmaxGrad.clear();
+ 
+                    loadOneTestData(image, label);
+
+                    //forward
+                    convolution.evaluate();
+                    convSigmoid.evaluate();
+                    //convReLU.evaluate();
+                    poolingOutput.reshape({20,12,12,1});
+                    maxPooling.evaluate();
+                    poolingOutput.reshape({20*12*12,1});
+                    fullyConnected1.evaluate();
+                    sigmoid1.evaluate();
+                    //ReLu1.evaluate();
+                    fullyConnected2.evaluate();
+
+
+                    unsigned int maxIndex = 0;
+                    float maxValue = fullyConnected2Output[0];
+                    for(unsigned int e = 1; e < fullyConnected2Output.shape().size(); ++e)
+                    {
+                        if (maxValue < fullyConnected2Output[e])
+                        {
+                            maxValue = fullyConnected2Output[e];
+                            maxIndex = e;
+                        }
+                    }
+
+                    if ((float) maxIndex == label[0])
+                    {
+                        correct ++;
+                    }
+
+                 }
+
+                 qDebug() << "Accuracy" << (float) correct / (float) numOfTestImage;
+
+                 closeTestData();
+             }
+
             //clean up
         
             convOutput.clear();
@@ -453,7 +609,7 @@ int main()
         {
             learningRate *= 0.8;
         }*/
-        closeData();
+        closeTrainData();
     }
     //closeData();
     return 0;

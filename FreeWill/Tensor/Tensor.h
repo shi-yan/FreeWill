@@ -102,7 +102,7 @@ namespace FreeWill
                  for (unsigned int n = 0; n < size; ++n) 
                  {
                      //bits[n] = dis(gen);
-                     bits[n] = (double) rand() / (double) RAND_MAX;
+                     bits[n] = ((double) rand() / (double) RAND_MAX - 0.5) * 0.1;
                  } 
             }
             else
