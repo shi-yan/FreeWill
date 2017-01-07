@@ -154,7 +154,7 @@ void loadOneTestData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Te
     label[0] = _label;
 }
 
-int main()
+int main2()
 {
     //openData();
 
@@ -600,6 +600,283 @@ int main()
             convBiasGrad.clear();
             convFeatureMapGrad.clear();
             inputGrad.clear();
+
+            //closeData();
+        
+        }
+    
+        /*if (e % 10000 == 0)
+        {
+            learningRate *= 0.8;
+        }*/
+        closeTrainData();
+    }
+    //closeData();
+    return 0;
+}
+
+int main()
+{
+    //openData();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> image({28*28,1});
+    image.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> label({1});
+    label.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1Weight({100, 28*28+1});
+    fullyConnected1Weight.init();
+    fullyConnected1Weight.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1Output({100, 1});
+    fullyConnected1Output.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2Weight({10, 100+1});
+    fullyConnected2Weight.init();
+    fullyConnected2Weight.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2Output({10, 1});
+    fullyConnected2Output.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> softmaxOutput({10,1});
+    softmaxOutput.init();    
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({1});
+    cost.init();
+
+//    image.reshape({28*28,1});
+
+    FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> fullyConnected1;
+    fullyConnected1.setInputParameter("Input", &image);
+    fullyConnected1.setInputParameter("Weight", &fullyConnected1Weight);
+    fullyConnected1.setOutputParameter("Output", &fullyConnected1Output);
+    VERIFY_INIT(fullyConnected1.init());
+
+    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> sigmoid1;
+    sigmoid1.setInputParameter("Input", &fullyConnected1Output);
+    sigmoid1.setOutputParameter("Output", &fullyConnected1Output);
+    VERIFY_INIT(sigmoid1.init());
+
+    FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> fullyConnected2;
+    fullyConnected2.setInputParameter("Input", &fullyConnected1Output);
+    fullyConnected2.setInputParameter("Weight", &fullyConnected2Weight);
+    fullyConnected2.setOutputParameter("Output", &fullyConnected2Output);
+    VERIFY_INIT(fullyConnected2.init());
+
+    FreeWill::Softmax<FreeWill::CPU_NAIVE, float> softmax;
+    softmax.setInputParameter("Input", &fullyConnected2Output);
+    softmax.setInputParameter("Label", &label);
+    softmax.setOutputParameter("Output", &softmaxOutput);
+    softmax.setOutputParameter("Cost", &cost);
+    VERIFY_INIT(softmax.init());
+
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> softmaxGrad({10,1});
+    softmaxGrad.init();
+
+    FreeWill::SoftmaxDerivative<FreeWill::CPU_NAIVE, float> softmaxDerivative;
+    softmaxDerivative.setInputParameter("Output", &softmaxOutput);
+    softmaxDerivative.setInputParameter("Label", &label);
+    softmaxDerivative.setOutputParameter("InputGrad", &softmaxGrad);
+    VERIFY_INIT(softmaxDerivative.init());
+
+    FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBias2Derivative;
+    dotProductWithBias2Derivative.setInputParameter("PrevActivation", &fullyConnected1Output);
+    dotProductWithBias2Derivative.setInputParameter("OutputGrad", &softmaxGrad);
+    dotProductWithBias2Derivative.setInputParameter("Weight", &fullyConnected2Weight);
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1OutputGrad({100,1});
+    fullyConnected1OutputGrad.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2WeightGrad({10,100+1,1});
+    fullyConnected2WeightGrad.init();
+
+    dotProductWithBias2Derivative.setOutputParameter("InputGrad", &fullyConnected1OutputGrad);
+    dotProductWithBias2Derivative.setOutputParameter("WeightGrad", &fullyConnected2WeightGrad);
+
+    VERIFY_INIT(dotProductWithBias2Derivative.init());
+
+    FreeWill::SigmoidDerivative<FreeWill::CPU_NAIVE, float> sigmoidDerivative;
+    sigmoidDerivative.setInputParameter("Input", &fullyConnected1Output);
+    sigmoidDerivative.setOutputParameter("Output", &fullyConnected1Output);
+
+    VERIFY_INIT(sigmoidDerivative.init());
+
+    FreeWill::ElementwiseProduct<FreeWill::CPU_NAIVE, float> fullyConnected1OutputGradTimesSigGrad;
+    fullyConnected1OutputGradTimesSigGrad.setInputParameter("OperandA", &fullyConnected1Output);
+    fullyConnected1OutputGradTimesSigGrad.setInputParameter("OperandB", &fullyConnected1OutputGrad);
+    fullyConnected1OutputGradTimesSigGrad.setOutputParameter("Output", &fullyConnected1OutputGrad);
+
+    VERIFY_INIT(fullyConnected1OutputGradTimesSigGrad.init());
+
+    FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBias1Derivative;
+    dotProductWithBias1Derivative.setInputParameter("PrevActivation", &image);
+    dotProductWithBias1Derivative.setInputParameter("OutputGrad", &fullyConnected1OutputGrad);
+    dotProductWithBias1Derivative.setInputParameter("Weight", &fullyConnected1Weight);
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1WeightGrad({100, 28*28+1,1});
+    fullyConnected1WeightGrad.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> imageGrad({28*28, 1});
+    imageGrad.init();
+
+    dotProductWithBias1Derivative.setOutputParameter("InputGrad", &imageGrad);
+    dotProductWithBias1Derivative.setOutputParameter("WeightGrad", &fullyConnected1WeightGrad);
+
+    VERIFY_INIT(dotProductWithBias1Derivative.init());
+   
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchFullyConnected1Weight({100,28*28+1,1});
+    batchFullyConnected1Weight.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchFullyConnected2Weight({10,100+1,1});
+    batchFullyConnected2Weight.init();
+
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumulateFullyConnected1Weight;
+    accumulateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1WeightGrad);
+    accumulateFullyConnected1Weight.setInputParameter("Operand", &batchFullyConnected1Weight);
+    accumulateFullyConnected1Weight.setOutputParameter("Result", &batchFullyConnected1Weight);
+    VERIFY_INIT(accumulateFullyConnected1Weight.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumulateFullyConnected2Weight;
+    accumulateFullyConnected2Weight.setInputParameter("Operand", &batchFullyConnected2Weight);
+    accumulateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2WeightGrad);
+    accumulateFullyConnected2Weight.setOutputParameter("Result", &batchFullyConnected2Weight);
+    VERIFY_INIT(accumulateFullyConnected2Weight.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected1Weight;
+    updateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1Weight);
+    updateFullyConnected1Weight.setInputParameter("Operand", &batchFullyConnected1Weight);
+    updateFullyConnected1Weight.setOutputParameter("Result", &fullyConnected1Weight);
+
+    VERIFY_INIT(updateFullyConnected1Weight.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected2Weight;
+    updateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2Weight);
+    updateFullyConnected2Weight.setInputParameter("Operand", &batchFullyConnected2Weight);
+    updateFullyConnected2Weight.setOutputParameter("Result", &fullyConnected2Weight);
+
+    VERIFY_INIT(updateFullyConnected2Weight.init());
+
+    float learningRate = 0.01;
+
+    //openData();
+    //loadOneData(image, label);
+    int batchSize = 20;
+    float overallCost = 0.0;
+    const int testInterval = 2000;
+
+
+
+    for(unsigned int e = 1;e<=60;++e)
+    {
+        openTrainData();
+
+    
+        for(unsigned int i = 1;i<=numOfImage;++i)
+        {
+            //openData();
+            loadOneTrainData(image, label);
+
+           fullyConnected1.evaluate();
+            sigmoid1.evaluate();
+            //ReLu1.evaluate();
+            fullyConnected2.evaluate();
+            softmax.evaluate();
+
+            //qDebug() << "cost" << cost[0];
+            overallCost += cost[0];
+            //backward
+            softmaxDerivative.evaluate();
+            dotProductWithBias2Derivative.evaluate();
+            sigmoidDerivative.evaluate();
+            //reLUDerivative.evaluate();
+            fullyConnected1OutputGradTimesSigGrad.evaluate();
+           dotProductWithBias1Derivative.evaluate();
+
+           accumulateFullyConnected1Weight.evaluate();
+            accumulateFullyConnected2Weight.evaluate();
+
+            if (i%batchSize == 0)
+            {
+                qDebug() << e << i<< "cost" << overallCost / (float) batchSize << learningRate;
+                overallCost = 0.0;
+
+                //update weight
+               updateFullyConnected1Weight.setRate(-learningRate/(float)batchSize);
+                updateFullyConnected1Weight.evaluate();
+                updateFullyConnected2Weight.setRate(-learningRate/(float)batchSize);
+                updateFullyConnected2Weight.evaluate();        
+            
+               batchFullyConnected1Weight.clear();
+                batchFullyConnected2Weight.clear();
+           
+               if (i%30000 == 0)
+               {
+                learningRate *= 0.9;
+               } 
+            }
+
+            //test
+            //
+            if (i % testInterval == 0)
+            {
+                unsigned int correct = 0;
+                
+                openTestData();
+
+                for (unsigned int v = 0;v<numOfTestImage; ++v)
+                {
+                   fullyConnected1Output.clear();
+                    fullyConnected2Output.clear();
+                    softmaxOutput.clear();
+                    cost.clear();
+                    softmaxGrad.clear();
+ 
+                    loadOneTestData(image, label);
+
+                    //forward
+                   fullyConnected1.evaluate();
+                    sigmoid1.evaluate();
+                    //ReLu1.evaluate();
+                    fullyConnected2.evaluate();
+
+
+                    unsigned int maxIndex = 0;
+                    float maxValue = fullyConnected2Output[0];
+                    for(unsigned int e = 1; e < fullyConnected2Output.shape().size(); ++e)
+                    {
+                        if (maxValue < fullyConnected2Output[e])
+                        {
+                            maxValue = fullyConnected2Output[e];
+                            maxIndex = e;
+                        }
+                    }
+
+                    if ((float) maxIndex == label[0])
+                    {
+                        correct ++;
+                    }
+
+                 }
+
+                 qDebug() << "Accuracy" << (float) correct / (float) numOfTestImage;
+
+                 closeTestData();
+             }
+
+            //clean up
+        
+           fullyConnected1Output.clear();
+            fullyConnected2Output.clear();
+            softmaxOutput.clear();
+            cost.clear();
+            softmaxGrad.clear();
+            fullyConnected1OutputGrad.clear();
+            fullyConnected2WeightGrad.clear();
+            fullyConnected1WeightGrad.clear();
+           imageGrad.clear();
 
             //closeData();
         
