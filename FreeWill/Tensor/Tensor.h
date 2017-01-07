@@ -7,7 +7,7 @@
 #include "DeviceSelection.h"
 #include "Shape.h"
 #include "ReferenceCountedBlob.h"
-
+#include <ctime>
 
 namespace FreeWill 
 {
@@ -95,14 +95,16 @@ namespace FreeWill
             if constexpr ((DeviceUsed & (CPU_SIMD | CPU_NAIVE)) != 0)
             {
                  //std::random_device rd;
-                 //std::mt19937 gen(rd());
+                 std::mt19937 gen(/*rd()*/ std::time(NULL));
                  //std::uniform_real_distribution<DataType> dis(0, 1);
+                 std::normal_distribution<DataType> normDis(0, 1);
                  DataType *bits = (DataType *) m_data.dataHandle();
                  unsigned int size = m_shape.size();
+                 
                  for (unsigned int n = 0; n < size; ++n) 
                  {
-                     //bits[n] = dis(gen);
-                     bits[n] = ((double) rand() / (double) RAND_MAX - 0.5) * 0.1;
+                     bits[n] = normDis(gen);
+                     //bits[n] = ((double) rand() / (double) RAND_MAX - 0.5) * 0.1;
                  } 
             }
             else
