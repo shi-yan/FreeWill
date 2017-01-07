@@ -158,10 +158,11 @@ namespace FreeWill
                         int startX = -m_zeroPaddingX + newIndexX * m_strideX;
                         int startY = -m_zeroPaddingY + newIndexY * m_strideY;
 
-                        for (unsigned int k = 0; k < featureMapCount; ++k)
-                        {
                             unsigned int resultBaseIndex = (b * newWidth*newHeight +newIndexY * newWidth + newIndexX) * featureMapCount; 
 
+
+                        for (unsigned int k = 0; k < featureMapCount; ++k)
+                        {
 
                             for(int y = 0; y< (int)featureMapLength; ++y)
                             {
@@ -175,6 +176,7 @@ namespace FreeWill
                                     {
                                         unsigned int originalBaseIndex = (b* originalHeight * originalWidth + realY*originalWidth + realX)
                                             *channelCount;
+                                        unsigned int featureMapBaseIndex = (k*(featureMapLength * featureMapLength) + y*featureMapLength + x) * channelCount; 
                                 
                                         for(unsigned int c = 0;c<channelCount;++c)
                                         {
@@ -184,7 +186,7 @@ namespace FreeWill
                                                 * (*_input)[originalBaseIndex + c];
                                             */
 
-                                            (*_featureMapGrad)[(k*(featureMapLength * featureMapLength) + y*featureMapLength + x) * channelCount + c]
+                                            (*_featureMapGrad)[featureMapBaseIndex + c]
                                                     += (*_outputGrad)[resultBaseIndex + k] * (*_prevActivation)[originalBaseIndex + c];
 
                                             (*_inputGrad)[originalBaseIndex + c] += (*_featureMap)[(k * (featureMapLength * featureMapLength) + 
@@ -206,7 +208,31 @@ namespace FreeWill
                         }
                     }
                 }
+
+
+
+                
             }
+
+            DataType scale = 1.0 / (newWidth * newHeight);
+
+
+            for(unsigned int k = 0;k<_biasGrad->shape().size();++k)
+            {
+                (*_biasGrad)[k] *= scale;
+            }
+
+            for(unsigned int i = 0;i< _featureMapGrad->shape().size();++i)
+            {
+                (*_featureMapGrad)[i] *= scale;
+            }
+
+            for(unsigned int i =0;i<_inputGrad->shape().size(); ++i)
+            {
+                (*_inputGrad)[i] *= scale;
+            }
+
+
         }
 
     };

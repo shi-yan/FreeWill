@@ -154,7 +154,7 @@ void loadOneTestData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Te
     label[0] = _label;
 }
 
-int main2()
+int main()
 {
     //openData();
 
@@ -441,15 +441,15 @@ int main2()
 
     VERIFY_INIT(updateFullyConnected2Weight.init());
 
-    float learningRate = 0.01;
+    float learningRate = 0.1;
 
     //openData();
     //loadOneData(image, label);
-    int batchSize = 20;
+    int batchSize = 4;
     float overallCost = 0.0;
-    const int testInterval = 2000;
+    const int testInterval = 60000;
 
-
+    float accuracy = 0.0;
 
     for(unsigned int e = 1;e<=60;++e)
     {
@@ -485,7 +485,7 @@ int main2()
             poolingOutputGrad.reshape({20*12*12,1});
             dotProductWithBias1Derivative.evaluate();
             poolingOutputGrad.reshape({20,12,12,1});
-            maxPooling.evaluate();
+            maxPoolingDerivative.evaluate();
             convSigmoidDerivative.evaluate();
             //convReLUDerivative.evaluate();
             convSigmoidDerivativeTimesOutputGrad.evaluate();
@@ -499,7 +499,7 @@ int main2()
 
             if (i%batchSize == 0)
             {
-                qDebug() << e << i<< "cost" << overallCost / (float) batchSize << learningRate;
+                qDebug() << e << i<< "cost" << overallCost / (float) batchSize << learningRate << accuracy;
                 overallCost = 0.0;
 
                 //update weight
@@ -517,9 +517,9 @@ int main2()
                 batchFullyConnected1Weight.clear();
                 batchFullyConnected2Weight.clear();
            
-               if (i%30000 == 0)
+               if (i%60000 == 0)
                {
-                learningRate *= 0.9;
+                learningRate *= 0.95;
                } 
             }
 
@@ -576,7 +576,7 @@ int main2()
 
                  }
 
-                 qDebug() << "Accuracy" << (float) correct / (float) numOfTestImage;
+                 qDebug() << "Accuracy" << (accuracy = (float) correct / (float) numOfTestImage);
 
                  closeTestData();
              }
@@ -615,7 +615,7 @@ int main2()
     return 0;
 }
 
-int main()
+int main1()
 {
     //openData();
 

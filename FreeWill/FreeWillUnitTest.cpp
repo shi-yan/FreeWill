@@ -466,6 +466,49 @@ void FreeWillUnitTest::SoftmaxTest()
     float groundTruth = 1.04;
 
     QVERIFY(std::abs(cost[0] - groundTruth) < 0.01); 
+
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input2({10,1});
+    input2.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output2({10,1});
+    output2.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> label2({1});
+    label2.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost2({1});
+    cost2.init();
+
+    FreeWill::Softmax<FreeWill::CPU_NAIVE, float> softmax2;
+    softmax2.setInputParameter("Input", &input2);
+    softmax2.setInputParameter("Label", &label2);
+    softmax2.setOutputParameter("Cost", &cost2);
+    softmax2.setOutputParameter("Output", &output2);
+
+    QVERIFY(softmax2.init());
+
+    input2[0] = 0.116663;
+    input2[1] = -0.316017;
+    input2[2] = -0.242819;
+    input2[3] = -0.157871;
+    input2[4] = -0.547314;
+    input2[5] = 0.177335;
+    input2[6] = -0.101721;
+    input2[7] =-0.132597;
+    input2[8] = -0.659628;
+    input2[9] = 0.697892;
+
+    label2[0] = 5.0;
+
+    softmax2.evaluate();
+
+    for(int i = 0;i<10;++i)
+    {
+        printf("output:%f\n", output2[i]);
+    }
+
+    printf("cost: %f\n", cost2[0]);
 }
 
 void FreeWillUnitTest::SoftmaxDerivativeTest()
@@ -563,7 +606,79 @@ void FreeWillUnitTest::SoftmaxDerivativeTest()
         QVERIFY((fakeGrad[i] - inputGrad[i]) < epsilon);
     }
 
+
+
+
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input2({10,1});
+    input2.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output2({10,1});
+    output2.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> label2({1});
+    label2.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost2({1});
+    cost2.init();
+
+    FreeWill::Softmax<FreeWill::CPU_NAIVE, float> softmax2;
+    softmax2.setInputParameter("Input", &input2);
+    softmax2.setInputParameter("Label", &label2);
+    softmax2.setOutputParameter("Cost", &cost2);
+    softmax2.setOutputParameter("Output", &output2);
+
+    QVERIFY(softmax2.init());
+
+/*    input2[0] = 0.116663;
+    input2[1] = -0.316017;
+    input2[2] = -0.242819;
+    input2[3] = -0.157871;
+    input2[4] = -0.547314;
+    input2[5] = 0.177335;
+    input2[6] = -0.101721;
+    input2[7] =-0.132597;
+    input2[8] = -0.659628;
+    input2[9] = 0.697892;
+*/
+
+    input2[0]=-0.149088;
+    input2[1] = 0.565349;
+    input2[2] = -0.733031;
+    input2[3] = 0.039112;
+    input2[4] = -0.556532;
+    input2[5] = -0.009531;
+    input2[6] = -0.230422;
+    input2[7] = 0.295921;
+    input2[8] = 0.535369;
+    input2[9] = -0.333607;
+
+    label2[0] = 5.0;
+
+    softmax2.evaluate();
+
+ 
     
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputGrad2({10,1});
+    inputGrad2.init();
+
+    FreeWill::SoftmaxDerivative<FreeWill::CPU_NAIVE, float> softmaxDerivative2;
+    softmaxDerivative2.setInputParameter("Output", &output2);
+    softmaxDerivative2.setInputParameter("Label", &label2);
+    softmaxDerivative2.setOutputParameter("InputGrad", &inputGrad2);
+
+
+    QVERIFY(softmaxDerivative2.init());
+
+    softmaxDerivative2.evaluate();
+
+    for(unsigned int i = 0;i<inputGrad2.shape()[0];++i)
+    {
+        //qDebug() << "fake" << fakeGrad[i] << "real" << inputGrad[i];
+//        QVERIFY((fakeGrad[i] - inputGrad[i]) < epsilon);
+        printf("inputgrad: %f\n", inputGrad2[i]);
+    }
+
 
 }
 
