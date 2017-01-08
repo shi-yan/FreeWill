@@ -54,6 +54,12 @@ get_target_property(QtCore_Location Qt5::Core LOCATION)
 
 MESSAGE("Using Qt version ${Qt5Core_VERSION} under ${QtCore_Location}")
 
+find_package(CUDA REQUIRED)
+include_directories( ${CUDA_INCLUDE_DIRS} )
+set(BACKEND_LIBS ${CUDA_LIBRARIES})
+
+
+
 #set(FreeWill_SOURCES 
 #    Tensor/Tensor.cpp
 #    Tensor/Shape.cpp

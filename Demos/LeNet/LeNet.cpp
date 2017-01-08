@@ -158,33 +158,35 @@ int main()
 {
     //openData();
 
+    const unsigned int featureMapSize = 5;
+
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> image({1,28,28,1});
     image.init();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> label({1});
     label.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> featureMap({1,5,5,20});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> featureMap({1,5,5, featureMapSize});
     featureMap.init();
     featureMap.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> bias({20});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> bias({featureMapSize});
     bias.init();
     bias.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convOutput({20,24,24,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convOutput({featureMapSize,24,24,1});
     convOutput.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> poolingOutput({20,12,12,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> poolingOutput({featureMapSize,12,12,1});
     poolingOutput.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> poolingSwitchX({20,12,12,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> poolingSwitchX({featureMapSize,12,12,1});
     poolingSwitchX.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> poolingSwitchY({20,12,12,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> poolingSwitchY({featureMapSize,12,12,1});
     poolingSwitchY.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1Weight({100, 20*12*12+1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1Weight({100, featureMapSize*12*12+1});
     fullyConnected1Weight.init();
     fullyConnected1Weight.randomize();
 
@@ -231,7 +233,7 @@ int main()
     VERIFY_INIT(maxPooling.init());
 
 
-    poolingOutput.reshape({20*12*12, 1});
+    poolingOutput.reshape({featureMapSize*12*12, 1});
 
     FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> fullyConnected1;
     fullyConnected1.setInputParameter("Input", &poolingOutput);
@@ -313,10 +315,10 @@ int main()
     dotProductWithBias1Derivative.setInputParameter("OutputGrad", &fullyConnected1OutputGrad);
     dotProductWithBias1Derivative.setInputParameter("Weight", &fullyConnected1Weight);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> poolingOutputGrad({20*12*12,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> poolingOutputGrad({featureMapSize*12*12,1});
     poolingOutputGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1WeightGrad({100, 20*12*12+1,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1WeightGrad({100, featureMapSize*12*12+1,1});
     fullyConnected1WeightGrad.init();
 
     dotProductWithBias1Derivative.setOutputParameter("InputGrad", &poolingOutputGrad);
@@ -325,20 +327,20 @@ int main()
     VERIFY_INIT(dotProductWithBias1Derivative.init());
 
 
-    poolingOutputGrad.reshape({20,12,12,1});
+    poolingOutputGrad.reshape({featureMapSize,12,12,1});
 
     FreeWill::MaxPoolingDerivative<FreeWill::CPU_NAIVE, float> maxPoolingDerivative;
     maxPoolingDerivative.setInputParameter("OutputGrad", &poolingOutputGrad);
     maxPoolingDerivative.setInputParameter("SwitchX", &poolingSwitchX);
     maxPoolingDerivative.setInputParameter("SwitchY", &poolingSwitchY);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convOutputGrad({20,24,24,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convOutputGrad({featureMapSize,24,24,1});
     convOutputGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convBiasGrad({20});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convBiasGrad({featureMapSize});
     convBiasGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convFeatureMapGrad({1,5,5,20});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convFeatureMapGrad({1,5,5,featureMapSize});
     convFeatureMapGrad.init();
 
     maxPoolingDerivative.setOutputParameter("InputGrad", &convOutputGrad);
@@ -375,13 +377,13 @@ int main()
     VERIFY_INIT(convDerivative.init());
 
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchConvWeight({1,5,5,20});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchConvWeight({1,5,5,featureMapSize});
     batchConvWeight.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchConvBias({20});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchConvBias({featureMapSize});
     batchConvBias.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchFullyConnected1Weight({100,20*12*12+1,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchFullyConnected1Weight({100,featureMapSize*12*12+1,1});
     batchFullyConnected1Weight.init();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> batchFullyConnected2Weight({10,100+1,1});
@@ -445,7 +447,7 @@ int main()
 
     //openData();
     //loadOneData(image, label);
-    int batchSize = 4;
+    int batchSize = 10;
     float overallCost = 0.0;
     const int testInterval = 60000;
 
@@ -465,9 +467,9 @@ int main()
             convolution.evaluate();
             convSigmoid.evaluate();
             //convReLU.evaluate();
-            poolingOutput.reshape({20,12,12,1});
+            poolingOutput.reshape({featureMapSize,12,12,1});
             maxPooling.evaluate();
-            poolingOutput.reshape({20*12*12,1});
+            poolingOutput.reshape({featureMapSize*12*12,1});
             fullyConnected1.evaluate();
             sigmoid1.evaluate();
             //ReLu1.evaluate();
@@ -482,9 +484,9 @@ int main()
             sigmoidDerivative.evaluate();
             //reLUDerivative.evaluate();
             fullyConnected1OutputGradTimesSigGrad.evaluate();
-            poolingOutputGrad.reshape({20*12*12,1});
+            poolingOutputGrad.reshape({featureMapSize*12*12,1});
             dotProductWithBias1Derivative.evaluate();
-            poolingOutputGrad.reshape({20,12,12,1});
+            poolingOutputGrad.reshape({featureMapSize,12,12,1});
             maxPoolingDerivative.evaluate();
             convSigmoidDerivative.evaluate();
             //convReLUDerivative.evaluate();
@@ -549,9 +551,9 @@ int main()
                     convolution.evaluate();
                     convSigmoid.evaluate();
                     //convReLU.evaluate();
-                    poolingOutput.reshape({20,12,12,1});
+                    poolingOutput.reshape({featureMapSize,12,12,1});
                     maxPooling.evaluate();
-                    poolingOutput.reshape({20*12*12,1});
+                    poolingOutput.reshape({featureMapSize*12*12,1});
                     fullyConnected1.evaluate();
                     sigmoid1.evaluate();
                     //ReLu1.evaluate();

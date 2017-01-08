@@ -53,6 +53,11 @@ include_directories(${Qt5Test_INCLUDE_DIRS})
 get_target_property(QtCore_Location Qt5::Core LOCATION)
 
 MESSAGE("Using Qt version ${Qt5Core_VERSION} under ${QtCore_Location}")
+set(CUDA_HOST_COMPILER /usr/bin/gcc)
+list(APPEND CUDA_NVCC_FLAGS "-arch=sm_60;-std=c++11;-O3;--use_fast_math;--expt-extended-lambda")
+SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
+
+cuda_add_library(distance Operator/distance.cu Operator/distance.h)
 
 set(FreeWill_SOURCES 
     Tensor/Tensor.cpp
@@ -65,3 +70,4 @@ set(FreeWill_SOURCES
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
 target_link_libraries(FreeWillUnitTest Qt5::Core)
 target_link_libraries(FreeWillUnitTest Qt5::Test)
+target_link_libraries(distance)
