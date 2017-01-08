@@ -56,9 +56,9 @@ MESSAGE("Using Qt version ${Qt5Core_VERSION} under ${QtCore_Location}")
 
 include_directories("../../FreeWill")
 
-set(LeNet_SOURCES 
-    LeNet.cpp)
+set(MNIST_SOURCES 
+    MNIST.cpp)
 
-add_executable(LeNet ${LeNet_SOURCES})
-target_link_libraries(LeNet Qt5::Core)
-target_link_libraries(LeNet Qt5::Test)
+add_executable(MNIST ${MNIST_SOURCES})
+target_link_libraries(MNIST Qt5::Core)
+target_link_libraries(MNIST Qt5::Test)

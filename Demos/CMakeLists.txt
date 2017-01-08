@@ -54,4 +54,4 @@ get_target_property(QtCore_Location Qt5::Core LOCATION)
 
 MESSAGE("Using Qt version ${Qt5Core_VERSION} under ${QtCore_Location}")
 
-add_subdirectory(LeNet)
+add_subdirectory(MNIST)
