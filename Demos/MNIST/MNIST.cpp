@@ -17,15 +17,29 @@
 #include <QDebug>
 #include "Operator/ElementwiseAdd.h"
 
-static FILE *datafp = 0;
-static FILE *labelfp = 0;
-static unsigned int numOfImage = 0;
-static unsigned int numOfRow = 0;
-static unsigned int numOfColumn = 0;
-static unsigned int labelCount = 0;
+#include "MNIST.h"
 
+MNIST::MNIST()
+    :QObject(),
+    datafp(NULL),
+    labelfp(NULL),
+    numOfImage(0),
+    numOfRow(0),
+    numOfColumn(0),
+    labelCount(0),
+    testDatafp(NULL),
+    testLabelfp(NULL),
+    numOfTestImage(0),
+    numOfTestRow(0),
+    numOfTestColumn(0),
+    labelTestCount(0)
+{}
 
-void openTrainData()
+MNIST::~MNIST()
+{
+}
+
+void MNIST::openTrainData()
 {
     datafp = fopen("train-images-idx3-ubyte","rb");
     labelfp = fopen("train-labels-idx1-ubyte","rb");
@@ -53,29 +67,15 @@ void openTrainData()
     numOfImage = be32toh(numOfImage);
     numOfRow = be32toh(numOfRow);
     numOfColumn = be32toh(numOfColumn);
-
-//    printf("magic number: %x\n", magicNum);
-//    printf("num of image: %d\n", numOfImage);
-//    printf("num of row: %d\n", numOfRow);
-//    printf("num of column: %d\n", numOfColumn);
-//    printf("magic number label: %x\n", magicNumLabel);
-//    printf("num of label: %d\n", labelCount);   
 }
 
-void closeTrainData()
+void MNIST::closeTrainData()
 {
     fclose(datafp);
     fclose(labelfp);
 }
 
-static FILE *testDatafp = 0;
-static FILE *testLabelfp = 0;
-static unsigned int numOfTestImage = 0;
-static unsigned int numOfTestRow = 0;
-static unsigned int numOfTestColumn = 0;
-static unsigned int labelTestCount = 0;
-
-void openTestData()
+void MNIST::openTestData()
 {
     //t10k-images-idx3-ubyte  t10k-labels-idx1-ubyte
     testDatafp = fopen("t10k-images-idx3-ubyte","rb");
@@ -104,19 +104,16 @@ void openTestData()
     numOfTestImage = be32toh(numOfTestImage);
     numOfTestRow = be32toh(numOfTestRow);
     numOfTestColumn = be32toh(numOfTestColumn);
-
-
 }
 
-void closeTestData()
+void MNIST::closeTestData()
 {
     fclose(testDatafp);
     fclose(testLabelfp);
 }
 
-void loadOneTrainData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor<FreeWill::CPU, unsigned int> &label)
-{
-    
+void MNIST::loadOneTrainData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor<FreeWill::CPU, unsigned int> &label)
+{ 
     for(unsigned int y = 0 ; y < numOfRow; ++y)
     {
         for(unsigned int x = 0;x< numOfColumn; ++x)
@@ -124,19 +121,15 @@ void loadOneTrainData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::T
             unsigned char pixel = 0;
             fread(&pixel, sizeof(unsigned char), 1, datafp);
             image[numOfColumn * y + x] = (float) pixel / 255.0f;
-            //printf("%3d,", pixel);
         }
-        //printf("\n");
     }
     unsigned char _label = 0;
     fread(&_label, sizeof(unsigned char), 1, labelfp);
-    //printf("lable: %d\n", label);
     label[0] = _label;
 }
 
-void loadOneTestData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor<FreeWill::CPU, unsigned int> &label)
+void MNIST::loadOneTestData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor<FreeWill::CPU, unsigned int> &label)
 {
-
     for(unsigned int y = 0 ; y < numOfTestRow; ++y)
     {
         for(unsigned int x = 0;x< numOfTestColumn; ++x)
@@ -144,19 +137,15 @@ void loadOneTestData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Te
             unsigned char pixel = 0;
             fread(&pixel, sizeof(unsigned char), 1, testDatafp);
             image[numOfTestColumn * y + x] = (float) pixel / 255.0f;
-            //printf("%3d,", pixel);
         }
-        //printf("\n");
     }
     unsigned char _label = 0;
     fread(&_label, sizeof(unsigned char), 1, testLabelfp);
-    //printf("lable: %d\n", label);
     label[0] = _label;
 }
 
-int main()
+void MNIST::trainConvolutionalModel()
 {
-    //openData();
 
     const unsigned int featureMapSize = 5;
 
@@ -614,10 +603,9 @@ int main()
         closeTrainData();
     }
     //closeData();
-    return 0;
 }
 
-int main1()
+void MNIST::trainFullyConnectedModel()
 {
     //openData();
 
@@ -891,5 +879,4 @@ int main1()
         closeTrainData();
     }
     //closeData();
-    return 0;
 }

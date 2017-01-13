@@ -7,6 +7,8 @@
 #include <random>
 #include <cstdio>
 
+#include <cuda_runtime.h>
+
 namespace FreeWill
 {
     class ReferenceCounter
@@ -33,6 +35,8 @@ namespace FreeWill
         unsigned int m_sizeInByte;
         ReferenceCounter *m_referenceCounter;
         unsigned char *m_dataHandle;
+
+        void *gpu_dataHandle;
 
         void cleanup()
         {

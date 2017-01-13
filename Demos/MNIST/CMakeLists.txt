@@ -2,7 +2,8 @@ cmake_minimum_required (VERSION 3.5)
 project (FreeWill)
 
 SET (Qt5Core_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Core)
-SET (Qt5Test_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Test)
+SET (Qt5Network_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Network)
+
 SET (CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/qt5)
 #SET (CMAKE_C_COMPILER clang)
 SET (CMAKE_C_FLAGS          "-std=gnu++1z -stdlib=libstdc++ -march=x86-64 -m64 -Wno-c++1z-extensions")
@@ -46,6 +47,11 @@ include_directories(${Qt5Core_INCLUDE_DIRS})
 add_definitions(${Qt5Core_DEFINITIONS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
 
+find_package(Qt5Network REQUIRED)
+include_directories(${Qt5Network_INCLUDE_DIRS})
+add_definitions(${Qt5Network_DEFINITIONS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
+
 
 find_package(Qt5Test REQUIRED)
 include_directories(${Qt5Test_INCLUDE_DIRS})
@@ -55,10 +61,23 @@ get_target_property(QtCore_Location Qt5::Core LOCATION)
 MESSAGE("Using Qt version ${Qt5Core_VERSION} under ${QtCore_Location}")
 
 include_directories("../../FreeWill")
+include_directories("../../Utils/WebUI/Swiftly/Swiftly")
+include_directories("../../Utils/WebUI/Swiftly/http-parser")
+include_directories("/usr/include/x86_64-linux-gnu/qt5/QtWebSockets")
 
 set(MNIST_SOURCES 
-    MNIST.cpp)
+    MNIST.cpp
+    DemoBase.cpp
+    DemoUI.cpp
+    Session.cpp
+    WebsocketServer.cpp
+    main.cpp)
+
 
 add_executable(MNIST ${MNIST_SOURCES})
 target_link_libraries(MNIST Qt5::Core)
-target_link_libraries(MNIST Qt5::Test)
+target_link_libraries(MNIST Qt5::Network)
+target_link_libraries(MNIST Qt5WebSockets)
+target_link_libraries(MNIST Swiftly)
+
+

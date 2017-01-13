@@ -1,0 +1,3 @@
+[submodule "Utils/WebUI/Swiftly"]
+	path = Utils/WebUI/Swiftly
+	url = https://github.com/shi-yan/Swiftly.git

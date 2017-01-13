@@ -74,3 +74,4 @@ set(BACKEND_LIBS ${CUDA_LIBRARIES})
 
 add_subdirectory("FreeWill")
 add_subdirectory("Demos")
+add_subdirectory("Utils/WebUI/Swiftly")

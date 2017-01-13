@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9">
+    <title>Live random data</title>
+    <!--[if IE]>
+    <script type="text/javascript" src="../excanvas.js"></script>
+    <![endif]-->
+    <!--
+    For production (minified) code, use:
+    <script type="text/javascript" src="dygraph-combined.js"></script>
+    -->
+    <script type="text/javascript" src="/dygraph-combined-dev.js"></script>
+
+  </head>
+  <body>
+    <h3 style="width:800px; text-align: center;">Live random data</h3>
+    <div id="div_g" style="width:100%; height:400px;"></div>
+
+    <script type="text/javascript">
+      var plotData = [];
+      var dataStep = 0;
+      var isRequesting = false;
+      
+      /*var t = new Date();
+      for (var i = 10; i >= 0; i--) {
+        var x = new Date(t.getTime() - i * 1000);
+        data.push([x, Math.random()]);
+      }*/
+
+      var g = new Dygraph(document.getElementById("div_g"), plotData,
+                          {
+                            drawPoints: true,
+                            showRoller: true,
+                            valueRange: [-10.0, 11.2],
+                            labels: ['Step', 'Cost']
+                          });
+/*
+      setInterval(function() {
+        var x = new Date();  // current time
+        var y = Math.random();
+        data.push([x, y]);
+        g.updateOptions( { 'file': data } );
+      }, 1000);
+*/
+      var socket = new WebSocket('ws://172.17.173.86:5678');
+	  socket.binaryType = 'arraybuffer';
+
+	  socket.onopen = function (event) 
+	  {
+          console.log("socket open");
+	  };
+
+	  socket.onmessage = function (e) 
+	  {
+  		var data = e.data;
+  		var dv = new DataView(data);
+  		var messageName = dv.getUint32(0, true);
+
+  		console.log("got message:" + messageName);
+
+  		if (messageName == 6543 && !isRequesting) // new update
+  		{
+  			var newDataStep = dv.getUint32(4, true);
+  			console.log("new data:", newDataStep);
+
+  			if (dataStep < newDataStep)
+  			{
+  				isRequesting = true;
+
+  				var from = dataStep;
+  				var size = newDataStep - dataStep;
+  				var message = 6544; // query
+
+  				console.log("requesting data from: " + dataStep + " to: " + newDataStep);
+
+  				var buffer = new ArrayBuffer(12);
+
+  				var wdv = new DataView(buffer);
+
+  				wdv.setUint32(0, message, true);
+  				wdv.setUint32(4, from, true);
+  				wdv.setUint32(8, size, true);
+
+  				socket.send(buffer);
+  			}
+  		}
+  		else if(messageName == 6545)
+  		{
+  			
+  			var size = dv.getUint32(4, true);
+			console.log("update data---" + size);
+  			var step = 0;
+  			var value = 0;
+  			for (var i = 0;i<size;++i)
+  			{
+  				step = dv.getUint32(8 + i*8, true);
+  				cost = dv.getFloat32(8 + i*8 + 4, true);
+
+  				console.log('We have step: ' + step +'cost: ' +	cost );
+      	 
+      			plotData.push([step, cost]);
+      			g.updateOptions( { 'file': plotData } );
+
+  			}
+
+  			dataStep = step+1;
+
+  			isRequesting = false;
+  		}
+
+
+	  };
+
+    </script>
+
+    <p>This test is modeled after a <a
+      href="http://www.highcharts.com/demo/?example=dynamic-update&theme=default">highcharts
+      test</a>. New points should appear once per second. Try zooming and
+    panning over to the right edge to watch them show up.</p>
+  </body>
+</html>
