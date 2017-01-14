@@ -16,11 +16,11 @@
 #include "Operator/ElementwiseProduct.h"
 #include <QDebug>
 #include "Operator/ElementwiseAdd.h"
-
+#include <QHostAddress>
 #include "MNIST.h"
 
-MNIST::MNIST()
-    :QObject(),
+MNIST::MNIST(WebsocketServer *websocketServer, bool usingConvolution)
+    :QThread(),
     datafp(NULL),
     labelfp(NULL),
     numOfImage(0),
@@ -32,8 +32,12 @@ MNIST::MNIST()
     numOfTestImage(0),
     numOfTestRow(0),
     numOfTestColumn(0),
-    labelTestCount(0)
-{}
+    labelTestCount(0),
+    m_websocketServer(websocketServer),
+    m_usingConvolution(usingConvolution)
+{
+
+}
 
 MNIST::~MNIST()
 {
@@ -147,7 +151,7 @@ void MNIST::loadOneTestData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeW
 void MNIST::trainConvolutionalModel()
 {
 
-    const unsigned int featureMapSize = 5;
+    const unsigned int featureMapSize = 20;
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> image({1,28,28,1});
     image.init();
@@ -491,6 +495,7 @@ void MNIST::trainConvolutionalModel()
             if (i%batchSize == 0)
             {
                 qDebug() << e << i<< "cost" << overallCost / (float) batchSize << learningRate << accuracy;
+                emit updateCost(overallCost / (float) batchSize);
                 overallCost = 0.0;
 
                 //update weight
@@ -783,14 +788,15 @@ void MNIST::trainFullyConnectedModel()
             sigmoidDerivative.evaluate();
             //reLUDerivative.evaluate();
             fullyConnected1OutputGradTimesSigGrad.evaluate();
-           dotProductWithBias1Derivative.evaluate();
+            dotProductWithBias1Derivative.evaluate();
 
-           accumulateFullyConnected1Weight.evaluate();
+            accumulateFullyConnected1Weight.evaluate();
             accumulateFullyConnected2Weight.evaluate();
 
             if (i%batchSize == 0)
             {
                 qDebug() << e << i<< "cost" << overallCost / (float) batchSize << learningRate;
+                emit updateCost(overallCost / (float) batchSize);
                 overallCost = 0.0;
 
                 //update weight
@@ -879,4 +885,18 @@ void MNIST::trainFullyConnectedModel()
         closeTrainData();
     }
     //closeData();
+}
+
+void MNIST::run()
+{
+
+
+    if (m_usingConvolution)
+    {
+        trainConvolutionalModel();
+    }
+    else
+    {
+        trainFullyConnectedModel();
+    }
 }

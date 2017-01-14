@@ -10,8 +10,13 @@ int main(int argc, char *argv[])
     qDebug() << "MNIST Demo";
     QCoreApplication a(argc, argv);
     REGISTER_WEBAPP(DemoUI);
-    HttpServer::getSingleton().start(QThread::idealThreadCount(), 80);
+    HttpServer::getSingleton().start(QThread::idealThreadCount(), 8083);
     WebsocketServer websocketServer;
-    //websocketServer.listen(QHostAddress::Any, 5678);
+
+    MNIST *mnist = new MNIST(&websocketServer);
+    mnist->moveToThread(mnist);
+    QObject::connect(mnist, &MNIST::updateCost, &websocketServer, &WebsocketServer::onUpdateCost);
+    mnist->start();    
+    
     return a.exec();
 }

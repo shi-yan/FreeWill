@@ -16,7 +16,7 @@
   </head>
   <body>
     <h3 style="width:800px; text-align: center;">Live random data</h3>
-    <div id="div_g" style="width:100%; height:400px;"></div>
+    <div id="div_g" style="width:100%; height:600px;"></div>
 
     <script type="text/javascript">
       var plotData = [];
@@ -31,10 +31,10 @@
 
       var g = new Dygraph(document.getElementById("div_g"), plotData,
                           {
-                            drawPoints: true,
-                            showRoller: true,
-                            valueRange: [-10.0, 11.2],
-                            labels: ['Step', 'Cost']
+                                drawPoints: true,
+                                showRoller: true,
+                                valueRange: [0.0, 10.0],
+                                labels: ['Step', 'Cost']
                           });
 /*
       setInterval(function() {
@@ -44,7 +44,7 @@
         g.updateOptions( { 'file': data } );
       }, 1000);
 */
-      var socket = new WebSocket('ws://172.17.173.86:5678');
+      var socket = new WebSocket('ws://vca10:5678');
 	  socket.binaryType = 'arraybuffer';
 
 	  socket.onopen = function (event) 
@@ -87,27 +87,46 @@
   			}
   		}
   		else if(messageName == 6545)
-  		{
-  			
-  			var size = dv.getUint32(4, true);
+  		{		
+  			var size = dv.getUint32(4, true) * 2;
 			console.log("update data---" + size);
   			var step = 0;
   			var value = 0;
-  			for (var i = 0;i<size;++i)
-  			{
-  				step = dv.getUint32(8 + i*8, true);
-  				cost = dv.getFloat32(8 + i*8 + 4, true);
 
-  				console.log('We have step: ' + step +'cost: ' +	cost );
-      	 
-      			plotData.push([step, cost]);
-      			g.updateOptions( { 'file': plotData } );
+            var stepArray = new Uint32Array(data, 8);
+            var valueArray = new Float32Array(data, 12);
+            var currentIndex = 0;
 
-  			}
+            setTimeout(function populateData(){
+            
+                var fence = currentIndex + 2000;
+                if (fence > size)
+                {
+                    fence = size;
+                }
 
-  			dataStep = step+1;
+                for (;currentIndex < fence; currentIndex += 2)
+                {
+                    step = stepArray[currentIndex];
+                    cost = valueArray[currentIndex];
 
-  			isRequesting = false;
+                    plotData.push([step, cost]);
+                }
+
+                g.updateOptions({'file' : plotData});
+
+                if (currentIndex == size)
+                {
+                    dataStep = step + 1;
+                    isRequesting = false;
+                }
+                else
+                {
+                    setTimeout(populateData,0);
+                }
+            
+            },0);
+            
   		}
 
 

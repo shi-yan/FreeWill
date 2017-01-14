@@ -1,10 +1,12 @@
 #ifndef MNIST_H
 #define MNIST_H
 
-#include <QObject>
+#include <QThread>
 #include <Tensor/Tensor.h>
+#include "WebsocketServer.h"
 
-class MNIST : public QObject
+
+class MNIST : public QThread
 {
     Q_OBJECT
 
@@ -24,8 +26,12 @@ class MNIST : public QObject
     unsigned int numOfTestColumn;
     unsigned int labelTestCount;
 
+    WebsocketServer *m_websocketServer;
+
+    bool m_usingConvolution;
+
 public:
-        MNIST();
+        MNIST(WebsocketServer *websocketServer, bool usingConvolution = true);
         ~MNIST();
 
         void openTestData();
@@ -38,6 +44,11 @@ public:
 
         void trainFullyConnectedModel();
         void trainConvolutionalModel();
+
+        void run();
+
+signals:
+        void updateCost(float cost);
 };
 
 #endif

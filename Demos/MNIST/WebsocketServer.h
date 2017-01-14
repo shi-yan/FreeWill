@@ -39,6 +39,9 @@ private slots:
 
     void onTimeout();
 
+public slots:
+    void onUpdateCost(float cost);
+
 };
 
 #endif // WEBSOCKETSERVER_H

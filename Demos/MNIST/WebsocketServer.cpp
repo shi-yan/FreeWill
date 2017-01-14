@@ -31,13 +31,13 @@ void WebsocketServer::onNewConnection()
     connect(pSocket, &QWebSocket::binaryMessageReceived, this, &WebsocketServer::onBinaryMessageReceived);
     connect(pSocket, &QWebSocket::disconnected, this, &WebsocketServer::onDisconnected);
 
-    if (!m_testTimer)
+/*    if (!m_testTimer)
     {
         m_testTimer = new QTimer(this);
         connect(m_testTimer, &QTimer::timeout, this, &WebsocketServer::onTimeout);
         m_testTimer->start(1000);
     }
-
+*/
     m_consumerSockets.push_back(pSocket);
 }
 
@@ -115,9 +115,6 @@ WebsocketServer::~WebsocketServer()
 
 }
 
-
-
-
 void WebsocketServer::onDisconnected()
 {
     QWebSocket *socket = (QWebSocket*) sender();
@@ -126,4 +123,9 @@ void WebsocketServer::onDisconnected()
     socket->deleteLater();
 }
 
-
+void WebsocketServer::onUpdateCost(float cost)
+{
+    qDebug() << "write" << cost;
+    m_session->write(counter++, cost);
+    notifyUpdate(m_session->tail());
+}
