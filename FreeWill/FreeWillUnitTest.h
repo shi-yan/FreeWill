@@ -5,8 +5,11 @@ class FreeWillUnitTest : public QObject
 	Q_OBJECT
 private slots:
     void initTestCase();    
+    void cleanupTestCase();
     void blobTest();
+    void blobTestGPU();
     void tensorTest();
+    void tensorTestGPU();
     void operatorTest();
     void operatorSigmoidTest();
     void operatorSigmoidDerivativeTest();

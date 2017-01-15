@@ -4,10 +4,34 @@
 #include "Operator/Operator.h"
 #include "Operator/ElementwiseAdd.h"
 #include <time.h>
+#include <cuda_runtime.h>
 
 void FreeWillUnitTest::initTestCase()
 {
     srand(/*time(NULL)*/0);
+
+    int deviceCount;
+    cudaGetDeviceCount(&deviceCount);
+    int device;
+    for (device = 0; device < deviceCount; ++device)
+    {
+        cudaDeviceProp deviceProp;
+        cudaGetDeviceProperties(&deviceProp, device);
+        printf("Device %d has compute capability %d.%d.\n", device, deviceProp.major, deviceProp.minor);
+        printf("Maximum threads per block: %d\n", deviceProp.maxThreadsPerBlock);
+        printf("Device texture alignment: %lu\n", deviceProp.textureAlignment);
+        printf("Device texture dimension: %d X %d\n", deviceProp.maxTexture2D[0], deviceProp.maxTexture2D[1]);
+    }
+
+    size_t freeMem = 0;
+    size_t totalMem = 0;
+    cudaMemGetInfo(&freeMem, &totalMem);
+    printf("available video memory: %ld, %ld (bytes)\n", freeMem, totalMem);
+}
+
+void FreeWillUnitTest::cleanupTestCase()
+{
+    cudaDeviceReset();
 }
 
 void FreeWillUnitTest::blobTest()
@@ -46,6 +70,8 @@ void FreeWillUnitTest::blobTest()
     //QVERIFY(str.toUpper() == "HELLO");
 }
 
+void FreeWillUnitTest::blobTestGPU(){}
+
 void FreeWillUnitTest::tensorTest()
 {
     FreeWill::Tensor< FreeWill::CPU_NAIVE, float> tensor({64, 32, 32});
@@ -73,6 +99,8 @@ void FreeWillUnitTest::tensorTest()
 
     //QVERIFY(1 == 1);
 }
+
+void FreeWillUnitTest::tensorTestGPU(){}
 
 void FreeWillUnitTest::operatorTest()
 {

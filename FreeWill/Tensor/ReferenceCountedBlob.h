@@ -36,16 +36,23 @@ namespace FreeWill
         ReferenceCounter *m_referenceCounter;
         unsigned char *m_dataHandle;
 
-        void *gpu_dataHandle;
+        void *m_gpuDataHandle;
 
         void cleanup()
         {
             if (m_referenceCounter->decrease() == 0)
             {
                 free(m_dataHandle);
+                if constexpr (DeviceUsed == GPU_CUDA)
+                {
+                    if (m_gpuDataHandle)
+                    {
+                        RUN_CUDA(cudaFree(m_gpuDataHandle))
+                    }
+                }
                 delete m_referenceCounter;
             }
-            
+           
             m_referenceCounter = nullptr;
             m_dataHandle = nullptr;
             m_sizeInByte = 0;
@@ -55,7 +62,8 @@ namespace FreeWill
         ReferenceCountedBlob()
             :m_sizeInByte(0),
             m_referenceCounter(nullptr),
-            m_dataHandle(nullptr)
+            m_dataHandle(nullptr),
+            m_gpuDataHandle(nullptr)
         {
             m_referenceCounter = new ReferenceCounter();
             m_referenceCounter->increase();
@@ -64,13 +72,15 @@ namespace FreeWill
         ReferenceCountedBlob(const ReferenceCountedBlob<DeviceUsed> &blob)
             :m_sizeInByte(0),
             m_referenceCounter(nullptr),
-            m_dataHandle(nullptr)
+            m_dataHandle(nullptr),
+            m_gpuDataHandle(nullptr)
         {
             if (blob.m_dataHandle) 
             {
                 m_referenceCounter = blob.m_referenceCounter;
                 m_sizeInByte = blob.m_sizeInByte;
                 m_dataHandle = blob.m_dataHandle;
+                m_gpuDataHandle = blob.m_gpuDataHandle;
                 m_referenceCounter->increase();
             }
             else
@@ -83,11 +93,21 @@ namespace FreeWill
         void clear()
         {
             std::memset(m_dataHandle, 0, m_sizeInByte);
+
+            if constexpr (DeviceUsed == GPU_CUDA) 
+            {
+                RUN_CUDA(cudaMemset(m_gpuDataHandle, 0, m_sizeInByte));
+            }
         }
 
         unsigned char * dataHandle() 
         {
             return m_dataHandle;
+        }
+
+        unsigned char * gpuDataHandle()
+        {
+            return m_gpuDataHandle;
         }
 
         bool alloc(unsigned int sizeInByte)
@@ -112,7 +132,30 @@ namespace FreeWill
             } 
             else if constexpr ((DeviceUsed & GPU) != 0) 
             {
-
+                RUN_CUDA(cudaMalloc(&m_gpuDataHandle, sizeInByte));
+                m_dataHandle = (unsigned char *) malloc(sizeInByte);
+                if (m_gpuDataHandle && m_dataHandle)
+                {
+                    m_sizeInByte = sizeInByte;
+                    
+                    RUN_CUDA(cudaMemset(m_gpuDataHandle, 0, sizeInByte));
+                    std::memset(m_dataHandle, 0, sizeInByte);
+                    return true;
+                }
+                else
+                {
+                    if (m_gpuDataHandle)
+                    {
+                        RUN_CUDA(cudaFree(m_gpuDataHandle));
+                        m_gpuDataHandle = nullptr;
+                    }
+                    if (m_dataHandle)
+                    {
+                        std::free(m_dataHandle);
+                        m_dataHandle = nullptr;
+                    }
+                    return false;
+                }
             }
         }
 
@@ -141,6 +184,8 @@ namespace FreeWill
             }
             else if constexpr ((DeviceUsed & GPU) != 0)
             {
+                std::copy(m_dataHandle, m_dataHandle + m_sizeInByte, copy.m_dataHandle);
+                RUN_CUDAcudaMemcpy(copy.m_gpuDataHandle, m_gpuDataHandle, m_sizeInByte, cudaMemcpyDeviceToDevice);
             }
 
             return copy;
@@ -148,19 +193,57 @@ namespace FreeWill
 
         void operator=(const ReferenceCountedBlob<DeviceUsed> &blob)
         {
-            if (blob.m_dataHandle)
+            if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
             {
-                cleanup();
-                m_referenceCounter = blob.m_referenceCounter;
-                m_referenceCounter->increase();
-                m_sizeInByte = blob.m_sizeInByte;
-                m_dataHandle = blob.m_dataHandle;
+                if (blob.m_dataHandle)
+                {
+                    cleanup();
+                    m_referenceCounter = blob.m_referenceCounter;
+                    m_referenceCounter->increase();
+                    m_sizeInByte = blob.m_sizeInByte;
+                    m_dataHandle = blob.m_dataHandle;
+                }
+            }
+            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) !=0)
+            {
+                if (blob.m_gpuDataHandle)
+                {
+                    cleanup();
+                    m_referenceCounter = blob.m_referenceCounter;
+                    m_referenceCounter->increase();
+                    m_sizeInByte = blob.m_sizeInByte;
+                    m_dataHandle = blob.m_dataHandle;
+                    m_gpuDataHandle = blob.m_gpuDataHandle;
+                }
             }
         }
 
         void operator==(const ReferenceCountedBlob<DeviceUsed> &blob) const 
         {
-            return m_dataHandle == blob.m_dataHandle;
+            if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0) 
+            {
+                return m_dataHandle == blob.m_dataHandle;
+            }
+            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            {
+                return m_gpuDataHandle == blob.m_gpuDataHandle;
+            }
+        }
+
+        void copyFromHostToDevice()
+        {
+            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) !=0)
+            {
+                RUN_CUDA(cudaMemcpy(m_gpuDataHandle, m_dataHandle, m_sizeInByte, cudaMemcpyHostToDevice));
+            }
+        }
+
+        void copyFromDeviceToHost()
+        {
+            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) !=0)
+            {
+                RUN_CUDA(cudaMemcpy(m_dataHandle, m_gpuDataHandle, m_sizeInByte, cudaMemcpyDeviceToHost));
+            }
         }
 
         unsigned char operator[](unsigned int index) const

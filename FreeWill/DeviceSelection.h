@@ -21,4 +21,8 @@ namespace FreeWill
 #define DEVICE_SPECIFIC(devices) \
     template<DeviceType T = DeviceUsed, typename Enabled = typename std::enable_if<(T & devices) != 0> >
 
+#define RUN_CUDA(cuda_function) \
+    if (cuda_function != cudaSuccess) \
+        {printf("CUDA error: %s\n", __FILE__);}
+
 #endif
