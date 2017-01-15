@@ -129,3 +129,18 @@ void WebsocketServer::onUpdateCost(float cost)
     m_session->write(counter++, cost);
     notifyUpdate(m_session->tail());
 }
+
+void WebsocketServer::onUpdateProgress(float epoch, float overall)
+{
+    quint32 message = UPDATE_PROGRESS;
+    
+    QByteArray ba;
+    ba.append((char*) &message, 4);
+    ba.append((char *) &epoch, 4);
+    ba.append((char *) &overall, 4);
+
+    foreach(QWebSocket *socket, m_consumerSockets)
+    {
+        socket->sendBinaryMessage(ba);
+    }
+}

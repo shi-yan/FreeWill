@@ -49,6 +49,7 @@ public:
 
 signals:
         void updateCost(float cost);
+        void updateProgress(float epoch, float overall);
 };
 
 #endif

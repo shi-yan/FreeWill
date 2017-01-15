@@ -7,10 +7,13 @@ class DemoUI : public WebApp
 {
     Q_OBJECT
 
+        QString m_content;
 public:
-    void registerPathHandlers();
+        DemoUI();
+        ~DemoUI();
+        void registerPathHandlers();
 public slots:
-    void handleFileGet(HttpRequest &,HttpResponse &);
+        void handleFileGet(HttpRequest &,HttpResponse &);
 };
 
 #endif // STATICFILESERVER_H

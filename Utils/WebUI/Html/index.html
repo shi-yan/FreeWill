@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9">
-    <title>Live random data</title>
+    <title>{{model_name}}</title>
     <!--[if IE]>
     <script type="text/javascript" src="../excanvas.js"></script>
     <![endif]-->
@@ -12,17 +12,39 @@
     <script type="text/javascript" src="dygraph-combined.js"></script>
     -->
     <script type="text/javascript" src="/dygraph-combined-dev.js"></script>
+    <script type="text/javascript" src="/dat.gui.min.js"></script>
+    <script type="text/javascript">
 
+    var UIState = function()
+    {
+        this.title = "{{model_name}}";
+        this.overallProgress = 0.0;
+        this.epochProgress = 0.0;
+        this.learningRate = 0.9;
+        this.test = function() {};
+    };
+
+    </script>
   </head>
   <body>
-    <h3 style="width:800px; text-align: center;">Live random data</h3>
-    <div id="div_g" style="width:100%; height:600px;"></div>
+      <h3 style="width:100%; text-align: center;">{{model_name}}</h3>
+    <div id="div_g" style="width:100%; height:500px;"></div>
 
     <script type="text/javascript">
       var plotData = [];
       var dataStep = 0;
       var isRequesting = false;
-      
+      var uiState = new UIState(); 
+      var gui = new dat.GUI();
+ 
+        gui.add(uiState, 'title').name('Title');
+        gui.add(uiState, 'overallProgress', 0.0, 1.0).step(0.01).name('Overall Progress').listen();
+        gui.add(uiState, 'epochProgress', 0.0, 1.0).step(0.01).name('Epoch Progress').listen();
+        gui.add(uiState, 'learningRate').name('Learning Rate');
+        gui.add(uiState, 'test').name('Test');
+    
+
+     
       /*var t = new Date();
       for (var i = 10; i >= 0; i--) {
         var x = new Date(t.getTime() - i * 1000);
@@ -58,12 +80,12 @@
   		var dv = new DataView(data);
   		var messageName = dv.getUint32(0, true);
 
-  		console.log("got message:" + messageName);
+//  		console.log("got message:" + messageName);
 
   		if (messageName == 6543 && !isRequesting) // new update
   		{
   			var newDataStep = dv.getUint32(4, true);
-  			console.log("new data:", newDataStep);
+  //			console.log("new data:", newDataStep);
 
   			if (dataStep < newDataStep)
   			{
@@ -73,7 +95,7 @@
   				var size = newDataStep - dataStep;
   				var message = 6544; // query
 
-  				console.log("requesting data from: " + dataStep + " to: " + newDataStep);
+  	//			console.log("requesting data from: " + dataStep + " to: " + newDataStep);
 
   				var buffer = new ArrayBuffer(12);
 
@@ -89,7 +111,7 @@
   		else if(messageName == 6545)
   		{		
   			var size = dv.getUint32(4, true) * 2;
-			console.log("update data---" + size);
+	//		console.log("update data---" + size);
   			var step = 0;
   			var value = 0;
 
@@ -128,15 +150,20 @@
             },0);
             
   		}
+        else if(messageName == 6546)
+        {
+            var epoch = dv.getFloat32(4, true);
+			var overall = dv.getFloat32(8, true);
+  			
+            uiState.epochProgress = epoch;
+            uiState.overallProgress = overall;
+  	
+            console.log("epoch" + epoch + "overall" +overall);    
+        }
 
 
 	  };
 
     </script>
-
-    <p>This test is modeled after a <a
-      href="http://www.highcharts.com/demo/?example=dynamic-update&theme=default">highcharts
-      test</a>. New points should appear once per second. Try zooming and
-    panning over to the right edge to watch them show up.</p>
   </body>
 </html>

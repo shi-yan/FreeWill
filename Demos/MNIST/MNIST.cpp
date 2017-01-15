@@ -598,7 +598,8 @@ void MNIST::trainConvolutionalModel()
             inputGrad.clear();
 
             //closeData();
-        
+       
+           emit updateProgress(i / (float)(numOfImage), ((e-1)*numOfImage + i) / (60.0f*numOfImage)); 
         }
     
         /*if (e % 10000 == 0)
@@ -875,6 +876,7 @@ void MNIST::trainFullyConnectedModel()
            imageGrad.clear();
 
             //closeData();
+            emit updateProgress(i / (float)(numOfImage), ((e-1)*numOfImage + i) / (60.0f*numOfImage)); 
         
         }
     

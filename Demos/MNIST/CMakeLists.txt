@@ -63,7 +63,10 @@ MESSAGE("Using Qt version ${Qt5Core_VERSION} under ${QtCore_Location}")
 include_directories("../../FreeWill")
 include_directories("../../Utils/WebUI/Swiftly/Swiftly")
 include_directories("../../Utils/WebUI/Swiftly/http-parser")
+include_directories("../../Utils/WebUI/Swiftly/qt-mustache/src")
 include_directories("/usr/include/x86_64-linux-gnu/qt5/QtWebSockets")
+
+
 
 set(MNIST_SOURCES 
     MNIST.cpp

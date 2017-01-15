@@ -10,7 +10,8 @@ enum MESSAGE
 {
     UPDATE_AVAILABLE = 6543,
     QUERY_DATA,
-    DATA
+    DATA,
+    UPDATE_PROGRESS
 };
 
 class WebsocketServer : public QObject
@@ -41,7 +42,7 @@ private slots:
 
 public slots:
     void onUpdateCost(float cost);
-
+    void onUpdateProgress(float epoch, float overall);
 };
 
 #endif // WEBSOCKETSERVER_H
