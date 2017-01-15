@@ -70,7 +70,13 @@ void FreeWillUnitTest::blobTest()
     //QVERIFY(str.toUpper() == "HELLO");
 }
 
-void FreeWillUnitTest::blobTestGPU(){}
+void FreeWillUnitTest::blobTestGPU()
+{
+    FreeWill::ReferenceCountedBlob<FreeWill::GPU_CUDA> blob1;
+    blob1.alloc(10);
+
+    QVERIFY(blob1.sizeInByte() == 10);
+}
 
 void FreeWillUnitTest::tensorTest()
 {

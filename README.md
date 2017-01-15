@@ -8,7 +8,7 @@ FreeWill is a deeplearning library implemented in C++. The purpose of writing Fr
 
 The first goal of this project is matching https://github.com/karpathy/convnetjs feature wise.
 
-= How to build =
+## How to build
 So far, I have only tested on Ubuntu 16
 
 I have been avoiding introducing dependencies to this project, but you need to have Qt5 to use it.
