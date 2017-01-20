@@ -66,6 +66,11 @@ include_directories("../../Utils/WebUI/Swiftly/http-parser")
 include_directories("../../Utils/WebUI/Swiftly/qt-mustache/src")
 include_directories("/usr/include/x86_64-linux-gnu/qt5/QtWebSockets")
 
+link_directories("/usr/local/cuda/lib64")
+
+# get_directory_property(OUT_VAR LINK_DIRECTORIES)
+# message(STATUS "DIR: ${OUT_VAR}")
+
 
 
 set(MNIST_SOURCES 
@@ -82,5 +87,5 @@ target_link_libraries(MNIST Qt5::Core)
 target_link_libraries(MNIST Qt5::Network)
 target_link_libraries(MNIST Qt5WebSockets)
 target_link_libraries(MNIST Swiftly)
-
+target_link_libraries(MNIST cudnn)
 

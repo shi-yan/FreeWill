@@ -11,8 +11,10 @@ private slots:
     void tensorTest();
     void tensorTestGPU();
     void operatorTest();
-    void operatorSigmoidTest();
+    void operatorTestGPU();
+    void operatorSigmoidTestCPUAndGPU();
     void operatorSigmoidDerivativeTest();
+    void operatorSigmoidDerivativeTestGPU();
     void operatorReLUDerivativeTest();
     void operatorSigmoidCrossEntropyTest();
     void operatorSigmoidCrossEntropyDerivativeTest();

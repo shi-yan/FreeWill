@@ -11,6 +11,9 @@
 
 namespace FreeWill
 {
+    template <DeviceType DeviceUsed>
+    class TensorBase;
+
     class ReferenceCounter
     {
     private:
@@ -32,6 +35,7 @@ namespace FreeWill
     class ReferenceCountedBlob
     {
     private:
+        friend class TensorBase<DeviceUsed>;
         unsigned int m_sizeInByte;
         ReferenceCounter *m_referenceCounter;
         unsigned char *m_dataHandle;
@@ -185,7 +189,7 @@ namespace FreeWill
             else if constexpr ((DeviceUsed & GPU) != 0)
             {
                 std::copy(m_dataHandle, m_dataHandle + m_sizeInByte, copy.m_dataHandle);
-                RUN_CUDAcudaMemcpy(copy.m_gpuDataHandle, m_gpuDataHandle, m_sizeInByte, cudaMemcpyDeviceToDevice);
+                RUN_CUDA(cudaMemcpy(copy.m_gpuDataHandle, m_gpuDataHandle, m_sizeInByte, cudaMemcpyDeviceToDevice));
             }
 
             return copy;

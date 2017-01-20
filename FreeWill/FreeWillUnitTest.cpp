@@ -14,21 +14,49 @@
 #include "Operator/Softmax.h"
 #include "Operator/SoftmaxDerivative.h"
 
-void FreeWillUnitTest::operatorSigmoidTest()
+void FreeWillUnitTest::operatorSigmoidTestCPUAndGPU()
 {
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> input({64,32,32});
-    input.init();
-    input.randomize();
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> inputCPU({64,32,32});
+    inputCPU.init();
+    inputCPU.randomize();
 
-    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> output({64,32,32});
-    output.init();
+    FreeWill::Tensor< FreeWill::CPU_NAIVE, float> outputCPU({64,32,32});
+    outputCPU.init();
 
-    FreeWill::Sigmoid< FreeWill::CPU_NAIVE, float> sigmoid;
-    sigmoid.setInputParameter("Input", &input);
-    sigmoid.setOutputParameter("Output", &output);
+    FreeWill::Sigmoid< FreeWill::CPU_NAIVE, float> sigmoidCPU;
+    sigmoidCPU.setInputParameter("Input", &inputCPU);
+    sigmoidCPU.setOutputParameter("Output", &outputCPU);
 
-    sigmoid.init();
-    sigmoid.evaluate();
+    QVERIFY(sigmoidCPU.init());
+    sigmoidCPU.evaluate();
+
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGPU({64,32,32});
+    inputGPU.init();
+    
+    for(unsigned int i = 0;i<inputCPU.shape().size();++i)
+    {
+        inputGPU[i] = inputCPU[i];
+    }
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> outputGPU({64,32,32});
+    outputGPU.init();
+
+    inputGPU.copyFromHostToDevice();
+
+    FreeWill::Sigmoid<FreeWill::GPU_CUDA, float> sigmoidGPU;
+    sigmoidGPU.setInputParameter("Input", &inputGPU);
+    sigmoidGPU.setOutputParameter("Output", &outputGPU);
+
+    QVERIFY(sigmoidGPU.init());
+    sigmoidGPU.evaluate();
+
+    outputGPU.copyFromDeviceToHost();
+    const float epsilon = 0.01;
+    for (unsigned int i = 0;i<10;++i)
+    {
+        QVERIFY(std::abs(outputGPU[i] - outputCPU[i]) < epsilon);
+    }
 }
 
 void FreeWillUnitTest::operatorSigmoidDerivativeTest()
@@ -89,6 +117,11 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
     //qDebug() << "Gradient check for sigmoid:" << fakeDerivative << " (fake), " << input[0] << " (real)";
 
     QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
+}
+
+void FreeWillUnitTest::operatorSigmoidDerivativeTestGPU()
+{
+
 }
 
 void FreeWillUnitTest::operatorSigmoidCrossEntropyTest()

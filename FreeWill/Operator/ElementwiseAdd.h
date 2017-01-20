@@ -5,6 +5,8 @@
 #include "Operator.h"
 #include "../Tensor/Tensor.h"
 
+#include "ElementwiseAdd_CUDA.h"
+
 namespace FreeWill
 {
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
@@ -49,24 +51,24 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+
+            Tensor<DeviceUsed, DataType> *result = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors[0];
+            Tensor<DeviceUsed, DataType> *operandA = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[0];
+            Tensor<DeviceUsed, DataType> *operandB = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[1];
+
+            unsigned int size = result->shape().size();
+
             if constexpr (DeviceUsed == CPU_NAIVE)
             {
-
-                Tensor<DeviceUsed, DataType> *result = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors[0];
-                Tensor<DeviceUsed, DataType> *operandA = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[0];
-                Tensor<DeviceUsed, DataType> *operandB = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[1];
-
-                unsigned int size = result->shape().size();
-
-                //printf("elementwise add size: %d\n", size);
-
                 for(unsigned int e = 0; e<size; ++e)
                 {
                     (*result)[e] = (*operandA)[e] + (*operandB)[e]*m_rate;
                 }
             }
-            else
+            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) !=0)
             {
+                elementwiseAddCUDAKernel<DataType>(operandA->gpuDataHandle(), operandB->gpuDataHandle(), result->gpuDataHandle(), size);
+
 
             }
         }

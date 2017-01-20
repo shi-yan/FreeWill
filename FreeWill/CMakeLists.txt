@@ -60,11 +60,14 @@ set(CUDA_HOST_COMPILER /usr/bin/gcc)
 list(APPEND CUDA_NVCC_FLAGS "-arch=sm_52;-std=c++11;-O3;--use_fast_math;--expt-extended-lambda")
 SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
-cuda_add_library(distance Operator/distance.cu Operator/distance.h)
+cuda_add_library(cuda_kernel Operator/ElementwiseAdd_CUDA.cu Operator/ElementwiseAdd_CUDA.h)
 
-set(FreeWill_SOURCES 
-    Tensor/Tensor.cpp
-    Tensor/Shape.cpp
+link_directories("/usr/local/cuda/lib64")
+
+# get_directory_property(OUT_VAR LINK_DIRECTORIES)
+# message(STATUS "DIR: ${OUT_VAR}")
+
+set(FreeWill_SOURCES
     FreeWillUnitTestTensor.cpp
     FreeWillUnitTest.cpp
     FreeWillUnitTestXOR.cpp
@@ -73,5 +76,6 @@ set(FreeWill_SOURCES
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
 target_link_libraries(FreeWillUnitTest Qt5::Core)
 target_link_libraries(FreeWillUnitTest Qt5::Test)
-target_link_libraries(FreeWillUnitTest distance)
+target_link_libraries(FreeWillUnitTest cuda_kernel)
 target_link_libraries(FreeWillUnitTest ${CUDA_LIBRARIES})
+target_link_libraries(FreeWillUnitTest cudnn)

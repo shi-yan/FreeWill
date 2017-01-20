@@ -23,6 +23,15 @@ namespace FreeWill
 
 #define RUN_CUDA(cuda_function) \
     if (cuda_function != cudaSuccess) \
-        {printf("CUDA error: %s\n", __FILE__);}
+        {printf("CUDA error: %s:%d\n", __FILE__, __LINE__);}
+
+#define RUN_CUDNN(cudnn_function) \
+    {cudnnStatus_t result = cudnn_function ; \
+    if (result != CUDNN_STATUS_SUCCESS) \
+        {printf("CUDNN error: %s:%d Error[%d]\n", __FILE__, __LINE__, result);}}
+
+#define CHECK_CUDA_ERROR \
+    if (cudaGetLastError() != cudaSuccess) \
+        {printf("CUDA Launch Kernel error: %s:%d\n", __FILE__, __LINE__);}
 
 #endif

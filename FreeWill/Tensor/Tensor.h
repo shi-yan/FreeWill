@@ -8,6 +8,9 @@
 #include "Shape.h"
 #include "ReferenceCountedBlob.h"
 #include <ctime>
+#include <cuda.h>
+#include <cudnn.h>
+#include "../Context/Context.h"
 
 namespace FreeWill 
 {
@@ -17,18 +20,40 @@ namespace FreeWill
     protected:
 
        Shape m_shape;
+       cudnnTensorDescriptor_t m_gpuTensorDescriptor;
+
 
        ReferenceCountedBlob<DeviceUsed> m_data;
        TensorBase(const Shape &shape = Shape()) 
            :m_shape(shape),
             m_data()
-       {}
+       {
+           RUN_CUDA(cudnnCreateTensorDescriptor(&m_gpuTensorDescriptor));
+       }
 
        TensorBase(const ReferenceCountedBlob<DeviceUsed> &data, const Shape &shape = Shape())
            :m_shape(shape),
                m_data(data)
-       {}
+       {
+           RUN_CUDNN(cudnnCreateTensorDescriptor(&m_gpuTensorDescriptor));
+       }
+
+       void *gpuDataHandle()
+       {
+            return m_data.m_gpuDataHandle;
+       }
+
+       void *cpuDataHandle()
+       {
+            return m_data.m_dataHandle;
+       }
+
     public:
+       const cudnnTensorDescriptor_t &gpuTensorDescriptor() const
+       {
+           return m_gpuTensorDescriptor;
+       }
+
        virtual const Shape &shape() const
        {
             return m_shape;
@@ -36,10 +61,13 @@ namespace FreeWill
 
        void clear()
        {
-        m_data.clear();
+            m_data.clear();
        }
 
-       virtual ~TensorBase() {}
+       virtual ~TensorBase() 
+       {
+           RUN_CUDNN(cudnnDestroyTensorDescriptor(m_gpuTensorDescriptor));
+       }
     };
     
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
@@ -70,12 +98,18 @@ namespace FreeWill
         bool init()
 	    {
             unsigned int size = m_shape.size();
+            bool result = false;
             if (size) 
             {
-                return m_data.alloc(size * sizeof(DataType));
+                result = m_data.alloc(size * sizeof(DataType));
             }
 
-            return false;
+            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            {
+                updateGPUTensorDescriptor();
+            }
+
+            return result;
 	    }
 
         bool init(const std::initializer_list<DataType> &initList)
@@ -87,30 +121,36 @@ namespace FreeWill
 
             unsigned int size = m_shape.size();
             std::copy(initList.begin(), initList.begin() + (initList.size()>size?size:initList.size()), (DataType*) m_data.dataHandle());
+
+            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            {
+                m_data.copyFromHostToDevice();
+                updateGPUTensorDescriptor();
+            }
+
             return true;
         }
 
         void randomize()
         {
-            if constexpr ((DeviceUsed & (CPU_SIMD | CPU_NAIVE)) != 0)
-            {
-                 //std::random_device rd;
-                 std::mt19937 gen(/*rd()*/ std::time(NULL));
-                 //std::uniform_real_distribution<DataType> dis(0, 1);
-                 std::normal_distribution<DataType> normDis(0, 1);
-                 DataType *bits = (DataType *) m_data.dataHandle();
-                 unsigned int size = m_shape.size();
+           //std::random_device rd;
+           static std::mt19937 gen(/*rd()*/ std::time(NULL));
+           //std::uniform_real_distribution<DataType> dis(0, 1);
+           std::normal_distribution<DataType> normDis(0, 1);
+           DataType *bits = (DataType *) m_data.dataHandle();
+           unsigned int size = m_shape.size();
                  
-                 for (unsigned int n = 0; n < size; ++n) 
-                 {
-                     bits[n] = normDis(gen);
-                     //bits[n] = ((double) rand() / (double) RAND_MAX - 0.5) * 0.1;
-                 } 
-            }
-            else
+           for (unsigned int n = 0; n < size; ++n) 
+           {
+                bits[n] = normDis(gen);
+                //bits[n] = ((double) rand() / (double) RAND_MAX - 0.5) * 0.1;
+            } 
+ 
+            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
             {
-            
+                m_data.copyFromHostToDevice();
             }
+            
         }
 
         void operator=(const Tensor<DeviceUsed, DataType> &in)
@@ -118,6 +158,7 @@ namespace FreeWill
             m_shape = in.m_shape;
             m_name = in.m_name;
             m_data = in.m_data;
+            updateGPUTensorDescriptor();
         }
 
         DataType &operator[](unsigned int i)
@@ -131,9 +172,74 @@ namespace FreeWill
             if (newShape.size() == m_shape.size())
             {
                 m_shape = newShape;
+                updateGPUTensorDescriptor();
+            }
+        }
+
+        void copyFromDeviceToHost()
+        {
+            m_data.copyFromDeviceToHost();
+        }
+
+        void copyFromHostToDevice()
+        {
+            m_data.copyFromHostToDevice();
+        }
+        
+        DataType *gpuDataHandle()
+        {
+            return (DataType*) TensorBase<DeviceUsed>::gpuDataHandle();
+        }
+
+        DataType *cpuDataHandle()
+        {
+            return (DataType*) TensorBase<DeviceUsed>::cpuDataHandle();
+        }
+
+    private:
+        void updateGPUTensorDescriptor()
+        {
+            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            {
+                cudnnDataType_t dataType;
+                if constexpr (std::is_same<DataType,float>::value)
+                {
+                    dataType = CUDNN_DATA_FLOAT;
+                }
+                else if constexpr (std::is_same<DataType,float>::value)
+                {
+                    dataType = CUDNN_DATA_DOUBLE;
+                }
+
+                int nbDims = m_shape.dimension();
+                int *dimA = new int[nbDims];
+                int *strideA = new int[nbDims];
+                
+                for(int i = 0;i<nbDims;++i)
+                {
+                    dimA[nbDims - i - 1] = m_shape[i];
+                    if (i == 0)
+                    {
+                        strideA[nbDims-1] = 1;
+                    }
+                    else
+                    {
+                        strideA[nbDims - 1 - i] = m_shape[i-1] * strideA[nbDims - i];
+                    }
+                }
+
+//                printf("create tensor descriptor: %d\n", nbDims);
+                RUN_CUDNN(cudnnSetTensorNdDescriptor(TensorBase<DeviceUsed>::m_gpuTensorDescriptor,
+                                           dataType,
+                                           nbDims,
+                                           dimA,
+                                           strideA));
+                delete [] dimA;
+                delete [] strideA;
             }
         }
     };
+
 }
 
 #endif
