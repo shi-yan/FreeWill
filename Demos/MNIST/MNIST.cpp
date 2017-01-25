@@ -3,16 +3,14 @@
 #include "Operator/MaxPooling.h"
 #include "Operator/MaxPoolingDerivative.h"
 #include <cstdio>
-#include "Operator/ReLU.h"
 #include "Operator/Convolution.h"
 #include "Operator/ConvolutionDerivative.h"
-#include "Operator/ReLUDerivative.h"
 #include "Operator/Softmax.h"
 #include "Operator/SoftmaxDerivative.h"
 #include "Operator/DotProductWithBias.h"
 #include "Operator/DotProductWithBiasDerivative.h"
-#include "Operator/Sigmoid.h"
-#include "Operator/SigmoidDerivative.h"
+#include "Operator/Activation.h"
+#include "Operator/ActivationDerivative.h"
 #include "Operator/ElementwiseProduct.h"
 #include <QDebug>
 #include "Operator/ElementwiseAdd.h"
@@ -207,17 +205,11 @@ void MNIST::trainConvolutionalModel()
     convolution.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convolution.init());
 
-    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> convSigmoid;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> convSigmoid;
     convSigmoid.setInputParameter("Input", &convOutput);
     convSigmoid.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convSigmoid.init());
     
-
-    /*FreeWill::ReLU<FreeWill::CPU, float> convReLU;
-    convReLU.setInputParameter("Input", &convOutput);
-    convReLU.setOutputParameter("Output", &convOutput);
-    VERIFY_INIT(convReLU.init());
-*/
     FreeWill::MaxPooling<FreeWill::CPU_NAIVE, float> maxPooling;
     maxPooling.setInputParameter("Input", &convOutput);
     maxPooling.setOutputParameter("Output", &poolingOutput);
@@ -234,16 +226,11 @@ void MNIST::trainConvolutionalModel()
     fullyConnected1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(fullyConnected1.init());
 
-    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> sigmoid1;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> sigmoid1;
     sigmoid1.setInputParameter("Input", &fullyConnected1Output);
     sigmoid1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(sigmoid1.init());
 
-/*    FreeWill::ReLU<FreeWill::CPU_NAIVE, float> ReLu1;
-    ReLu1.setInputParameter("Input", &fullyConnected1Output);
-    ReLu1.setOutputParameter("Output", &fullyConnected1Output);
-    VERIFY_INIT(ReLu1.init());
-*/
 
     FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> fullyConnected2;
     fullyConnected2.setInputParameter("Input", &fullyConnected1Output);
@@ -284,24 +271,12 @@ void MNIST::trainConvolutionalModel()
 
     VERIFY_INIT(dotProductWithBias2Derivative.init());
 
-    FreeWill::SigmoidDerivative<FreeWill::CPU_NAIVE, float> sigmoidDerivative;
-    sigmoidDerivative.setInputParameter("Input", &fullyConnected1Output);
-    sigmoidDerivative.setOutputParameter("Output", &fullyConnected1Output);
+    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> sigmoidDerivative;
+    sigmoidDerivative.setInputParameter("Output", &fullyConnected1Output);
+    sigmoidDerivative.setInputParameter("OutputDelta", &fullyConnected1OutputGrad);
+    sigmoidDerivative.setOutputParameter("InputDelta", &fullyConnected1OutputGrad);
 
     VERIFY_INIT(sigmoidDerivative.init());
-
-/*    FreeWill::ReLUDerivative<FreeWill::CPU_NAIVE, float> reLUDerivative;
-    reLUDerivative.setInputParameter("Input", &fullyConnected1Output);
-    reLUDerivative.setOutputParameter("Output", &fullyConnected1Output);
-
-    VERIFY_INIT(reLUDerivative.init());
-*/
-    FreeWill::ElementwiseProduct<FreeWill::CPU_NAIVE, float> fullyConnected1OutputGradTimesSigGrad;
-    fullyConnected1OutputGradTimesSigGrad.setInputParameter("OperandA", &fullyConnected1Output);
-    fullyConnected1OutputGradTimesSigGrad.setInputParameter("OperandB", &fullyConnected1OutputGrad);
-    fullyConnected1OutputGradTimesSigGrad.setOutputParameter("Output", &fullyConnected1OutputGrad);
-
-    VERIFY_INIT(fullyConnected1OutputGradTimesSigGrad.init());
 
     FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBias1Derivative;
     dotProductWithBias1Derivative.setInputParameter("PrevActivation", &poolingOutput);
@@ -339,21 +314,11 @@ void MNIST::trainConvolutionalModel()
     maxPoolingDerivative.setOutputParameter("InputGrad", &convOutputGrad);
     VERIFY_INIT(maxPoolingDerivative.init());
 
-    FreeWill::SigmoidDerivative<FreeWill::CPU_NAIVE, float> convSigmoidDerivative;
-    convSigmoidDerivative.setInputParameter("Input", &convOutput);
-    convSigmoidDerivative.setOutputParameter("Output", &convOutput);
+    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> convSigmoidDerivative;
+    convSigmoidDerivative.setInputParameter("Output", &convOutput);
+    convSigmoidDerivative.setInputParameter("OutputDelta", &convOutputGrad);
+    convSigmoidDerivative.setOutputParameter("InputDelta", &convOutputGrad);
     VERIFY_INIT(convSigmoidDerivative.init());
-
-
-/*    FreeWill::ReLUDerivative<FreeWill::CPU_NAIVE, float> convReLUDerivative;
-    convReLUDerivative.setInputParameter("Input", &convOutput);
-    convReLUDerivative.setOutputParameter("Output", &convOutput);
-    VERIFY_INIT(convReLUDerivative.init());
-*/
-    FreeWill::ElementwiseProduct<FreeWill::CPU_NAIVE, float> convSigmoidDerivativeTimesOutputGrad;
-    convSigmoidDerivativeTimesOutputGrad.setInputParameter("OperandA", &convOutput);
-    convSigmoidDerivativeTimesOutputGrad.setInputParameter("OperandB", &convOutputGrad);
-    convSigmoidDerivativeTimesOutputGrad.setOutputParameter("Output", &convOutputGrad);
 
     FreeWill::ConvolutionDerivative<FreeWill::CPU_NAIVE, float> convDerivative;
     convDerivative.setInputParameter("PrevActivation", &image);
@@ -476,14 +441,12 @@ void MNIST::trainConvolutionalModel()
             dotProductWithBias2Derivative.evaluate();
             sigmoidDerivative.evaluate();
             //reLUDerivative.evaluate();
-            fullyConnected1OutputGradTimesSigGrad.evaluate();
             poolingOutputGrad.reshape({featureMapSize*12*12,1});
             dotProductWithBias1Derivative.evaluate();
             poolingOutputGrad.reshape({featureMapSize,12,12,1});
             maxPoolingDerivative.evaluate();
             convSigmoidDerivative.evaluate();
             //convReLUDerivative.evaluate();
-            convSigmoidDerivativeTimesOutputGrad.evaluate();
             convDerivative.evaluate();
 
 
@@ -641,15 +604,13 @@ void MNIST::trainFullyConnectedModel()
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({1});
     cost.init();
 
-//    image.reshape({28*28,1});
-
     FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> fullyConnected1;
     fullyConnected1.setInputParameter("Input", &image);
     fullyConnected1.setInputParameter("Weight", &fullyConnected1Weight);
     fullyConnected1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(fullyConnected1.init());
 
-    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> sigmoid1;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> sigmoid1;
     sigmoid1.setInputParameter("Input", &fullyConnected1Output);
     sigmoid1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(sigmoid1.init());
@@ -693,18 +654,12 @@ void MNIST::trainFullyConnectedModel()
 
     VERIFY_INIT(dotProductWithBias2Derivative.init());
 
-    FreeWill::SigmoidDerivative<FreeWill::CPU_NAIVE, float> sigmoidDerivative;
-    sigmoidDerivative.setInputParameter("Input", &fullyConnected1Output);
-    sigmoidDerivative.setOutputParameter("Output", &fullyConnected1Output);
+    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> sigmoidDerivative;
+    sigmoidDerivative.setInputParameter("Output", &fullyConnected1Output);
+    sigmoidDerivative.setInputParameter("OutputDelta", &fullyConnected1OutputGrad);
+    sigmoidDerivative.setOutputParameter("InputDelta", &fullyConnected1OutputGrad);
 
     VERIFY_INIT(sigmoidDerivative.init());
-
-    FreeWill::ElementwiseProduct<FreeWill::CPU_NAIVE, float> fullyConnected1OutputGradTimesSigGrad;
-    fullyConnected1OutputGradTimesSigGrad.setInputParameter("OperandA", &fullyConnected1Output);
-    fullyConnected1OutputGradTimesSigGrad.setInputParameter("OperandB", &fullyConnected1OutputGrad);
-    fullyConnected1OutputGradTimesSigGrad.setOutputParameter("Output", &fullyConnected1OutputGrad);
-
-    VERIFY_INIT(fullyConnected1OutputGradTimesSigGrad.init());
 
     FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBias1Derivative;
     dotProductWithBias1Derivative.setInputParameter("PrevActivation", &image);
@@ -775,7 +730,7 @@ void MNIST::trainFullyConnectedModel()
             //openData();
             loadOneTrainData(image, label);
 
-           fullyConnected1.evaluate();
+            fullyConnected1.evaluate();
             sigmoid1.evaluate();
             //ReLu1.evaluate();
             fullyConnected2.evaluate();
@@ -787,8 +742,6 @@ void MNIST::trainFullyConnectedModel()
             softmaxDerivative.evaluate();
             dotProductWithBias2Derivative.evaluate();
             sigmoidDerivative.evaluate();
-            //reLUDerivative.evaluate();
-            fullyConnected1OutputGradTimesSigGrad.evaluate();
             dotProductWithBias1Derivative.evaluate();
 
             accumulateFullyConnected1Weight.evaluate();
@@ -801,17 +754,17 @@ void MNIST::trainFullyConnectedModel()
                 overallCost = 0.0;
 
                 //update weight
-               updateFullyConnected1Weight.setRate(-learningRate/(float)batchSize);
+                updateFullyConnected1Weight.setRate(-learningRate/(float)batchSize);
                 updateFullyConnected1Weight.evaluate();
                 updateFullyConnected2Weight.setRate(-learningRate/(float)batchSize);
                 updateFullyConnected2Weight.evaluate();        
             
-               batchFullyConnected1Weight.clear();
+                batchFullyConnected1Weight.clear();
                 batchFullyConnected2Weight.clear();
            
                if (i%30000 == 0)
                {
-                learningRate *= 0.9;
+                   learningRate *= 0.9;
                } 
             }
 
@@ -825,7 +778,7 @@ void MNIST::trainFullyConnectedModel()
 
                 for (unsigned int v = 0;v<numOfTestImage; ++v)
                 {
-                   fullyConnected1Output.clear();
+                    fullyConnected1Output.clear();
                     fullyConnected2Output.clear();
                     softmaxOutput.clear();
                     cost.clear();
@@ -834,7 +787,7 @@ void MNIST::trainFullyConnectedModel()
                     loadOneTestData(image, label);
 
                     //forward
-                   fullyConnected1.evaluate();
+                    fullyConnected1.evaluate();
                     sigmoid1.evaluate();
                     //ReLu1.evaluate();
                     fullyConnected2.evaluate();
@@ -865,7 +818,7 @@ void MNIST::trainFullyConnectedModel()
 
             //clean up
         
-           fullyConnected1Output.clear();
+            fullyConnected1Output.clear();
             fullyConnected2Output.clear();
             softmaxOutput.clear();
             cost.clear();
@@ -873,7 +826,7 @@ void MNIST::trainFullyConnectedModel()
             fullyConnected1OutputGrad.clear();
             fullyConnected2WeightGrad.clear();
             fullyConnected1WeightGrad.clear();
-           imageGrad.clear();
+            imageGrad.clear();
 
             //closeData();
             emit updateProgress(i / (float)(numOfImage), ((e-1)*numOfImage + i) / (60.0f*numOfImage)); 

@@ -26,14 +26,16 @@ namespace FreeWill
        ReferenceCountedBlob<DeviceUsed> m_data;
        TensorBase(const Shape &shape = Shape()) 
            :m_shape(shape),
-            m_data()
+            m_data(),
+            m_gpuTensorDescriptor(0)
        {
            RUN_CUDA(cudnnCreateTensorDescriptor(&m_gpuTensorDescriptor));
        }
 
        TensorBase(const ReferenceCountedBlob<DeviceUsed> &data, const Shape &shape = Shape())
            :m_shape(shape),
-               m_data(data)
+               m_data(data),
+               m_gpuTensorDescriptor(0)
        {
            RUN_CUDNN(cudnnCreateTensorDescriptor(&m_gpuTensorDescriptor));
        }
@@ -212,26 +214,36 @@ namespace FreeWill
                 }
 
                 int nbDims = m_shape.dimension();
-                int *dimA = new int[nbDims];
-                int *strideA = new int[nbDims];
+                int atLeastDims = nbDims < 3 ? 3 : nbDims;
+                int *dimA = new int[atLeastDims];
+                int *strideA = new int[atLeastDims];
                 
-                for(int i = 0;i<nbDims;++i)
+                for(int i = 0;i<atLeastDims;++i)
                 {
-                    dimA[nbDims - i - 1] = m_shape[i];
-                    if (i == 0)
+                    if (i < nbDims)
                     {
-                        strideA[nbDims-1] = 1;
+                        dimA[atLeastDims - i - 1] = m_shape[i];
+                        if (i == 0)
+                        {
+                            strideA[atLeastDims-1] = 1;
+                        }
+                        else
+                        {
+                            strideA[atLeastDims - 1 - i] = m_shape[i-1] * strideA[atLeastDims - i];
+                        }
                     }
                     else
                     {
-                        strideA[nbDims - 1 - i] = m_shape[i-1] * strideA[nbDims - i];
+                        dimA[atLeastDims - i - 1] = 1;
+                        strideA[atLeastDims - 1 - i] = strideA[atLeastDims - i];
                     }
                 }
+               
 
-//                printf("create tensor descriptor: %d\n", nbDims);
+//              printf("create tensor descriptor: %d\n", nbDims);
                 RUN_CUDNN(cudnnSetTensorNdDescriptor(TensorBase<DeviceUsed>::m_gpuTensorDescriptor,
                                            dataType,
-                                           nbDims,
+                                           atLeastDims,
                                            dimA,
                                            strideA));
                 delete [] dimA;

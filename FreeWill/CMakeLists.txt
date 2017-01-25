@@ -71,7 +71,8 @@ set(FreeWill_SOURCES
     FreeWillUnitTestTensor.cpp
     FreeWillUnitTest.cpp
     FreeWillUnitTestXOR.cpp
-    FreeWillUnitTestConvNet.cpp)
+    FreeWillUnitTestConvNet.cpp
+    FreeWillUnitTestActivation.cpp)
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
 target_link_libraries(FreeWillUnitTest Qt5::Core)

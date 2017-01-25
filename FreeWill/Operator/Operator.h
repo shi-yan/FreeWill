@@ -8,6 +8,9 @@
 #include "../Tensor/Tensor.h"
 #include <vector>
 
+#include <cuda.h>
+#include <cudnn.h>
+
 
 namespace FreeWill
 {
@@ -137,6 +140,7 @@ namespace FreeWill
             {
                 (*iterOutput).second.m_tensors.clear();
             } 
+
         }
     };
 }

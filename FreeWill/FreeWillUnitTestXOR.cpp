@@ -2,8 +2,8 @@
 #include "Tensor/Tensor.h"
 #include "Operator/DotProductWithBias.h"
 #include "Operator/DotProductWithBiasDerivative.h"
-#include "Operator/Sigmoid.h"
-#include "Operator/SigmoidDerivative.h"
+#include "Operator/Activation.h"
+#include "Operator/ActivationDerivative.h"
 #include "Operator/CrossEntropy.h"
 #include "Operator/SigmoidCrossEntropyDerivative.h"
 #include "Operator/ElementwiseAdd.h"
@@ -80,7 +80,7 @@ void FreeWillUnitTest::xorTest()
     QVERIFY(firstLayerActivation.init());
 
 
-    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> firstLayerSigmoid;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> firstLayerSigmoid;
     firstLayerSigmoid.setInputParameter("Input", &firstLayerActivation);
     firstLayerSigmoid.setOutputParameter("Output", &firstLayerActivation);
     
@@ -93,7 +93,7 @@ void FreeWillUnitTest::xorTest()
 
     QVERIFY(secondLayerFullyConnected.init());
 
-    FreeWill::Sigmoid<FreeWill::CPU_NAIVE, float> secondLayerSigmoid;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> secondLayerSigmoid;
     secondLayerSigmoid.setInputParameter("Input", &secondLayerActivation);
     secondLayerSigmoid.setOutputParameter("Output", &secondLayerActivation);
 
@@ -125,22 +125,14 @@ void FreeWillUnitTest::xorTest()
 
     QVERIFY(secondLayerDotProductWithBiasDerivative.init());
 
-    FreeWill::SigmoidDerivative<FreeWill::CPU_NAIVE, float> firstLayerSigmoidDerivative;
-    firstLayerSigmoidDerivative.setInputParameter("Input", &firstLayerActivation);
-    firstLayerSigmoidDerivative.setOutputParameter("Output", &firstLayerSigmoidNeuron);
+    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> firstLayerSigmoidDerivative;
+    firstLayerSigmoidDerivative.setInputParameter("Output", &firstLayerActivation);
+    firstLayerSigmoidDerivative.setInputParameter("OutputDelta", &firstLayerNeuronDerivative);
+    firstLayerSigmoidDerivative.setOutputParameter("InputDelta", &firstLayerNeuronDerivative);
 
     QVERIFY(firstLayerSigmoidDerivative.init());
 
     
-    FreeWill::ElementwiseProduct<FreeWill::CPU_NAIVE, float> firstLayerDerivativeTimesSigmoidDerivitive;
-    firstLayerDerivativeTimesSigmoidDerivitive.setInputParameter("OperandA", &firstLayerSigmoidNeuron);
-    firstLayerDerivativeTimesSigmoidDerivitive.setInputParameter("OperandB", &firstLayerNeuronDerivative);
-    firstLayerDerivativeTimesSigmoidDerivitive.setOutputParameter("Output", &firstLayerNeuronDerivative);
-
-    QVERIFY(firstLayerDerivativeTimesSigmoidDerivitive.init());
-    
-
-
     FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> firstLayerDotProductWithBiasDerivative(true);
     firstLayerDotProductWithBiasDerivative.setInputParameter("PrevActivation", &input);
     firstLayerDotProductWithBiasDerivative.setInputParameter("OutputGrad", &firstLayerNeuronDerivative);
@@ -157,10 +149,6 @@ void FreeWillUnitTest::xorTest()
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> accumuSecondLayerWeight({1,3,1});
     accumuSecondLayerWeight.init();
 
-    /*  qDebug() << "second accum grad" << accumuSecondLayerWeight[0] << accumuSecondLayerWeight[1] << accumuSecondLayerWeight[2];
-        qDebug() << "first accum grad" << accumuFirstLayerWeight[0] << accumuFirstLayerWeight[1] << accumuFirstLayerWeight[2]
-            << accumuFirstLayerWeight[3] << accumuFirstLayerWeight[4] << accumuFirstLayerWeight[5];
-    */
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumuGradForFirstLayer;
     accumuGradForFirstLayer.setInputParameter("Operand", &accumuFirstLayerWeight);
     accumuGradForFirstLayer.setInputParameter("Operand", &firstLayerWeightDerivative);
@@ -222,7 +210,6 @@ void FreeWillUnitTest::xorTest()
         sigmoidCrossEntropyDerivative.evaluate();
         secondLayerDotProductWithBiasDerivative.evaluate();
         firstLayerSigmoidDerivative.evaluate();
-        firstLayerDerivativeTimesSigmoidDerivitive.evaluate();
         firstLayerDotProductWithBiasDerivative.evaluate();
         /* qDebug() << "-------------";
         qDebug() << "second layer sigmoid neuron" << secondLayerNeuronDerivative[0];

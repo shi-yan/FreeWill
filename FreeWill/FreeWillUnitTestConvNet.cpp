@@ -1,12 +1,10 @@
 #include "FreeWillUnitTest.h"
 #include "Operator/Convolution.h"
 #include "Operator/ConvolutionDerivative.h"
-#include "Operator/ReLU.h"
-#include "Operator/ReLUDerivative.h"
-#include "Operator/Sigmoid.h"
+#include "Operator/Activation.h"
 #include "Operator/CrossEntropy.h"
 #include "Operator/SigmoidCrossEntropyDerivative.h"
-#include "Operator/SigmoidDerivative.h"
+#include "Operator/ActivationDerivative.h"
 
 
 void FreeWillUnitTest::convNetTest()
@@ -183,7 +181,7 @@ void FreeWillUnitTest::convDerivativeTest()
   
     QVERIFY(convolution.init());
 
-    FreeWill::Sigmoid<FreeWill::CPU, float> sigmoid;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU, float> sigmoid;
     sigmoid.setInputParameter("Input", &output);
     sigmoid.setOutputParameter("Output", &output);
 
