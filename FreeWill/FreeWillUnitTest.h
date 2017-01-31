@@ -19,6 +19,7 @@ private slots:
     void operatorSigmoidCrossEntropyTest();
     void operatorSigmoidCrossEntropyDerivativeTest();
     void operatorDotProductWithBiasTest();
+    void operatorDotProductWithBiasTestGPU();
     void operatorDotProductWithBiasDerivativeTest();
     void xorTest();
     void convNetTest();

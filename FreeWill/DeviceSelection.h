@@ -30,6 +30,11 @@ namespace FreeWill
     if (result != CUDNN_STATUS_SUCCESS) \
         {printf("CUDNN error: %s:%d Error[%d]\n", __FILE__, __LINE__, result);}}
 
+#define RUN_CUBLAS(cublas_function) \
+    {cublasStatus_t result = cublas_function ; \
+    if (result != CUBLAS_STATUS_SUCCESS) \
+        {printf("CUBLAS error: %s:%d Error[%d]\n", __FILE__, __LINE__, result);}}
+
 #define CHECK_CUDA_ERROR \
     if (cudaGetLastError() != cudaSuccess) \
         {printf("CUDA Launch Kernel error: %s:%d\n", __FILE__, __LINE__);}

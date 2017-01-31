@@ -109,7 +109,10 @@ namespace FreeWill
         {
             if (m_inputParameters.find(name) != m_inputParameters.end())
             {
-                return m_inputParameters[name].m_tensors[index];
+                if (m_inputParameters[name].m_tensors.size())
+                {
+                    return m_inputParameters[name].m_tensors[index];
+                }
             }
 
             return 0;
@@ -119,7 +122,10 @@ namespace FreeWill
         {
             if (m_outputParameters.find(name) != m_outputParameters.end())
             {
-                return m_outputParameters[name].m_tensors[index];
+                if (m_outputParameters[name].m_tensors.size())
+                {
+                    return m_outputParameters[name].m_tensors[index];
+                }
             }
 
             return 0;

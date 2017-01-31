@@ -2,6 +2,7 @@
 #define SOFTMAX_H
 
 #include "Operator.h"
+#include "cublas_v2.h"
 
 namespace FreeWill
 {

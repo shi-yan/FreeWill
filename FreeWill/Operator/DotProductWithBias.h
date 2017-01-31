@@ -4,6 +4,11 @@
 #include "Operator.h"
 //#include <QDebug>
 
+#include <cublas_v2.h>
+#include <type_traits>
+#include "../Context/Context.h"
+
+
 namespace FreeWill
 {
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
@@ -15,7 +20,7 @@ namespace FreeWill
         bool m_hasBias;
     public:
         DotProductWithBias(bool hasBias = true)
-            :Operator<DeviceUsed>({"Input", "Weight"},{"Output"}),
+            :Operator<DeviceUsed>({"Input", "Weight","Bias"},{"Output"}),
             m_hasBias(hasBias)
         {
                 
@@ -46,7 +51,7 @@ namespace FreeWill
             //qDebug() << "weight" << input("Weight")->shape()[1];
             //qDebug() << "inputsize" << inputSize + 1;
             
-            if(input("Weight")->shape()[1] != inputSize + (m_hasBias?1:0))
+            if(input("Weight")->shape()[1] != inputSize )
             {
                 return false;
             }
@@ -55,6 +60,24 @@ namespace FreeWill
                     || output("Output")->shape()[1] != batchSize)
             {
                 return false;
+            }
+
+            if (m_hasBias && input("Bias") == 0)
+            {
+                return false;
+            }
+
+            if (m_hasBias)
+            {
+                if (input("Bias")->shape().dimension() != 1)
+                {
+                    return false;
+                }
+
+                if (input("Bias")->shape()[0] != outputSize)
+                {
+                    return false;
+                }
             }
             
             return true;
@@ -69,23 +92,65 @@ namespace FreeWill
             Tensor<DeviceUsed, DataType> *_input = (Tensor<DeviceUsed, DataType> *) input("Input");
             Tensor<DeviceUsed, DataType> *_weight = (Tensor<DeviceUsed, DataType> *) input("Weight");
             Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) output("Output");
+            Tensor<DeviceUsed, DataType> *_bias = (Tensor<DeviceUsed, DataType> *) input("Bias");
 
-            for(unsigned int b = 0; b < batchSize; ++b)
+            if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
             {
-                for(unsigned int o =0; o<outputSize;++o)
+                for(unsigned int b = 0; b < batchSize; ++b)
                 {
-                    (*_output)[b * outputSize + o] = 0;
-                    for(unsigned int i = 0; i< inputSize; ++i)
+                    for(unsigned int o =0; o<outputSize;++o)
                     {
-                        (*_output)[b * outputSize + o] += (*_weight)[i * outputSize + o] * (*_input)[b* inputSize + i];
+                        (*_output)[b * outputSize + o] = 0;
+                        for(unsigned int i = 0; i< inputSize; ++i)
+                        {
+                            (*_output)[b * outputSize + o] += (*_weight)[i * outputSize + o] * (*_input)[b* inputSize + i];
+                        }
+
+                        if (m_hasBias)
+                        {
+                            (*_output)[b * outputSize + o] += (*_bias)[ o];
+                        }
                     }
+                }        
+            }
+            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            {
+                DataType alpha = 1.0;
+                DataType beta = 0.0;
+
+                if constexpr (std::is_same<DataType, float>::value)
+                {
+                    
+                    RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(),CUBLAS_OP_N,CUBLAS_OP_N
+                                ,outputSize, batchSize,inputSize, &alpha, _weight->gpuDataHandle(), outputSize, 
+                                _input->gpuDataHandle(), inputSize, &beta, _output->gpuDataHandle(), outputSize));
 
                     if (m_hasBias)
                     {
-                        (*_output)[b * outputSize + o] += (*_weight)[inputSize * outputSize + o];
+                        beta = 1.0;
+                        RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N,CUBLAS_OP_N,
+                                    outputSize, batchSize, 1, &alpha, _bias->gpuDataHandle(), outputSize,
+                                    Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(batchSize), 1, 
+                                    &beta, _output->gpuDataHandle(), outputSize));
                     }
+
                 }
-            }        
+                else if constexpr (std::is_same<DataType, double>::value)
+                {
+                    RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(),CUBLAS_OP_N,CUBLAS_OP_N
+                                ,outputSize, batchSize, inputSize, &alpha, _weight->gpuDataHandle(), outputSize,
+                                _input->gpuDataHandle(), inputSize, &beta, _output->gpuDataHandle(), outputSize));
+
+                    if (m_hasBias)
+                    {
+                        beta = 1.0;
+                        RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N,CUBLAS_OP_N,
+                                    batchSize, outputSize, 1, &alpha, Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(batchSize), batchSize,
+                                    _bias->gpuDataHandle(), 1, &beta, _output->gpuDataHandle(), outputSize));
+                    }
+
+               }
+            }
         }
     };
 }

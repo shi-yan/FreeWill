@@ -134,12 +134,14 @@ void FreeWillUnitTest::operatorDotProductWithBiasTest()
     inputNeurons.init({1.1f, 2.1f, 3.1f, 4.1f,
                        5.2f, 6.2f, 7.2f, 8.2f});
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weights({3, 5});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weights({3, 4});
     weights.init({1.3,2.3,3.3,
                    4.3,5.3,6.3,
                    7.3,6.3,9.3,
-                   10.3,11.3,12.3,
-                   13.3,14.3,15.3});
+                   10.3,11.3,12.3});
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> bias({3});
+    bias.init({13.3,14.3,15.3});
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> outputNeurons({3, 2});
     outputNeurons.init();
@@ -155,6 +157,7 @@ void FreeWillUnitTest::operatorDotProductWithBiasTest()
 
     dotProductWithBias.setInputParameter("Input", &inputNeurons);
     dotProductWithBias.setInputParameter("Weight", &weights);
+    dotProductWithBias.setInputParameter("Bias", &bias);
     dotProductWithBias.setOutputParameter("Output", &outputNeurons);
 
     QVERIFY(dotProductWithBias.init());
@@ -166,6 +169,56 @@ void FreeWillUnitTest::operatorDotProductWithBiasTest()
     for(int i = 0; i<6;++i)
     {
         //qDebug() <<i<< "output neuron" << outputNeurons[i] << "reference" <<reference[i];
+        QVERIFY(std::abs(outputNeurons[i] - reference[i]) < epsilon);
+    }
+}
+
+void FreeWillUnitTest::operatorDotProductWithBiasTestGPU()
+{
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputNeurons({4, 2});
+    inputNeurons.init({1.1f, 2.1f, 3.1f, 4.1f,
+                       5.2f, 6.2f, 7.2f, 8.2f});
+    inputNeurons.copyFromHostToDevice();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> weights({3, 4});
+    weights.init({1.3,2.3,3.3,
+                   4.3,5.3,6.3,
+                   7.3,6.3,9.3,
+                   10.3,11.3,12.3});
+    weights.copyFromHostToDevice();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> bias({3});
+    bias.init({13.3,14.3,15.3});
+    bias.copyFromHostToDevice();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> outputNeurons({3, 2});
+    outputNeurons.init();
+
+    FreeWill::DotProductWithBias<FreeWill::GPU_CUDA, float> dotProductWithBias(true);
+
+    float reference[] = {1.3 * 1.1 + 2.1*4.3 + 7.3*3.1 + 4.1*10.3+13.3, 
+                         1.1*2.3+2.1*5.3+3.1*6.3+4.1*11.3 +14.3, 
+                         3.3*1.1+6.3*2.1+9.3*3.1+12.3*4.1+15.3,
+                         5.2*1.3+6.2*4.3+7.2*7.3+8.2*10.3+13.3, 
+                         5.2*2.3+6.2*5.3+7.2*6.3+8.2*11.3+14.3, 
+                         5.2*3.3+6.2*6.3+7.2*9.3+8.2*12.3+15.3};
+
+    dotProductWithBias.setInputParameter("Input", &inputNeurons);
+    dotProductWithBias.setInputParameter("Weight", &weights);
+    dotProductWithBias.setInputParameter("Bias", &bias);
+    dotProductWithBias.setOutputParameter("Output", &outputNeurons);
+
+    QVERIFY(dotProductWithBias.init());
+
+    dotProductWithBias.evaluate();
+
+    outputNeurons.copyFromDeviceToHost();
+
+    const float epsilon = 0.001;
+
+    for(int i = 0; i<6;++i)
+    {
+        qDebug() <<i<< "output neuron" << outputNeurons[i] << "reference" <<reference[i];
         QVERIFY(std::abs(outputNeurons[i] - reference[i]) < epsilon);
     }
 }
