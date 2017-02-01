@@ -28,56 +28,34 @@ namespace FreeWill
 
         virtual bool init()
         {
-            if(input("Input")==0 || input("Weight")==0 || output("Output") == 0)
-            {
-                return false;
-            }
+            FAIL_IF(input("Input")==0 || input("Weight")==0 || output("Output") == 0);
 
-            if ((input("Input")->shape().dimension() != 2) || 
+            FAIL_IF ((input("Input")->shape().dimension() != 2) || 
                     (input("Weight")->shape().dimension() !=2) || 
-                    (output("Output")->shape().dimension() != 2))
-            {
-                return false;
-            }
+                    (output("Output")->shape().dimension() != 2));
 
             unsigned int batchSize = input("Input")->shape()[1];
             unsigned int inputSize = input("Input")->shape()[0];
             unsigned int outputSize = output("Output")->shape()[0];
 
-            if (batchSize != output("Output")->shape()[1] || batchSize == 0)
-            {
-                return false;
-            }
+            FAIL_IF (batchSize != output("Output")->shape()[1] || batchSize == 0);
+           
             //qDebug() << "weight" << input("Weight")->shape()[1];
             //qDebug() << "inputsize" << inputSize + 1;
             
-            if(input("Weight")->shape()[1] != inputSize )
-            {
-                return false;
-            }
+            FAIL_IF(input("Weight")->shape()[1] != inputSize );
+            
 
-            if (input("Weight")->shape()[0]!= outputSize
-                    || output("Output")->shape()[1] != batchSize)
-            {
-                return false;
-            }
+            FAIL_IF (input("Weight")->shape()[0]!= outputSize
+                    || output("Output")->shape()[1] != batchSize);
 
-            if (m_hasBias && input("Bias") == 0)
-            {
-                return false;
-            }
+            FAIL_IF (m_hasBias && input("Bias") == 0);
 
             if (m_hasBias)
             {
-                if (input("Bias")->shape().dimension() != 1)
-                {
-                    return false;
-                }
-
-                if (input("Bias")->shape()[0] != outputSize)
-                {
-                    return false;
-                }
+                FAIL_IF (input("Bias")->shape().dimension() != 1);
+                              
+                FAIL_IF (input("Bias")->shape()[0] != outputSize);
             }
             
             return true;
@@ -117,7 +95,9 @@ namespace FreeWill
             {
                 DataType alpha = 1.0;
                 DataType beta = 0.0;
-
+                // input_t * weight_t = output_t
+                // Trans(trans(input_t)*trans(weight_t)) = output_t
+                // weight * input = output_t
                 if constexpr (std::is_same<DataType, float>::value)
                 {
                     

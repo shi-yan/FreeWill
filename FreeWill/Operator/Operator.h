@@ -94,7 +94,11 @@ namespace FreeWill
            if (m_inputParameters.find(name) != m_inputParameters.end())
            {
                m_inputParameters[name].m_tensors.push_back(tensor);
-           } 
+           }
+           else 
+           {
+               printf("Warning: no input named %s\n", name.c_str());
+           }
         }
 
         virtual void setOutputParameter(const std::string &name, TensorBase<DeviceUsed> *tensor)
@@ -102,6 +106,10 @@ namespace FreeWill
             if (m_outputParameters.find(name) != m_outputParameters.end())
             {
                 m_outputParameters[name].m_tensors.push_back(tensor);
+            }
+            else
+            {
+                printf("Warning: no output named %s\n", name.c_str());
             }
         }
 

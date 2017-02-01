@@ -33,16 +33,27 @@ void FreeWillUnitTest::xorTest()
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> label({1, 1});
     label.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> firstLayerWeight({2,3});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> firstLayerWeight({2,2});
     firstLayerWeight.init();
     firstLayerWeight.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> firstLayerWeightDerivative({2,3,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> firstLayerBias({2});
+    firstLayerBias.init();
+    firstLayerBias.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> firstLayerWeightDerivative({2,2,1});
     firstLayerWeightDerivative.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerWeight({1, 3});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> firstLayerBiasDerivative({2,1});
+    firstLayerBiasDerivative.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerWeight({1, 2});
     secondLayerWeight.init();
     secondLayerWeight.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerBias({1});
+    secondLayerBias.init();
+    secondLayerBias.randomize();
     /*
     firstLayerWeight[0] = 0.1;
     firstLayerWeight[1] = 0.2;
@@ -63,8 +74,11 @@ void FreeWillUnitTest::xorTest()
     printf("--------\n");
     */
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerWeightDerivative({1,3,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerWeightDerivative({1,2,1});
     secondLayerWeightDerivative.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerBiasDerivative({1,1});
+    secondLayerBiasDerivative.init();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputNeuronDerivative({2,1});
     inputNeuronDerivative.init();
@@ -75,6 +89,7 @@ void FreeWillUnitTest::xorTest()
     FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> firstLayerFullyConnected(true);
     firstLayerFullyConnected.setInputParameter("Input", &input);
     firstLayerFullyConnected.setInputParameter("Weight", &firstLayerWeight);
+    firstLayerFullyConnected.setInputParameter("Bias", &firstLayerBias);
     firstLayerFullyConnected.setOutputParameter("Output", &firstLayerActivation);
     
     QVERIFY(firstLayerActivation.init());
@@ -89,6 +104,7 @@ void FreeWillUnitTest::xorTest()
     FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> secondLayerFullyConnected(true);
     secondLayerFullyConnected.setInputParameter("Input", &firstLayerActivation);
     secondLayerFullyConnected.setInputParameter("Weight", &secondLayerWeight);
+    secondLayerFullyConnected.setInputParameter("Bias", &secondLayerBias);
     secondLayerFullyConnected.setOutputParameter("Output", &secondLayerActivation);
 
     QVERIFY(secondLayerFullyConnected.init());
@@ -116,12 +132,13 @@ void FreeWillUnitTest::xorTest()
 
     
     FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> secondLayerDotProductWithBiasDerivative(true);
-    secondLayerDotProductWithBiasDerivative.setInputParameter("PrevActivation", &firstLayerActivation);
-    secondLayerDotProductWithBiasDerivative.setInputParameter("OutputGrad", &secondLayerNeuronDerivative);
+    secondLayerDotProductWithBiasDerivative.setInputParameter("InputActivation", &firstLayerActivation);
+    secondLayerDotProductWithBiasDerivative.setInputParameter("OutputDelta", &secondLayerNeuronDerivative);
     secondLayerDotProductWithBiasDerivative.setInputParameter("Weight", &secondLayerWeight);
 
     secondLayerDotProductWithBiasDerivative.setOutputParameter("WeightGrad", &secondLayerWeightDerivative);
-    secondLayerDotProductWithBiasDerivative.setOutputParameter("InputGrad", &firstLayerNeuronDerivative);
+    secondLayerDotProductWithBiasDerivative.setOutputParameter("BiasGrad", &secondLayerBiasDerivative);
+    secondLayerDotProductWithBiasDerivative.setOutputParameter("InputDelta", &firstLayerNeuronDerivative);
 
     QVERIFY(secondLayerDotProductWithBiasDerivative.init());
 
@@ -134,45 +151,77 @@ void FreeWillUnitTest::xorTest()
 
     
     FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> firstLayerDotProductWithBiasDerivative(true);
-    firstLayerDotProductWithBiasDerivative.setInputParameter("PrevActivation", &input);
-    firstLayerDotProductWithBiasDerivative.setInputParameter("OutputGrad", &firstLayerNeuronDerivative);
+    firstLayerDotProductWithBiasDerivative.setInputParameter("InputActivation", &input);
+    firstLayerDotProductWithBiasDerivative.setInputParameter("OutputDelta", &firstLayerNeuronDerivative);
     firstLayerDotProductWithBiasDerivative.setInputParameter("Weight", &firstLayerWeight);
 
     firstLayerDotProductWithBiasDerivative.setOutputParameter("WeightGrad", &firstLayerWeightDerivative);
-    firstLayerDotProductWithBiasDerivative.setOutputParameter("InputGrad", &inputNeuronDerivative);
+    firstLayerDotProductWithBiasDerivative.setOutputParameter("BiasGrad", &firstLayerBiasDerivative);
+    firstLayerDotProductWithBiasDerivative.setOutputParameter("InputDelta", &inputNeuronDerivative);
     
     QVERIFY(firstLayerDotProductWithBiasDerivative.init()); 
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> accumuFirstLayerWeight({2,3,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> accumuFirstLayerWeight({2,2,1});
     accumuFirstLayerWeight.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> accumuSecondLayerWeight({1,3,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> accumuFirstLayerBias({2});
+    accumuFirstLayerBias.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> accumuSecondLayerWeight({1,2,1});
     accumuSecondLayerWeight.init();
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumuGradForFirstLayer;
-    accumuGradForFirstLayer.setInputParameter("Operand", &accumuFirstLayerWeight);
-    accumuGradForFirstLayer.setInputParameter("Operand", &firstLayerWeightDerivative);
-    accumuGradForFirstLayer.setOutputParameter("Result", &accumuFirstLayerWeight);
-    QVERIFY(accumuGradForFirstLayer.init());
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> accumuSecondLayerBias({1});
+    accumuSecondLayerBias.init();
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumuGradForSecondLayer;
-    accumuGradForSecondLayer.setInputParameter("Operand", &accumuSecondLayerWeight);
-    accumuGradForSecondLayer.setInputParameter("Operand", &secondLayerWeightDerivative);
-    accumuGradForSecondLayer.setOutputParameter("Result", &accumuSecondLayerWeight);
-    QVERIFY(accumuGradForSecondLayer.init());
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumuGradForFirstLayerWeight;
+    accumuGradForFirstLayerWeight.setInputParameter("Operand", &accumuFirstLayerWeight);
+    accumuGradForFirstLayerWeight.setInputParameter("Operand", &firstLayerWeightDerivative);
+    accumuGradForFirstLayerWeight.setOutputParameter("Result", &accumuFirstLayerWeight);
+    QVERIFY(accumuGradForFirstLayerWeight.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumuGradForFirstLayerBias;
+    accumuGradForFirstLayerBias.setInputParameter("Operand", &accumuFirstLayerBias);
+    accumuGradForFirstLayerBias.setInputParameter("Operand", &firstLayerBiasDerivative);
+    accumuGradForFirstLayerBias.setOutputParameter("Result", &accumuFirstLayerBias);
+    QVERIFY(accumuGradForFirstLayerBias.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumuGradForSecondLayerWeight;
+    accumuGradForSecondLayerWeight.setInputParameter("Operand", &accumuSecondLayerWeight);
+    accumuGradForSecondLayerWeight.setInputParameter("Operand", &secondLayerWeightDerivative);
+    accumuGradForSecondLayerWeight.setOutputParameter("Result", &accumuSecondLayerWeight);
+    QVERIFY(accumuGradForSecondLayerWeight.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> accumuGradForSecondLayerBias;
+    accumuGradForSecondLayerBias.setInputParameter("Operand", &accumuSecondLayerBias);
+    accumuGradForSecondLayerBias.setInputParameter("Operand", &secondLayerBiasDerivative);
+    accumuGradForSecondLayerBias.setOutputParameter("Result", &accumuSecondLayerBias);
+    QVERIFY(accumuGradForSecondLayerBias.init());
+
 
     float learningRate = 0.02;
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> mergeWithFirstLayer(-learningRate*0.25);
-    mergeWithFirstLayer.setInputParameter("Operand", &firstLayerWeight);
-    mergeWithFirstLayer.setInputParameter("Operand", &accumuFirstLayerWeight);
-    mergeWithFirstLayer.setOutputParameter("Result", &firstLayerWeight);
-    QVERIFY(mergeWithFirstLayer.init());
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> mergeWithFirstLayerWeight(-learningRate*0.25);
+    mergeWithFirstLayerWeight.setInputParameter("Operand", &firstLayerWeight);
+    mergeWithFirstLayerWeight.setInputParameter("Operand", &accumuFirstLayerWeight);
+    mergeWithFirstLayerWeight.setOutputParameter("Result", &firstLayerWeight);
+    QVERIFY(mergeWithFirstLayerWeight.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> mergeWithSecondLayer(-learningRate*0.25);
-    mergeWithSecondLayer.setInputParameter("Operand", &secondLayerWeight);
-    mergeWithSecondLayer.setInputParameter("Operand", &accumuSecondLayerWeight);
-    mergeWithSecondLayer.setOutputParameter("Result", &secondLayerWeight);
-    QVERIFY(mergeWithSecondLayer.init());
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> mergeWithFirstLayerBias(-learningRate*0.25);
+    mergeWithFirstLayerBias.setInputParameter("Operand", &firstLayerBias);
+    mergeWithFirstLayerBias.setInputParameter("Operand", &accumuFirstLayerBias);
+    mergeWithFirstLayerBias.setOutputParameter("Result", &firstLayerBias);
+    QVERIFY(mergeWithFirstLayerBias.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> mergeWithSecondLayerWeight(-learningRate*0.25);
+    mergeWithSecondLayerWeight.setInputParameter("Operand", &secondLayerWeight);
+    mergeWithSecondLayerWeight.setInputParameter("Operand", &accumuSecondLayerWeight);
+    mergeWithSecondLayerWeight.setOutputParameter("Result", &secondLayerWeight);
+    QVERIFY(mergeWithSecondLayerWeight.init());
+
+    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> mergeWithSecondLayerBias(-learningRate*0.25);
+    mergeWithSecondLayerBias.setInputParameter("Operand", &secondLayerBias);
+    mergeWithSecondLayerBias.setInputParameter("Operand", &accumuSecondLayerBias);
+    mergeWithSecondLayerBias.setOutputParameter("Result", &secondLayerBias);
+    QVERIFY(mergeWithSecondLayerBias.init());
 
     //float overallCost = 0.0;
     
@@ -229,8 +278,10 @@ void FreeWillUnitTest::xorTest()
         //  qDebug() << "first accum grad" << accumuFirstLayerWeight[0] << accumuFirstLayerWeight[1] << accumuFirstLayerWeight[2]
         //    << accumuFirstLayerWeight[3] << accumuFirstLayerWeight[4] << accumuFirstLayerWeight[5];
 
-        accumuGradForFirstLayer.evaluate();
-        accumuGradForSecondLayer.evaluate();
+        accumuGradForFirstLayerWeight.evaluate();
+        accumuGradForFirstLayerBias.evaluate();
+        accumuGradForSecondLayerWeight.evaluate();
+        accumuGradForSecondLayerBias.evaluate();
 
         // qDebug() << "second accum grad" << accumuSecondLayerWeight[0] << accumuSecondLayerWeight[1] << accumuSecondLayerWeight[2];
         //      qDebug() << "first accum grad" << accumuFirstLayerWeight[0] << accumuFirstLayerWeight[1] << accumuFirstLayerWeight[2]
@@ -256,16 +307,22 @@ void FreeWillUnitTest::xorTest()
             //}
         
             //overallCost = 0.0;
-            mergeWithFirstLayer.setRate(-learningRate * 0.25);
-            mergeWithSecondLayer.setRate(-learningRate * 0.25);
-            mergeWithFirstLayer.evaluate();
-            mergeWithSecondLayer.evaluate();
+            mergeWithFirstLayerWeight.setRate(-learningRate * 0.25);
+            mergeWithFirstLayerBias.setRate(-learningRate * 0.25);
+            mergeWithSecondLayerWeight.setRate(-learningRate * 0.25);
+            mergeWithSecondLayerBias.setRate(-learningRate * 0.25);
+            mergeWithFirstLayerWeight.evaluate();
+            mergeWithFirstLayerBias.evaluate();
+            mergeWithSecondLayerWeight.evaluate();
+            mergeWithSecondLayerBias.evaluate();
 
             //printf("updated weights: %f, %f, %f, %f,%f, %f\n", firstLayerWeight[0], firstLayerWeight[1], firstLayerWeight[2], firstLayerWeight[3], firstLayerWeight[4],
             //firstLayerWeight[5]);
             //printf("update weights: %f, %f, %f\n", secondLayerWeight[0], secondLayerWeight[1],secondLayerWeight[2]);
             accumuFirstLayerWeight.clear();
+            accumuFirstLayerBias.clear();
             accumuSecondLayerWeight.clear();
+            accumuSecondLayerBias.clear();
         }
         
     }

@@ -33,20 +33,11 @@ namespace FreeWill
 
         virtual bool init() override
         {
-            if (!input("Output") || !output("InputDelta") || !input("OutputDelta"))
-            {
-                return false;
-            }
+            FAIL_IF (!input("Output") || !output("InputDelta") || !input("OutputDelta"));
 
-            if (input("Output")->shape() != output("InputDelta")->shape())
-            {
-                return false;
-            }
+            FAIL_IF (input("Output")->shape() != output("InputDelta")->shape());
 
-            if (input("OutputDelta")->shape() != input("Output")->shape())
-            {
-                return false;
-            }
+            FAIL_IF (input("OutputDelta")->shape() != input("Output")->shape());
             
 
             if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)

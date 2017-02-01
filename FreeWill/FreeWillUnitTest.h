@@ -21,6 +21,7 @@ private slots:
     void operatorDotProductWithBiasTest();
     void operatorDotProductWithBiasTestGPU();
     void operatorDotProductWithBiasDerivativeTest();
+    void operatorDotProductWithBiasDerivativeTestGPU();
     void xorTest();
     void convNetTest();
     void convDerivativeTest();

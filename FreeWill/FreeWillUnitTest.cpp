@@ -218,7 +218,7 @@ void FreeWillUnitTest::operatorDotProductWithBiasTestGPU()
 
     for(int i = 0; i<6;++i)
     {
-        qDebug() <<i<< "output neuron" << outputNeurons[i] << "reference" <<reference[i];
+       // qDebug() <<i<< "output neuron" << outputNeurons[i] << "reference" <<reference[i];
         QVERIFY(std::abs(outputNeurons[i] - reference[i]) < epsilon);
     }
 }
@@ -229,19 +229,24 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
     input.init();
     input.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weight({5, 11});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weight({5, 10});
     weight.init();
     weight.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> bias({5});
+    bias.init();
+    bias.randomize();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({5, 1});
     output.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fakeWeightGrad({5, 11, 1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fakeWeightGrad({5, 10, 1});
     fakeWeightGrad.init();
 
     FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> dotProductWithBias(true);
     dotProductWithBias.setInputParameter("Input", &input);
     dotProductWithBias.setInputParameter("Weight", &weight);
+    dotProductWithBias.setInputParameter("Bias", &bias);
     dotProductWithBias.setOutputParameter("Output", &output);
 
     QVERIFY(dotProductWithBias.init());
@@ -270,7 +275,7 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
 
     const float epsilon = 0.001;
     //const float threshold = 1e-5;
-    
+    //Fix me: this doesn't test bias
     for(unsigned int i =0;i<gradientSize;++i)
     {
         float original = weight[i];
@@ -315,19 +320,23 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
     QVERIFY(sigmoidCrossEntropyDerivative.init());
     sigmoidCrossEntropyDerivative.evaluate();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realGradient({5,11,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realGradient({5,10,1});
     realGradient.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realBiasGradient({5,1});
+    realBiasGradient.init();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realInputGradient({10, 1});
     realInputGradient.init();
 
     FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBiasDerivative(true);
-    dotProductWithBiasDerivative.setInputParameter("PrevActivation", &input);
-    dotProductWithBiasDerivative.setInputParameter("OutputGrad", &l1Grad);
+    dotProductWithBiasDerivative.setInputParameter("InputActivation", &input);
+    dotProductWithBiasDerivative.setInputParameter("OutputDelta", &l1Grad);
     dotProductWithBiasDerivative.setInputParameter("Weight", &weight);
 
     dotProductWithBiasDerivative.setOutputParameter("WeightGrad", &realGradient);
-    dotProductWithBiasDerivative.setOutputParameter("InputGrad", &realInputGradient);
+    dotProductWithBiasDerivative.setOutputParameter("BiasGrad", &realBiasGradient);
+    dotProductWithBiasDerivative.setOutputParameter("InputDelta", &realInputGradient);
 
     QVERIFY(dotProductWithBiasDerivative.init());
 
@@ -339,6 +348,109 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
         QVERIFY(std::abs(realGradient[i] - fakeWeightGrad[i]) < 2.0 * epsilon);
     }
     
+}
+
+void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTestGPU()
+{
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputActivationCPU({3,1});
+    inputActivationCPU.init();
+    inputActivationCPU.randomize();
+    
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> outputDeltaCPU({2,1});
+    outputDeltaCPU.init();
+    outputDeltaCPU.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weightCPU({2,3});
+    weightCPU.init();
+    weightCPU.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weightGradCPU({2,3,1});
+    weightGradCPU.init();
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> biasGradCPU({2,1});
+    biasGradCPU.init();
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputGradCPU({3,1});
+    inputGradCPU.init();
+   
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputActivationGPU({3,1});
+    inputActivationGPU.init();
+    for(unsigned int i = 0;i<inputActivationCPU.shape().size();++i)
+    {
+        inputActivationGPU[i] = inputActivationCPU[i];
+    }
+    inputActivationGPU.copyFromHostToDevice();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> outputDeltaGPU({2,1});
+    outputDeltaGPU.init();
+    for(unsigned int i =0;i<outputDeltaCPU.shape().size();++i)
+    {
+        outputDeltaGPU[i] = outputDeltaCPU[i];
+    }
+    outputDeltaGPU.copyFromHostToDevice();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> weightGPU({2,3});
+    weightGPU.init();
+    for(unsigned int i =0;i<weightCPU.shape().size();++i)
+    {
+        weightGPU[i] = weightCPU[i];
+    }
+    weightGPU.copyFromHostToDevice();
+
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> weightGradGPU({2,3,1});
+    weightGradGPU.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> biasGradGPU({2,1});
+    biasGradGPU.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGradGPU({3,1});
+    inputGradGPU.init();
+
+    FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBiasDerivativeCPU;
+    dotProductWithBiasDerivativeCPU.setInputParameter("InputActivation", &inputActivationCPU);
+    dotProductWithBiasDerivativeCPU.setInputParameter("OutputDelta", &outputDeltaCPU);
+    dotProductWithBiasDerivativeCPU.setInputParameter("Weight", &weightCPU);
+
+    dotProductWithBiasDerivativeCPU.setOutputParameter("WeightGrad", &weightGradCPU);
+    dotProductWithBiasDerivativeCPU.setOutputParameter("BiasGrad", &biasGradCPU);
+    dotProductWithBiasDerivativeCPU.setOutputParameter("InputDelta", &inputGradCPU);
+
+    QVERIFY(dotProductWithBiasDerivativeCPU.init());
+
+    FreeWill::DotProductWithBiasDerivative<FreeWill::GPU_CUDA, float> dotProductWithBiasDerivativeGPU;
+    dotProductWithBiasDerivativeGPU.setInputParameter("InputActivation", &inputActivationGPU);
+    dotProductWithBiasDerivativeGPU.setInputParameter("OutputDelta", &outputDeltaGPU);
+    dotProductWithBiasDerivativeGPU.setInputParameter("Weight", &weightGPU);
+
+    dotProductWithBiasDerivativeGPU.setOutputParameter("WeightGrad", &weightGradGPU);
+    dotProductWithBiasDerivativeGPU.setOutputParameter("BiasGrad", &biasGradGPU);
+    dotProductWithBiasDerivativeGPU.setOutputParameter("InputDelta", &inputGradGPU);
+
+    QVERIFY(dotProductWithBiasDerivativeGPU.init());
+
+
+    dotProductWithBiasDerivativeCPU.evaluate();
+    dotProductWithBiasDerivativeGPU.evaluate();
+
+    weightGradGPU.copyFromDeviceToHost();
+    biasGradGPU.copyFromDeviceToHost();
+    inputGradGPU.copyFromDeviceToHost();
+
+    float const epsilon = 0.01;
+    for(unsigned int i=0;i<weightGradCPU.shape().size();++i)
+    {
+        //qDebug() << "cpu" << weightGradCPU[i] << "gpu" << weightGradGPU[i];
+        QVERIFY(std::abs(weightGradCPU[i] - weightGradGPU[i]) < epsilon);
+    }
+
+    for(unsigned int i=0;i<biasGradCPU.shape().size();++i)
+    {
+        //qDebug() << "cpu" << biasGradCPU[i] <<outputDeltaCPU[i] << "gpu" << biasGradGPU[i];
+        QVERIFY(std::abs(biasGradCPU[i] - biasGradGPU[i]) < epsilon);
+    }
+
+
 }
 
 void FreeWillUnitTest::SoftmaxTest()
@@ -412,12 +524,12 @@ void FreeWillUnitTest::SoftmaxTest()
 
     softmax2.evaluate();
 
-    for(int i = 0;i<10;++i)
+/*    for(int i = 0;i<10;++i)
     {
         printf("output:%f\n", output2[i]);
     }
 
-    printf("cost: %f\n", cost2[0]);
+    printf("cost: %f\n", cost2[0]);*/
 }
 
 void FreeWillUnitTest::SoftmaxDerivativeTest()
@@ -580,7 +692,7 @@ void FreeWillUnitTest::SoftmaxDerivativeTest()
     QVERIFY(softmaxDerivative2.init());
 
     softmaxDerivative2.evaluate();
-
+/*
     for(unsigned int i = 0;i<inputGrad2.shape()[0];++i)
     {
         //qDebug() << "fake" << fakeGrad[i] << "real" << inputGrad[i];
@@ -588,7 +700,7 @@ void FreeWillUnitTest::SoftmaxDerivativeTest()
         printf("inputgrad: %f\n", inputGrad2[i]);
     }
 
-
+*/
 }
 
 QTEST_MAIN(FreeWillUnitTest)

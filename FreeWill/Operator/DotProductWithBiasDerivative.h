@@ -2,6 +2,7 @@
 #define DOTPRODUCTWITHBIASDERIVATIVE_H
 
 #include "Operator.h"
+#include "../Context/Context.h"
 
 namespace FreeWill
 {
@@ -15,55 +16,42 @@ namespace FreeWill
 
     public:
         DotProductWithBiasDerivative(bool hasBias = true)
-            :Operator<DeviceUsed>({"PrevActivation", "OutputGrad", "Weight"},{"WeightGrad", "InputGrad"}),
+            :Operator<DeviceUsed>({"InputActivation", "OutputDelta", "Weight"},{"WeightGrad", "BiasGrad", "InputDelta"}),
              m_hasBias(hasBias)
         {
         }
         
         virtual bool init()
         {
-            if (!input("PrevActivation") || !input("OutputGrad") || !input("Weight") || !output("WeightGrad") || !output("InputGrad"))
+            FAIL_IF(!input("InputActivation") || !input("OutputDelta") || !input("Weight") || !output("WeightGrad") || !output("InputDelta"));
+           
+            if (m_hasBias)
             {
-               // qDebug() << input("PrevActivation");
-               // qDebug() << input("OutputGrad");
-               // qDebug() << input("Weight");
-               // qDebug() << output("WeightGrad");
-               // qDebug() << output("InputGrad");
-                return false;
+                FAIL_IF( !output("BiasGrad"));
+
+                FAIL_IF(output("BiasGrad")->shape().dimension() != 2);
+                
+                FAIL_IF(output("BiasGrad")->shape()[0] != input("Weight")->shape()[0]);
             }
 
-            if (input("Weight")->shape().dimension()!=2 || 
+            FAIL_IF(input("Weight")->shape().dimension()!=2 || 
                     output("WeightGrad")->shape().dimension()!=3 || 
                     input("Weight")->shape()[0] != output("WeightGrad")->shape()[0] ||
-                    input("Weight")->shape()[1] != output("WeightGrad")->shape()[1])
-            {
-                return false;
-            }
+                    input("Weight")->shape()[1] != output("WeightGrad")->shape()[1]);
 
-            if (output("InputGrad")->shape().dimension()!=2 || input("PrevActivation")->shape() != output("InputGrad")->shape() )
-            {
-                return false;
-            }
+            FAIL_IF(output("InputDelta")->shape().dimension()!=2 || input("InputActivation")->shape() != output("InputDelta")->shape());
 
-            if (input("OutputGrad")->shape().dimension() != 2 || input("OutputGrad")->shape()[0] != input("Weight")->shape()[0])
-            {
-                return false;
-            }
+            FAIL_IF(input("OutputDelta")->shape().dimension() != 2 || input("OutputDelta")->shape()[0] != input("Weight")->shape()[0]);
+         
 
-            if (input("PrevActivation")->shape().dimension() != 2 || 
-                    (input("PrevActivation")->shape()[0] + (m_hasBias?1:0))!= input("Weight")->shape()[1])
-            {
-                return false;
-            }
+            FAIL_IF (input("InputActivation")->shape().dimension() != 2 || 
+                    input("InputActivation")->shape()[0] != input("Weight")->shape()[1]);
 
-            unsigned int batchSize = input("PrevActivation")->shape()[1];
+            unsigned int batchSize = input("InputActivation")->shape()[1];
 
-            if (output("WeightGrad")->shape()[2] != batchSize || 
-                    output("InputGrad")->shape()[1] != batchSize || 
-                    input("OutputGrad")->shape()[1]!=batchSize)
-            {
-                return false;
-            }
+            FAIL_IF(output("WeightGrad")->shape()[2] != batchSize || 
+                    output("InputDelta")->shape()[1] != batchSize || 
+                    input("OutputDelta")->shape()[1]!=batchSize);
 
             return true;
         }
@@ -71,55 +59,88 @@ namespace FreeWill
         virtual void evaluate()
         {
            unsigned int outputSize = input("Weight")->shape()[0];
-           unsigned int inputSize = input("PrevActivation")->shape()[0];
-            unsigned int batchSize = input("PrevActivation")->shape()[1];
+           unsigned int inputSize = input("InputActivation")->shape()[0];
+           unsigned int batchSize = input("InputActivation")->shape()[1];
 
-            unsigned int weightSize = outputSize * inputSize;
+           unsigned int weightSize = outputSize * inputSize;
 
-            if (m_hasBias)
-            {
-                weightSize += outputSize;
-            }
-
-           Tensor<DeviceUsed, DataType> *preActivation = (Tensor<DeviceUsed, DataType> *) input("PrevActivation");
-           Tensor<DeviceUsed, DataType> *outputGrad = (Tensor<DeviceUsed, DataType> *) input("OutputGrad");
+           Tensor<DeviceUsed, DataType> *preActivation = (Tensor<DeviceUsed, DataType> *) input("InputActivation");
+           Tensor<DeviceUsed, DataType> *outputGrad = (Tensor<DeviceUsed, DataType> *) input("OutputDelta");
            Tensor<DeviceUsed, DataType> *weightGrad = (Tensor<DeviceUsed, DataType> *) output("WeightGrad");
+           Tensor<DeviceUsed, DataType> *inputGrad = (Tensor<DeviceUsed, DataType> *) output("InputDelta");
+           Tensor<DeviceUsed, DataType> *weight = (Tensor<DeviceUsed, DataType> *) input("Weight");
+           Tensor<DeviceUsed, DataType> *biasGrad = (Tensor<DeviceUsed, DataType> *) output("BiasGrad");
 
-            for(unsigned int b = 0;b<batchSize;++b)
-            {
-
-                for(unsigned int e = 0; e<inputSize; ++e)
+           if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
+           {
+                for(unsigned int b = 0;b<batchSize;++b)
                 {
-                    for(unsigned int i =0;i<outputSize;++i)
+                    for(unsigned int e = 0; e<inputSize; ++e)
                     {
-                        (*weightGrad)[ b*weightSize + e * outputSize + i] = (*preActivation)[b*inputSize + e] * (*outputGrad)[b*outputSize + i];
-                    }
-                }     
+                        for(unsigned int i =0;i<outputSize;++i)
+                        {
+                            (*weightGrad)[ b*weightSize + e * outputSize + i] = (*preActivation)[b*inputSize + e] * (*outputGrad)[b*outputSize + i];
+                        }
+                    }     
 
-                if (m_hasBias)
-                {
-                    for(unsigned int i =0;i<outputSize;++i)
+                    if (m_hasBias)
                     {
-                        (*weightGrad)[b*weightSize + inputSize * outputSize + i] = (*outputGrad)[b*outputSize + i];
-                    }
-                }
-            }
-
-           Tensor<DeviceUsed, DataType> *inputGrad = (Tensor<DeviceUsed, DataType> *) output("InputGrad");
-            Tensor<DeviceUsed, DataType> *weight = (Tensor<DeviceUsed, DataType> *) input("Weight");
-
-            for (unsigned int b = 0; b < batchSize; ++b)
-            {
-                for(unsigned int i = 0;i<inputSize;++i)
-                {
-                    (*inputGrad)[b *inputSize +  i] = 0;
-
-                    for (unsigned int e = 0;e<outputSize;++e)
-                    {
-                        (*inputGrad)[b*inputSize + i] += (*weight)[i * outputSize + e] * (*outputGrad)[b*outputSize + e];
+                        for(unsigned int i =0;i<outputSize;++i)
+                        {
+                            (*biasGrad)[b*outputSize + i] = (*outputGrad)[b*outputSize + i];
+                        }
                     }
                 }
-            }
+
+                for (unsigned int b = 0; b < batchSize; ++b)
+                {
+                    for(unsigned int i = 0;i<inputSize;++i)
+                    {
+                        (*inputGrad)[b *inputSize +  i] = 0;
+
+                        for (unsigned int e = 0;e<outputSize;++e)
+                        {
+                            (*inputGrad)[b*inputSize + i] += (*weight)[i * outputSize + e] * (*outputGrad)[b*outputSize + e];
+                        }
+                    }
+                }
+           }
+           else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+           {
+               DataType alpha = 1.0;
+               DataType beta = 0.0;
+
+                if constexpr (std::is_same<DataType, float>::value)
+                {
+                    RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N, CUBLAS_OP_N,
+                                           outputSize, inputSize, batchSize, &alpha, outputGrad->gpuDataHandle(), outputSize,
+                                           preActivation->gpuDataHandle(), batchSize, 
+                                           &beta, weightGrad->gpuDataHandle(), outputSize));
+                    if (m_hasBias)
+                    {
+                        RUN_CUBLAS(cublasSgemv(Context<DeviceUsed>::getSingleton().cublasHandle(),CUBLAS_OP_N,
+                                    outputSize, batchSize, &alpha, outputGrad->gpuDataHandle(),outputSize,
+                                    Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(outputSize), 1, 
+                                     &beta,biasGrad->gpuDataHandle(), 1));
+                    }
+                }
+                else if constexpr (std::is_same<DataType, double>::value)
+                {
+                     RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N, CUBLAS_OP_N,
+                                           outputSize, inputSize, batchSize, &alpha, outputGrad->gpuDataHandle(), outputSize,
+                                           preActivation->gpuDataHandle(), batchSize, 
+                                           &beta, weightGrad->gpuDataHandle(), outputSize));
+                    if (m_hasBias)
+                    {
+                        RUN_CUBLAS(cublasDgemv(Context<DeviceUsed>::getSingleton().cublasHandle(),CUBLAS_OP_N,
+                                    outputSize, batchSize, &alpha, outputGrad->gpuDataHandle(),outputSize,
+                                    Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(outputSize), 1, 
+                                     &beta,biasGrad->gpuDataHandle(), 1));
+                    }
+                
+                }                
+           
+           }
         }        
     };
 }

@@ -21,32 +21,17 @@ namespace FreeWill
 
         virtual bool init() override 
         {
-            if (!input("Input") || !input("Label") || !output("Cost") || !output("Output"))
-            {
-                return false;
-            }
+            FAIL_IF (!input("Input") || !input("Label") || !output("Cost") || !output("Output"));
 
-            if (input("Input")->shape() != output("Output")->shape())
-            {
-                return false;
-            }
+            FAIL_IF (input("Input")->shape() != output("Output")->shape());
 
-            if (input("Input")->shape().dimension() != 2)
-            {
-                return false;
-            }
+            FAIL_IF (input("Input")->shape().dimension() != 2);
 
-            if (input("Label")->shape().dimension() !=1 || output("Cost")->shape().dimension() != 1)
-            {
-                return false;
-            }
+            FAIL_IF (input("Label")->shape().dimension() !=1 || output("Cost")->shape().dimension() != 1);
 
             unsigned int batchSize = input("Input")->shape()[1];
 
-            if (batchSize != input("Label")->shape()[0] || batchSize != output("Cost")->shape()[0])
-            {
-                return false;
-            }
+            FAIL_IF (batchSize != input("Label")->shape()[0] || batchSize != output("Cost")->shape()[0]);
 
             return true;
         }

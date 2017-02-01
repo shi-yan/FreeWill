@@ -39,15 +39,9 @@ namespace FreeWill
 
         bool init() override
         {
-            if (!input("Input") || !output("Output"))
-            {
-                return false;
-            }
+            FAIL_IF (!input("Input") || !output("Output"));
 
-            if (input("Input")->shape() != output("Output")->shape())
-            {
-                return false;
-            }
+            FAIL_IF (input("Input")->shape() != output("Output")->shape());
 
             if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
             {

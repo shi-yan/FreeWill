@@ -21,13 +21,12 @@ namespace FreeWill
 
        Shape m_shape;
        cudnnTensorDescriptor_t m_gpuTensorDescriptor;
-
-
        ReferenceCountedBlob<DeviceUsed> m_data;
+
        TensorBase(const Shape &shape = Shape()) 
            :m_shape(shape),
-            m_data(),
-            m_gpuTensorDescriptor(0)
+            m_gpuTensorDescriptor(0),
+            m_data()
        {
            RUN_CUDA(cudnnCreateTensorDescriptor(&m_gpuTensorDescriptor));
        }

@@ -20,30 +20,15 @@ namespace FreeWill
 
         virtual bool init() override
         {
-            if (!input("Output") || !input("Label") || !output("InputGrad"))
-            {
-                return false;
-            }
+            FAIL_IF (!input("Output") || !input("Label") || !output("InputGrad"));
 
-            if (input("Output")->shape() != output("InputGrad")->shape())
-            {
-                return false;
-            }
+            FAIL_IF (input("Output")->shape() != output("InputGrad")->shape());
 
-            if (input("Output")->shape().dimension() != 2)
-            {
-                return false;
-            }
+            FAIL_IF (input("Output")->shape().dimension() != 2);
 
-            if (input("Label")->shape().dimension() != 1)
-            {
-                return false;
-            }
+            FAIL_IF (input("Label")->shape().dimension() != 1);
 
-            if (input("Output")->shape()[1] != input("Label")->shape()[0])
-            {
-                return false;
-            }
+            FAIL_IF (input("Output")->shape()[1] != input("Label")->shape()[0]);
 
             return true;
         }

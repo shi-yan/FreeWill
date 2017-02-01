@@ -40,3 +40,8 @@ namespace FreeWill
         {printf("CUDA Launch Kernel error: %s:%d\n", __FILE__, __LINE__);}
 
 #endif
+
+#define FAIL_IF(EXP) \
+    do { if (EXP) { \
+             printf ("Operator integrity check failed: " #EXP ", %s:%d\n", __FILE__, __LINE__); return false;}} \
+    while (0)
