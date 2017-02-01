@@ -352,28 +352,32 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
 
 void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTestGPU()
 {
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputActivationCPU({3,1});
+    const unsigned int inputSize = 3;
+    const unsigned int outputSize = 2;
+    const unsigned int batchSize = 5;
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputActivationCPU({inputSize, batchSize});
     inputActivationCPU.init();
     inputActivationCPU.randomize();
     
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> outputDeltaCPU({2,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> outputDeltaCPU({outputSize, batchSize});
     outputDeltaCPU.init();
     outputDeltaCPU.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weightCPU({2,3});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weightCPU({outputSize, inputSize});
     weightCPU.init();
     weightCPU.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weightGradCPU({2,3,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> weightGradCPU({outputSize, inputSize, batchSize});
     weightGradCPU.init();
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> biasGradCPU({2,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> biasGradCPU({outputSize, batchSize});
     biasGradCPU.init();
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputGradCPU({3,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputGradCPU({inputSize, batchSize});
     inputGradCPU.init();
    
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputActivationGPU({3,1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputActivationGPU({inputSize, batchSize});
     inputActivationGPU.init();
     for(unsigned int i = 0;i<inputActivationCPU.shape().size();++i)
     {
@@ -381,7 +385,7 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTestGPU()
     }
     inputActivationGPU.copyFromHostToDevice();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> outputDeltaGPU({2,1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> outputDeltaGPU({outputSize,batchSize});
     outputDeltaGPU.init();
     for(unsigned int i =0;i<outputDeltaCPU.shape().size();++i)
     {
@@ -389,7 +393,7 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTestGPU()
     }
     outputDeltaGPU.copyFromHostToDevice();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> weightGPU({2,3});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> weightGPU({outputSize,inputSize});
     weightGPU.init();
     for(unsigned int i =0;i<weightCPU.shape().size();++i)
     {
@@ -398,13 +402,13 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTestGPU()
     weightGPU.copyFromHostToDevice();
 
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> weightGradGPU({2,3,1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> weightGradGPU({outputSize,inputSize,batchSize});
     weightGradGPU.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> biasGradGPU({2,1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> biasGradGPU({outputSize,batchSize});
     biasGradGPU.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGradGPU({3,1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGradGPU({inputSize,batchSize});
     inputGradGPU.init();
 
     FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBiasDerivativeCPU;
@@ -450,6 +454,11 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTestGPU()
         QVERIFY(std::abs(biasGradCPU[i] - biasGradGPU[i]) < epsilon);
     }
 
+    for(unsigned int i=0;i<inputGradGPU.shape().size();++i)
+    {
+        //qDebug()<<"cpu" << inputGradCPU[i] << "gpu" << inputGradGPU[i];
+        QVERIFY(std::abs(inputGradCPU[i] - inputGradGPU[i]) < epsilon);
+    }
 
 }
 

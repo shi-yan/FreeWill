@@ -123,6 +123,12 @@ namespace FreeWill
                                     Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(outputSize), 1, 
                                      &beta,biasGrad->gpuDataHandle(), 1));
                     }
+
+                    RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_T, CUBLAS_OP_N,
+                                           inputSize, batchSize, outputSize, &alpha, weight->gpuDataHandle(), outputSize,
+                                           outputGrad->gpuDataHandle(), outputSize, 
+                                           &beta, inputGrad->gpuDataHandle(), inputSize));
+
                 }
                 else if constexpr (std::is_same<DataType, double>::value)
                 {
@@ -137,7 +143,12 @@ namespace FreeWill
                                     Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(outputSize), 1, 
                                      &beta,biasGrad->gpuDataHandle(), 1));
                     }
-                
+
+                    RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_T, CUBLAS_OP_N,
+                                           inputSize, batchSize, outputSize, &alpha, weight->gpuDataHandle(), outputSize,
+                                           outputGrad->gpuDataHandle(), outputSize, 
+                                           &beta, inputGrad->gpuDataHandle(), inputSize));
+
                 }                
            
            }
