@@ -27,15 +27,15 @@ namespace FreeWill
            
             if (m_hasBias)
             {
-                FAIL_IF( !output("BiasGrad"));
+                FAIL_IF(!output("BiasGrad"));
 
-                FAIL_IF(output("BiasGrad")->shape().dimension() != 2);
+                FAIL_IF(output("BiasGrad")->shape().dimension() != 1);
                 
                 FAIL_IF(output("BiasGrad")->shape()[0] != input("Weight")->shape()[0]);
             }
 
             FAIL_IF(input("Weight")->shape().dimension()!=2 || 
-                    output("WeightGrad")->shape().dimension()!=3 || 
+                    output("WeightGrad")->shape().dimension()!=2 || 
                     input("Weight")->shape()[0] != output("WeightGrad")->shape()[0] ||
                     input("Weight")->shape()[1] != output("WeightGrad")->shape()[1]);
 
@@ -49,9 +49,8 @@ namespace FreeWill
 
             unsigned int batchSize = input("InputActivation")->shape()[1];
 
-            FAIL_IF(output("WeightGrad")->shape()[2] != batchSize || 
-                    output("InputDelta")->shape()[1] != batchSize || 
-                    input("OutputDelta")->shape()[1]!=batchSize);
+            FAIL_IF(output("InputDelta")->shape()[1] != batchSize || 
+                    input("OutputDelta")->shape()[1] != batchSize);
 
             return true;
         }
@@ -62,7 +61,8 @@ namespace FreeWill
            unsigned int inputSize = input("InputActivation")->shape()[0];
            unsigned int batchSize = input("InputActivation")->shape()[1];
 
-           unsigned int weightSize = outputSize * inputSize;
+           printf("inputsize:%d, batchsize:%d, outputsize:%d\n", inputSize, batchSize, outputSize);
+           //unsigned int weightSize = outputSize * inputSize;
 
            Tensor<DeviceUsed, DataType> *preActivation = (Tensor<DeviceUsed, DataType> *) input("InputActivation");
            Tensor<DeviceUsed, DataType> *outputGrad = (Tensor<DeviceUsed, DataType> *) input("OutputDelta");
@@ -71,6 +71,7 @@ namespace FreeWill
            Tensor<DeviceUsed, DataType> *weight = (Tensor<DeviceUsed, DataType> *) input("Weight");
            Tensor<DeviceUsed, DataType> *biasGrad = (Tensor<DeviceUsed, DataType> *) output("BiasGrad");
 
+           (*weightGrad)[0] = 0;
            if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
            {
                 for(unsigned int b = 0;b<batchSize;++b)
@@ -79,7 +80,11 @@ namespace FreeWill
                     {
                         for(unsigned int i =0;i<outputSize;++i)
                         {
-                            (*weightGrad)[ b*weightSize + e * outputSize + i] = (*preActivation)[b*inputSize + e] * (*outputGrad)[b*outputSize + i];
+                            if (e*outputSize + i == 0)
+                            {
+                                printf("adding %f %f\n", (*preActivation)[b*inputSize + e] , (*outputGrad)[b*outputSize + i]);
+                            } 
+                            (*weightGrad)[ e * outputSize + i] += (*preActivation)[b*inputSize + e] * (*outputGrad)[b*outputSize + i];
                         }
                     }     
 
@@ -87,7 +92,7 @@ namespace FreeWill
                     {
                         for(unsigned int i =0;i<outputSize;++i)
                         {
-                            (*biasGrad)[b*outputSize + i] = (*outputGrad)[b*outputSize + i];
+                            (*biasGrad)[i] += (*outputGrad)[b*outputSize + i];
                         }
                     }
                 }
@@ -112,9 +117,9 @@ namespace FreeWill
 
                 if constexpr (std::is_same<DataType, float>::value)
                 {
-                    RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N, CUBLAS_OP_N,
+                    RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N, CUBLAS_OP_T,
                                            outputSize, inputSize, batchSize, &alpha, outputGrad->gpuDataHandle(), outputSize,
-                                           preActivation->gpuDataHandle(), batchSize, 
+                                           preActivation->gpuDataHandle(), inputSize, 
                                            &beta, weightGrad->gpuDataHandle(), outputSize));
                     if (m_hasBias)
                     {
@@ -132,9 +137,9 @@ namespace FreeWill
                 }
                 else if constexpr (std::is_same<DataType, double>::value)
                 {
-                     RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N, CUBLAS_OP_N,
+                     RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N, CUBLAS_OP_T,
                                            outputSize, inputSize, batchSize, &alpha, outputGrad->gpuDataHandle(), outputSize,
-                                           preActivation->gpuDataHandle(), batchSize, 
+                                           preActivation->gpuDataHandle(), inputSize, 
                                            &beta, weightGrad->gpuDataHandle(), outputSize));
                     if (m_hasBias)
                     {

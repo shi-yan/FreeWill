@@ -102,13 +102,13 @@ namespace FreeWill
                 {
                     
                     RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(),CUBLAS_OP_N,CUBLAS_OP_N
-                                ,outputSize, batchSize,inputSize, &alpha, _weight->gpuDataHandle(), outputSize, 
+                                ,outputSize, batchSize, inputSize, &alpha, _weight->gpuDataHandle(), outputSize, 
                                 _input->gpuDataHandle(), inputSize, &beta, _output->gpuDataHandle(), outputSize));
 
                     if (m_hasBias)
                     {
                         beta = 1.0;
-                        RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N,CUBLAS_OP_N,
+                        RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N, CUBLAS_OP_N,
                                     outputSize, batchSize, 1, &alpha, _bias->gpuDataHandle(), outputSize,
                                     Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(batchSize), 1, 
                                     &beta, _output->gpuDataHandle(), outputSize));
@@ -124,9 +124,10 @@ namespace FreeWill
                     if (m_hasBias)
                     {
                         beta = 1.0;
-                        RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N,CUBLAS_OP_N,
-                                    batchSize, outputSize, 1, &alpha, Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(batchSize), batchSize,
-                                    _bias->gpuDataHandle(), 1, &beta, _output->gpuDataHandle(), outputSize));
+                        RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N, CUBLAS_OP_N,
+                                    outputSize, batchSize, 1, &alpha, _bias->gpuDataHandle(), outputSize,
+                                    Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(batchSize), 1,
+                                    &beta, _output->gpuDataHandle(), outputSize));
                     }
 
                }
