@@ -192,7 +192,7 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTestGPU()
 
     input.copyFromDeviceToHost();
 
-    printf("fake:%f, real:%f\n",fakeDerivative, input[0]);
+    //printf("fake:%f, real:%f\n",fakeDerivative, input[0]);
     QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
 }
 
@@ -248,6 +248,7 @@ void FreeWillUnitTest::operatorReLUDerivativeTest()
     ones.init();
     ones[0] = 1; 
 
+    //printf("input: %f output %f deriv %f\n", input[0], output[0], 4.0);
     FreeWill::ActivationDerivative<FreeWill::RELU, FreeWill::CPU_NAIVE, float> reluDerivative;
     reluDerivative.setInputParameter("Output", &output);
     reluDerivative.setInputParameter("OutputDelta", &ones);
@@ -256,7 +257,7 @@ void FreeWillUnitTest::operatorReLUDerivativeTest()
     QVERIFY(reluDerivative.init());
     reluDerivative.evaluate();
 
-    printf("fake %f, real %f\n", fakeDerivative, input[0]);
+    //printf("fake %f, real %f\n", fakeDerivative, input[0]);
     QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
 }
 

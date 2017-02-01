@@ -95,7 +95,7 @@ namespace FreeWill
                 {
                     for(unsigned int i =0;i<size; ++i)
                     {
-                        (*_inputDelta)[i] = ((*_output)[i] > 0.0 ? (*_output)[i] : 0.0) * (*_outputDelta)[i];
+                        (*_inputDelta)[i] = ((*_output)[i] > 0.0 ? 1.0 : 0.0) * (*_outputDelta)[i];
                     }
                 }
                 else if constexpr (ActivationModeUsed == TANH)
