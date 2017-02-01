@@ -61,7 +61,7 @@ namespace FreeWill
            unsigned int inputSize = input("InputActivation")->shape()[0];
            unsigned int batchSize = input("InputActivation")->shape()[1];
 
-           printf("inputsize:%d, batchsize:%d, outputsize:%d\n", inputSize, batchSize, outputSize);
+           //printf("inputsize:%d, batchsize:%d, outputsize:%d\n", inputSize, batchSize, outputSize);
            //unsigned int weightSize = outputSize * inputSize;
 
            Tensor<DeviceUsed, DataType> *preActivation = (Tensor<DeviceUsed, DataType> *) input("InputActivation");
@@ -80,10 +80,10 @@ namespace FreeWill
                     {
                         for(unsigned int i =0;i<outputSize;++i)
                         {
-                            if (e*outputSize + i == 0)
+                            /*if (e*outputSize + i == 0)
                             {
                                 printf("adding %f %f\n", (*preActivation)[b*inputSize + e] , (*outputGrad)[b*outputSize + i]);
-                            } 
+                            }*/ 
                             (*weightGrad)[ e * outputSize + i] += (*preActivation)[b*inputSize + e] * (*outputGrad)[b*outputSize + i];
                         }
                     }     
@@ -125,7 +125,7 @@ namespace FreeWill
                     {
                         RUN_CUBLAS(cublasSgemv(Context<DeviceUsed>::getSingleton().cublasHandle(),CUBLAS_OP_N,
                                     outputSize, batchSize, &alpha, outputGrad->gpuDataHandle(),outputSize,
-                                    Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(outputSize), 1, 
+                                    Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(batchSize), 1, 
                                      &beta,biasGrad->gpuDataHandle(), 1));
                     }
 

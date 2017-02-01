@@ -448,8 +448,8 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTestGPU()
     float const epsilon = 0.01;
     for(unsigned int i=0;i<weightGradCPU.shape().size();++i)
     {
-        qDebug() << "cpu" << weightGradCPU[i] << "gpu" << weightGradGPU[i];
-//        QVERIFY(std::abs(weightGradCPU[i] - weightGradGPU[i]) < epsilon);
+//        qDebug() << "cpu" << weightGradCPU[i] << "gpu" << weightGradGPU[i];
+        QVERIFY(std::abs(weightGradCPU[i] - weightGradGPU[i]) < epsilon);
     }
 
     for(unsigned int i=0;i<biasGradCPU.shape().size();++i)

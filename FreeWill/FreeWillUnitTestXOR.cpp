@@ -41,10 +41,10 @@ void FreeWillUnitTest::xorTest()
     firstLayerBias.init();
     firstLayerBias.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> firstLayerWeightDerivative({2,2,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> firstLayerWeightDerivative({2,2});
     firstLayerWeightDerivative.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> firstLayerBiasDerivative({2,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> firstLayerBiasDerivative({2});
     firstLayerBiasDerivative.init();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerWeight({1, 2});
@@ -74,10 +74,10 @@ void FreeWillUnitTest::xorTest()
     printf("--------\n");
     */
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerWeightDerivative({1,2,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerWeightDerivative({1,2});
     secondLayerWeightDerivative.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerBiasDerivative({1,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> secondLayerBiasDerivative({1});
     secondLayerBiasDerivative.init();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputNeuronDerivative({2,1});
@@ -254,7 +254,11 @@ void FreeWillUnitTest::xorTest()
         //      qDebug() << "input" << input[0] << input[1];
         //      qDebug() << "first" << firstLayerActivation[0] << firstLayerActivation[1];
         //      qDebug() << "result" << secondLayerActivation[0] << "cost" << cost[0];
+        secondLayerWeightDerivative.clear();
+        secondLayerBiasDerivative.clear();
 
+        firstLayerWeightDerivative.clear();
+        firstLayerBiasDerivative.clear();
         //overallCost += cost[0];
         sigmoidCrossEntropyDerivative.evaluate();
         secondLayerDotProductWithBiasDerivative.evaluate();
