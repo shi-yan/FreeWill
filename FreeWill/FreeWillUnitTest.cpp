@@ -122,7 +122,10 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
     unsigned int size = realGradient.shape().size();
     for(unsigned int i = 0; i<size; ++i)
     {
-        //qDebug() << fakeGradient[i] << ";" << realGradient[i];
+        if (!(std::abs(fakeGradient[i] - realGradient[i]) < epsilon))
+        {
+            qDebug() << fakeGradient[i] << ";" << realGradient[i];
+        }
         QVERIFY(std::abs(fakeGradient[i] - realGradient[i]) < epsilon);
     }    
 

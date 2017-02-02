@@ -16,6 +16,7 @@ private slots:
     void operatorSigmoidDerivativeTest();
     void operatorSigmoidDerivativeTestGPU();
     void operatorReLUDerivativeTest();
+    void operatorReLUDerivativeTestGPU();
     void operatorSigmoidCrossEntropyTest();
     void operatorSigmoidCrossEntropyDerivativeTest();
     void operatorDotProductWithBiasTest();

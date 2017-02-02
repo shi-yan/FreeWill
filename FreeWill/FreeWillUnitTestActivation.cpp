@@ -261,4 +261,86 @@ void FreeWillUnitTest::operatorReLUDerivativeTest()
     QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
 }
 
+void FreeWillUnitTest::operatorReLUDerivativeTestGPU()
+{
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input({1});
+    input.init();
+    input.randomize();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output({1});
+    output.init();
+
+    input.copyFromHostToDevice();
+
+    FreeWill::Activation<FreeWill::RELU, FreeWill::GPU_CUDA, float> relu;
+    relu.setInputParameter("Input", &input);
+    relu.setOutputParameter("Output", &output);
+    QVERIFY(relu.init());
+    relu.evaluate();
+
+    output.copyFromDeviceToHost();
+
+    const float epsilon = 0.001;
+    //const float threshold = 1e-5; 
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input_larger({1});
+    input_larger.init();
+    input_larger[0] = input[0] + epsilon;
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output_larger({1});
+    output_larger.init();
+
+    input_larger.copyFromHostToDevice();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input_smaller({1});
+    input_smaller.init();
+    input_smaller[0] = input[0] - epsilon;
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output_smaller({1});
+    output_smaller.init();
+
+    input_smaller.copyFromHostToDevice();
+    
+    relu.clear(); 
+    relu.setInputParameter("Input", &input_larger);
+    relu.setOutputParameter("Output", &output_larger);
+
+    QVERIFY(relu.init());
+    relu.evaluate();
+
+    output_larger.copyFromDeviceToHost();
+
+    relu.clear();
+    relu.setInputParameter("Input", &input_smaller);
+    relu.setOutputParameter("Output", &output_smaller);
+
+    QVERIFY(relu.init());
+    relu.evaluate();
+
+    output_smaller.copyFromDeviceToHost();
+
+    float fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon); 
+    
+
+    FreeWill::ActivationDerivative<FreeWill::RELU, FreeWill::GPU_CUDA, float> reluDerivative;
+    input[0] = 0;
+    input.copyFromHostToDevice();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> ones({1});
+    ones.init();
+    ones[0] = 1;
+    ones.copyFromHostToDevice();
+
+    reluDerivative.setInputParameter("Output", &output);
+    reluDerivative.setInputParameter("OutputDelta", &ones);
+    reluDerivative.setOutputParameter("InputDelta", &input);
+
+    QVERIFY(reluDerivative.init());
+    reluDerivative.evaluate();
+
+    input.copyFromDeviceToHost();
+
+    //printf("fake:%f, real:%f\n",fakeDerivative, input[0]);
+    QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
+}
+
 
