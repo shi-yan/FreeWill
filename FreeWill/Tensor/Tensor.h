@@ -213,7 +213,7 @@ namespace FreeWill
                 }
 
                 int nbDims = m_shape.dimension();
-                int atLeastDims = nbDims < 3 ? 3 : nbDims;
+                int atLeastDims = nbDims < 4 ? 4 : nbDims;
                 int *dimA = new int[atLeastDims];
                 int *strideA = new int[atLeastDims];
                 
@@ -238,8 +238,8 @@ namespace FreeWill
                     }
                 }
                
-
-//              printf("create tensor descriptor: %d\n", nbDims);
+                //printf("create tensor descriptor: %d %d %d\n", nbDims,dimA[0], strideA[0]);
+                // cudnn only supports dim >= 4, it seems that to use cudnn activation, dim has to be >= 4
                 RUN_CUDNN(cudnnSetTensorNdDescriptor(TensorBase<DeviceUsed>::m_gpuTensorDescriptor,
                                            dataType,
                                            atLeastDims,

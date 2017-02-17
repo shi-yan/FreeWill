@@ -195,6 +195,111 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
 
 }
 
+void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTestGPU()
+{
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input({10,64});
+    input.init();
+    input.randomize();
+    input.copyFromHostToDevice();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> label({10,64});
+    label.init();
+    label.randomize();
+    label.copyFromHostToDevice();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output({10, 64});
+    output.init();
+    output.copyFromHostToDevice();
+
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> cost({64});
+    cost.init();
+    cost.randomize();
+    cost.copyFromHostToDevice();
+
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::GPU_CUDA, float> sigmoid;
+    sigmoid.setInputParameter("Input", &input);
+    sigmoid.setOutputParameter("Output", &output);
+    
+    QVERIFY(sigmoid.init());
+
+    const float epsilon = 0.01;
+    //const float threshold = 1e-5;
+
+    FreeWill::CrossEntropy<FreeWill::GPU_CUDA, float> crossEntropy;
+    crossEntropy.setInputParameter("Input", &output);
+    crossEntropy.setInputParameter("Label", &label);
+    crossEntropy.setOutputParameter("Cost", &cost);
+
+    QVERIFY(crossEntropy.init());
+
+    //crossEntropy.evaluate();
+    //printf("cost:%f\n",cost[0]);
+
+    unsigned int batchSize = 64;
+    unsigned int vectorSize = 10;
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fakeGradient({10,64});
+    fakeGradient.init();
+
+    for(unsigned int e = 0;e<batchSize;++e)
+    {
+        for(unsigned int i = 0;i<vectorSize;++i)
+        {
+            float cost_larger = 0;
+            float original = input[e*vectorSize + i];
+            input[e*vectorSize + i] = original + epsilon;
+            input.copyFromHostToDevice();
+            sigmoid.evaluate();
+            crossEntropy.evaluate();
+            cost.copyFromDeviceToHost();
+            cost_larger = cost[e];
+
+            input[e*vectorSize + i] = original - epsilon;
+            input.copyFromHostToDevice();
+            float cost_smaller = 0;
+            sigmoid.evaluate();
+            crossEntropy.evaluate();
+            cost.copyFromDeviceToHost();
+            cost_smaller = cost[e];
+
+            //printf("l:%f, s:%f ,%f\n", cost_larger, cost_smaller, (cost_larger-cost_smaller) / (2.0*epsilon));
+            fakeGradient[e*vectorSize + i] = (cost_larger - cost_smaller) / (2.0 * epsilon);
+
+            input[e*vectorSize + i] = original;
+            input.copyFromHostToDevice();
+        }
+    }
+
+    sigmoid.evaluate();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> realGradient({10,64});
+    realGradient.init();
+
+    FreeWill::SigmoidCrossEntropyDerivative<FreeWill::GPU_CUDA, float> sigmoidCrossEntropyDerivative;
+    sigmoidCrossEntropyDerivative.setInputParameter("Input", &output);
+    sigmoidCrossEntropyDerivative.setInputParameter("Label", &label);
+    sigmoidCrossEntropyDerivative.setOutputParameter("Output", &realGradient);
+
+    QVERIFY(sigmoidCrossEntropyDerivative.init());
+
+    sigmoidCrossEntropyDerivative.evaluate();
+    realGradient.copyFromDeviceToHost();
+    
+    unsigned int size = realGradient.shape().size();
+    for(unsigned int i = 0; i<size; ++i)
+    {
+        if (!(std::abs(fakeGradient[i] - realGradient[i]) < epsilon))
+        {
+            qDebug() << fakeGradient[i] << ";" << realGradient[i];
+        }
+        QVERIFY(std::abs(fakeGradient[i] - realGradient[i]) < epsilon);
+    }    
+
+}
+
+
+
 void FreeWillUnitTest::operatorDotProductWithBiasTest()
 {
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputNeurons({4, 2});

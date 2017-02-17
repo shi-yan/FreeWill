@@ -38,3 +38,33 @@ template __host__ void crossEntropyCUDAKernel(float *input, float *label, float 
 #if __CUDA_ARCH__ >= 600
 template __host__ void crossEntropyCUDAKernel(double *input, double *label, double *cost, unsigned int labelSize, unsigned int batchSize);
 #endif
+
+template <typename DataType>
+__global__ void elementwiseSub(DataType *operandA, DataType *operandB, DataType *result, unsigned int size)
+{
+    int id = blockIdx.x*blockDim.x+threadIdx.x;
+    if (id < size)
+    {
+        result[id] = operandA[id] - operandB[id];
+    }
+}
+        
+template <typename DataType>
+__host__ void sigmoidCrossEntropyDerivativeCUDAKernel(DataType *input, DataType *label, DataType *output, unsigned int size)
+{
+    int blockSize = 1024;
+    int gridSize =  size / blockSize ;
+
+    if (size % blockSize != 0)
+    {
+        gridSize += 1;
+    }
+
+    elementwiseSub<DataType><<<gridSize, blockSize>>>(input, label, output, size);
+    CHECK_CUDA_ERROR
+}
+
+template __host__ void sigmoidCrossEntropyDerivativeCUDAKernel(float *input, float *label, float *output, unsigned int size);
+template __host__ void sigmoidCrossEntropyDerivativeCUDAKernel(double *input, double *label, double *output, unsigned int size);
+
+

@@ -19,6 +19,7 @@ private slots:
     void operatorReLUDerivativeTestGPU();
     void operatorSigmoidCrossEntropyTestCPUAndGPU();
     void operatorSigmoidCrossEntropyDerivativeTest();
+    void operatorSigmoidCrossEntropyDerivativeTestGPU();
     void operatorDotProductWithBiasTest();
     void operatorDotProductWithBiasTestGPU();
     void operatorDotProductWithBiasDerivativeTest();

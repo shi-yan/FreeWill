@@ -2,6 +2,7 @@
 #define SIGMOIDCROSSENTROPYDERIVATIVE_H
 
 #include "Operator.h"
+#include "CrossEntropy_CUDA.h"
 
 namespace FreeWill
 {
@@ -52,15 +53,22 @@ namespace FreeWill
 
             //printf("batchSize %d vectorSize %d\n", batchSize, vectorSize);
             //printf("%d, %d, %d\n", _input->shape().size(), _output->shape().size(), _label->shape().size());
-
-            for(unsigned int e = 0;e<batchSize;++e)
+            
+            if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
             {
-                for(unsigned int i = 0; i < vectorSize; ++i)
+                for(unsigned int e = 0;e<batchSize;++e)
                 {
-                   // DataType _inputSigmoid = 1.0 / (1.0 + exp(-(*_input)[e*vectorSize + i]));
- 
-                    (*_output)[e * vectorSize + i] = (*_input)[e*vectorSize + i] - (*_label)[e * vectorSize + i];
+                    for(unsigned int i = 0; i < vectorSize; ++i)
+                    {
+                        // DataType _inputSigmoid = 1.0 / (1.0 + exp(-(*_input)[e*vectorSize + i]));
+                   
+                        (*_output)[e * vectorSize + i] = (*_input)[e*vectorSize + i] - (*_label)[e * vectorSize + i];
+                    }
                 }
+            }
+            else if constexpr ((DeviceUsed & (GPU_CUDA | GPU)) != 0)
+            {
+                sigmoidCrossEntropyDerivativeCUDAKernel<DataType>(_input->gpuDataHandle(), _label->gpuDataHandle(), _output->gpuDataHandle(), vectorSize * batchSize);            
             }
         }
 

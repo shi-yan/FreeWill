@@ -28,7 +28,7 @@ namespace FreeWill
 #define RUN_CUDNN(cudnn_function) \
     {cudnnStatus_t result = cudnn_function ; \
     if (result != CUDNN_STATUS_SUCCESS) \
-        {printf("CUDNN error: %s:%d Error[%d]\n", __FILE__, __LINE__, result);}}
+        {printf("CUDNN error: %s:%d Error[%d %s]\n", __FILE__, __LINE__, result, cudnnGetErrorString(result));}}
 
 #define RUN_CUBLAS(cublas_function) \
     {cublasStatus_t result = cublas_function ; \
