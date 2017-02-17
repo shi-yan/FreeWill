@@ -2,6 +2,9 @@
 #define SIGMOIDCROSSENTROPY_H
 
 #include "Operator.h"
+#include "../DeviceSelection.h"
+
+#include "CrossEntropy_CUDA.h"
 
 namespace FreeWill
 {
@@ -19,25 +22,13 @@ namespace FreeWill
 
         virtual bool init() override
         {
-            if (!input("Input") || !output("Cost") || !input("Label"))
-            {
-                return false;
-            }
+            FAIL_IF(!input("Input") || !output("Cost") || !input("Label"));
+          
+            FAIL_IF (input("Input")->shape().dimension() != 2 || output("Cost")->shape().dimension() != 1);
 
-            if (input("Input")->shape().dimension() != 2 || output("Cost")->shape().dimension() != 1)
-            {
-                return false;
-            }
+            FAIL_IF (input("Input")->shape() != input("Label")->shape());
 
-            if (input("Input")->shape() != input("Label")->shape())
-            {
-                return false;
-            }
-
-            if (input("Input")->shape()[1] != output("Cost")->shape()[0])
-            {
-                return false;
-            }
+            FAIL_IF (input("Input")->shape()[1] != output("Cost")->shape()[0]);
 
             return true;
         }
@@ -52,18 +43,34 @@ namespace FreeWill
             unsigned int batchSize = _cost->shape()[0];
             unsigned int vectorSize = _input->shape()[0];
 
-            for(unsigned int e = 0; e< batchSize; ++e)
+            if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
             {
-                (*_cost)[e] = 0;
-                for(size_t i = 0; i < vectorSize; ++i)
+                for(unsigned int e = 0; e< batchSize; ++e)
                 {
-                    //DataType _inputSigmoid = 1.0 / (1.0 + exp(-(*_input)[e* vectorSize + i]));
- 
-                    (*_cost)[e] += (*_label)[e * vectorSize + i]*log((*_input)[e * vectorSize + i]) 
-                        + (1.0 - (*_label)[e*vectorSize +i])*log(1.0 - (*_input)[e* vectorSize + i]);
+                    (*_cost)[e] = 0;
+                    for(size_t i = 0; i < vectorSize; ++i)
+                    {
+                        (*_cost)[e] += (*_label)[e * vectorSize + i]*log((*_input)[e * vectorSize + i]) 
+                            + (1.0 - (*_label)[e*vectorSize +i])*log(1.0 - (*_input)[e* vectorSize + i]);
+                    }
+                
+                    (*_cost)[e] *= -1.0;
                 }
-            
-                (*_cost)[e] *= -1.0;
+            }
+            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            {
+                if constexpr (std::is_same<float, DataType>::value)
+                {
+                    crossEntropyCUDAKernel<DataType>(_input->gpuDataHandle(), _label->gpuDataHandle(), _cost->gpuDataHandle(), vectorSize, batchSize);
+                }
+                else 
+                {
+                    #if __CUDA_ARCH__ >= 600
+                    crossEntropyCUDAKernel<DataType>(_input->gpuDataHandle(), _label->gpuDataHandle(), _cost->gpuDataHandle(), vectorSize, batchSize);
+                    #else
+                    #warning "Cross Entropy CUDA kernel is not implemented yet for double type due to compute capability < 6.0"
+                    #endif
+                }
             }
         }
     };

@@ -60,7 +60,11 @@ set(CUDA_HOST_COMPILER /usr/bin/gcc)
 list(APPEND CUDA_NVCC_FLAGS "-arch=sm_52;-std=c++11;-O3;--use_fast_math;--expt-extended-lambda")
 SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
-cuda_add_library(cuda_kernel Operator/ElementwiseAdd_CUDA.cu Operator/ElementwiseAdd_CUDA.h)
+cuda_add_library(cuda_kernel 
+                 Operator/ElementwiseAdd_CUDA.cu 
+                 Operator/ElementwiseAdd_CUDA.h
+                 Operator/CrossEntropy_CUDA.cu
+                 Operator/CrossEntropy_CUDA.h)
 
 link_directories("/usr/local/cuda/lib64")
 

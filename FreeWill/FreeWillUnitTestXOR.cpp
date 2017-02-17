@@ -9,7 +9,6 @@
 #include "Operator/ElementwiseAdd.h"
 #include "Operator/ElementwiseProduct.h"
 
-
 void FreeWillUnitTest::xorTest()
 {
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({2,1});

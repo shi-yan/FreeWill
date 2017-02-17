@@ -12,27 +12,91 @@
 #include "Operator/Softmax.h"
 #include "Operator/SoftmaxDerivative.h"
 
-void FreeWillUnitTest::operatorSigmoidCrossEntropyTest()
+void FreeWillUnitTest::operatorSigmoidCrossEntropyTestCPUAndGPU()
 {
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({10,64});
-    input.init();
-    input.randomize();
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputCPU({10,64});
+    inputCPU.init();
+    inputCPU.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> label({10, 64});
-    label.init();
-    label.randomize();
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> labelCPU({10, 64});
+    labelCPU.init();
+    labelCPU.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({64});
-    cost.init();
-    cost.randomize();
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> costCPU({64});
+    costCPU.init();
+    costCPU.randomize();
 
-    FreeWill::CrossEntropy<FreeWill::CPU_NAIVE, float> crossEntropy;
-    crossEntropy.setInputParameter("Input", &input);
-    crossEntropy.setInputParameter("Label", &label);
-    crossEntropy.setOutputParameter("Cost", &cost);
+    FreeWill::CrossEntropy<FreeWill::CPU_NAIVE, float> crossEntropyCPU;
+    crossEntropyCPU.setInputParameter("Input", &inputCPU);
+    crossEntropyCPU.setInputParameter("Label", &labelCPU);
+    crossEntropyCPU.setOutputParameter("Cost", &costCPU);
 
-    QVERIFY(crossEntropy.init());
-    crossEntropy.evaluate();
+    QVERIFY(crossEntropyCPU.init());
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGPU({10,64});
+    inputGPU.init();
+
+    for (unsigned int i = 0; i< inputCPU.shape().size();++i)
+    {
+        if (inputCPU[i] < 0)
+        {
+            inputCPU[i] = -inputCPU[i];
+        }
+        inputCPU[i] += 0.1;
+
+        while (inputCPU[i] > 1.0)
+        {
+            inputCPU[i] -= 1.0;
+        }
+
+        inputGPU[i] = inputCPU[i];
+    }
+
+    inputGPU.copyFromHostToDevice();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> labelGPU({10,64});
+    labelGPU.init();
+
+    for (unsigned int i = 0; i< labelCPU.shape().size();++i)
+    {
+        if (labelCPU[i] < 0)
+        {
+            labelCPU[i] = -labelCPU[i];
+        }
+        labelCPU[i] += 0.1;
+
+        while(labelCPU[i]>1.0)
+        {
+            labelCPU[i] -= 1.0;
+        }
+
+        labelGPU[i] = labelCPU[i];
+    }
+    
+    labelGPU.copyFromHostToDevice();
+    crossEntropyCPU.evaluate();
+
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> costGPU({64});
+    costGPU.init();
+
+    FreeWill::CrossEntropy<FreeWill::GPU_CUDA, float> crossEntropyGPU;
+    crossEntropyGPU.setInputParameter("Input", &inputGPU);
+    crossEntropyGPU.setInputParameter("Label", &labelGPU);
+    crossEntropyGPU.setOutputParameter("Cost", &costGPU);
+
+    QVERIFY(crossEntropyGPU.init());
+
+    crossEntropyGPU.evaluate();
+
+    costGPU.copyFromDeviceToHost();
+
+    const float epsilon = 0.001;
+
+    for (unsigned int i = 0; i< costCPU.shape().size(); ++i)
+    {
+        QVERIFY(std::abs(costCPU[i] - costGPU[i]) < epsilon);
+    }
 }
 
 void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()

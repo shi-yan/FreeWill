@@ -17,7 +17,13 @@ template <typename DataType>
 __host__ void elementwiseAddCUDAKernel(DataType *operandA, DataType *operandB, DataType *result, unsigned int size)
 {
     int blockSize = 1024;
-    int gridSize =  size / blockSize + 1;
+    int gridSize =  size / blockSize ;
+
+    if (size % blockSize != 0)
+    {
+        gridSize += 1;
+    }
+
 //    printf("gridsize:%d,%d",gridSize, blockSize);
     elementwiseAdd<DataType><<<gridSize, blockSize>>>(operandA, operandB, result, size);
     CHECK_CUDA_ERROR
