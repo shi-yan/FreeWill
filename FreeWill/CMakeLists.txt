@@ -64,7 +64,9 @@ cuda_add_library(cuda_kernel
                  Operator/ElementwiseAdd_CUDA.cu 
                  Operator/ElementwiseAdd_CUDA.h
                  Operator/CrossEntropy_CUDA.cu
-                 Operator/CrossEntropy_CUDA.h)
+                 Operator/CrossEntropy_CUDA.h
+                 Operator/SoftmaxLoss_CUDA.h
+                 Operator/SoftmaxLoss_CUDA.cu)
 
 link_directories("/usr/local/cuda/lib64")
 

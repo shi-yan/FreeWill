@@ -4,6 +4,7 @@
 #include "Operator.h"
 #include "cublas_v2.h"
 #include "cudnn.h"
+#include "SoftmaxLoss_CUDA.h"
 
 namespace FreeWill
 {
@@ -112,11 +113,13 @@ namespace FreeWill
             Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) output("Output");
 
             unsigned int batchSize = _input->shape()[1];
+            unsigned int vectorSize = _input->shape()[0];
+
             if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
             {
                 for(unsigned int b = 0; b < batchSize; ++b)
                 {
-                    unsigned int vectorSize = _input->shape()[0];
+
 
                     DataType maximum = (*_input)[b * vectorSize];
 
@@ -172,6 +175,8 @@ namespace FreeWill
                             m_outputGPUTensorDescriptor,
                             _output->gpuDataHandle()
                             ));
+
+                softmaxLossCUDAKernel(_output->gpuDataHandle(), _label->gpuDataHandle(), _cost->gpuDataHandle(), vectorSize, batchSize);
                 
             }
 
