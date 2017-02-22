@@ -658,7 +658,7 @@ void FreeWillUnitTest::SoftmaxTest()
     softmax.setOutputParameter("Cost", &cost);
     softmax.setOutputParameter("Output", &output);
 
-    QVERIFY(softmax.init());   
+    QVERIFY(softmax.init());
 
     input[0] = -2.85;
     input[1] = 0.86;
@@ -666,12 +666,12 @@ void FreeWillUnitTest::SoftmaxTest()
     label[0] = 2;
 
     softmax.evaluate();
-    
+
     //qDebug() << "softmax cost" << cost[0];
     //
     float groundTruth = 1.04;
 
-    QVERIFY(std::abs(cost[0] - groundTruth) < 0.01); 
+    QVERIFY(std::abs(cost[0] - groundTruth) < 0.01);
 
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input2({10,1});
@@ -709,13 +709,103 @@ void FreeWillUnitTest::SoftmaxTest()
 
     softmax2.evaluate();
 
-/*    for(int i = 0;i<10;++i)
+    for(int i = 0;i<10;++i)
     {
         printf("output:%f\n", output2[i]);
     }
 
-    printf("cost: %f\n", cost2[0]);*/
+    printf("cost: %f\n", cost2[0]);
 }
+
+
+void FreeWillUnitTest::SoftmaxTestGPU()
+{
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input({3,1});
+    input.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output({3,1});
+    output.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, unsigned int> label({1});
+    label.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> cost({1});
+    cost.init();
+
+    FreeWill::Softmax<FreeWill::GPU_CUDA, float> softmax;
+    softmax.setInputParameter("Input" , &input);
+    softmax.setInputParameter("Label", &label);
+    softmax.setOutputParameter("Cost", &cost);
+    softmax.setOutputParameter("Output", &output);
+
+    QVERIFY(softmax.init());
+
+    input[0] = -2.85;
+    input[1] = 0.86;
+    input[2] = 0.28;
+    label[0] = 2;
+    input.copyFromHostToDevice();
+    label.copyFromHostToDevice();
+    softmax.evaluate();
+    cost.copyFromDeviceToHost();
+    output.copyFromDeviceToHost();
+
+    //qDebug() << "softmax cost" << cost[0];
+    //
+    float groundTruth = 1.04;
+
+    //QVERIFY(std::abs(cost[0] - groundTruth) < 0.01);
+
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input2({10,1});
+    input2.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output2({10,1});
+    output2.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, unsigned int> label2({1});
+    label2.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> cost2({1});
+    cost2.init();
+
+    FreeWill::Softmax<FreeWill::GPU_CUDA, float> softmax2;
+    softmax2.setInputParameter("Input", &input2);
+    softmax2.setInputParameter("Label", &label2);
+    softmax2.setOutputParameter("Cost", &cost2);
+    softmax2.setOutputParameter("Output", &output2);
+
+    QVERIFY(softmax2.init());
+
+    input2[0] = 0.116663;
+    input2[1] = -0.316017;
+    input2[2] = -0.242819;
+    input2[3] = -0.157871;
+    input2[4] = -0.547314;
+    input2[5] = 0.177335;
+    input2[6] = -0.101721;
+    input2[7] =-0.132597;
+    input2[8] = -0.659628;
+    input2[9] = 0.697892;
+
+    label2[0] = 5.0;
+
+    input2.copyFromHostToDevice();
+    label2.copyFromHostToDevice();
+
+
+    softmax2.evaluate();
+    cost2.copyFromDeviceToHost();
+    output2.copyFromDeviceToHost();
+
+    for(int i = 0;i<10;++i)
+    {
+        printf("output:%f\n", output2[i]);
+    }
+
+    printf("cost: %f\n", cost2[0]);
+}
+
 
 void FreeWillUnitTest::SoftmaxDerivativeTest()
 {

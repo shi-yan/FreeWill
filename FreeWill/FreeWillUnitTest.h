@@ -28,5 +28,6 @@ private slots:
     void convNetTest();
     void convDerivativeTest();
     void SoftmaxTest();
+    void SoftmaxTestGPU();
     void SoftmaxDerivativeTest();
 };

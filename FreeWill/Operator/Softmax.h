@@ -3,6 +3,7 @@
 
 #include "Operator.h"
 #include "cublas_v2.h"
+#include "cudnn.h"
 
 namespace FreeWill
 {
@@ -13,10 +14,29 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        cudnnTensorDescriptor_t m_inputGPUTensorDescriptor;
+        cudnnTensorDescriptor_t m_outputGPUTensorDescriptor;
 
     public:
         Softmax() : Operator<DeviceUsed>({"Input", "Label"},{"Cost","Output"})
         {
+            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            {
+                RUN_CUDNN(cudnnCreateTensorDescriptor(&m_inputGPUTensorDescriptor));
+                RUN_CUDNN(cudnnCreateTensorDescriptor(&m_outputGPUTensorDescriptor));
+            }
+        }
+
+        virtual ~Softmax() override
+        {
+            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            {
+                RUN_CUDNN(cudnnDestroyTensorDescriptor(m_inputGPUTensorDescriptor));
+                RUN_CUDNN(cudnnDestroyTensorDescriptor(m_outputGPUTensorDescriptor));
+
+                m_inputGPUTensorDescriptor = 0;
+                m_outputGPUTensorDescriptor = 0;
+            }
         }
 
         virtual bool init() override 
@@ -33,6 +53,54 @@ namespace FreeWill
 
             FAIL_IF (batchSize != input("Label")->shape()[0] || batchSize != output("Cost")->shape()[0]);
 
+
+            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            {
+                cudnnDataType_t dataType = CUDNN_DATA_FLOAT;
+                if constexpr (std::is_same<DataType,float>::value)
+                {
+                    dataType = CUDNN_DATA_FLOAT;
+                }
+                else if constexpr (std::is_same<DataType,double>::value)
+                {
+                    dataType = CUDNN_DATA_DOUBLE;
+                }
+
+                unsigned int vectorSize = input("Input")->shape()[0];
+                printf("vector size: %d, batchSize:%d\n", vectorSize, batchSize);
+                int dimA[4] = {(int)batchSize,(int)vectorSize, 1, 1};
+                int strideA[4] = {(int)vectorSize,1,1,1};
+
+                RUN_CUDNN(cudnnSetTensorNdDescriptor(m_inputGPUTensorDescriptor,
+                                           dataType,
+                                           4,
+                                           dimA,
+                                           strideA));
+
+                RUN_CUDNN(cudnnSetTensorNdDescriptor(m_outputGPUTensorDescriptor,
+                                           dataType,
+                                           4,
+                                           dimA,
+                                           strideA));
+                printf("done\n");
+
+                /* looks like the dimA is in reverse order...
+                RUN_CUDNN(cudnnSetTensor4dDescriptorEx(m_inputGPUTensorDescriptor,dataType,
+                                             4,3,2,1, 6,2,1,1));
+
+                int dimnb = 0;
+                RUN_CUDNN(cudnnGetTensorNdDescriptor(m_inputGPUTensorDescriptor,
+                4,
+                &dataType,
+                &dimnb,
+                dimA,
+                strideA));
+
+                printf("debug: %d, %d,%d,%d,%d | %d,%d,%d,%d\n", dimnb, dimA[0], dimA[1], dimA[2], dimA[3],strideA[0],strideA[1],strideA[2],strideA[3]);
+                */
+
+            }
+
             return true;
         }
 
@@ -44,51 +112,70 @@ namespace FreeWill
             Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) output("Output");
 
             unsigned int batchSize = _input->shape()[1];
-
-            for(unsigned int b = 0; b < batchSize; ++b)
+            if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
             {
-                unsigned int vectorSize = _input->shape()[0];
-
-                DataType maximum = (*_input)[b * vectorSize];
-
-                for(unsigned int i = 1;i<vectorSize;++i)
+                for(unsigned int b = 0; b < batchSize; ++b)
                 {
-                    if ((*_input)[b*vectorSize + i] > maximum)
+                    unsigned int vectorSize = _input->shape()[0];
+
+                    DataType maximum = (*_input)[b * vectorSize];
+
+                    for(unsigned int i = 1;i<vectorSize;++i)
                     {
-                        maximum = (*_input)[b*vectorSize + i];
-                    }
-                }
-
-                DataType expSum = 0;
-                unsigned int label = (*_label)[b];
-
-                for(unsigned int i=0;i<vectorSize;++i)
-                {
-                    DataType v = (*_input)[b*vectorSize + i] - maximum;
-
-                    v = std::exp(v);
-
-                    (*_output)[b*vectorSize + i] = v;
-
-                    if (i == label)
-                    {
-                        (*_cost)[b] = v;
+                        if ((*_input)[b*vectorSize + i] > maximum)
+                        {
+                            maximum = (*_input)[b*vectorSize + i];
+                        }
                     }
 
-                    expSum += v;
+                    DataType expSum = 0;
+                    unsigned int label = (*_label)[b];
 
-                }
+                    for(unsigned int i=0;i<vectorSize;++i)
+                    {
+                        DataType v = (*_input)[b*vectorSize + i] - maximum;
 
-                for(unsigned int i=0;i<vectorSize;++i)
-                {
-                    (*_output)[b*vectorSize+i] = (*_output)[b*vectorSize+i] / expSum;
-                }
+                        v = std::exp(v);
 
-                (*_cost)[b] /= expSum;
+                        (*_output)[b*vectorSize + i] = v;
 
-                (*_cost)[b] = -log((*_cost)[b]);
+                        if (i == label)
+                        {
+                            (*_cost)[b] = v;
+                        }
+
+                        expSum += v;
+
+                    }
+
+                    for(unsigned int i=0;i<vectorSize;++i)
+                    {
+                        (*_output)[b*vectorSize+i] = (*_output)[b*vectorSize+i] / expSum;
+                    }
+
+                    (*_cost)[b] /= expSum;
+
+                    (*_cost)[b] = -log((*_cost)[b]);
             
+                }
+
             }
+            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            {
+                DataType alpha = 1;
+                DataType beta = 0;
+                RUN_CUDNN(cudnnSoftmaxForward(Context<DeviceUsed>::getSingleton().cudnnHandle(), CUDNN_SOFTMAX_ACCURATE,
+                            CUDNN_SOFTMAX_MODE_CHANNEL, &alpha,
+                            m_inputGPUTensorDescriptor,
+                            _input->gpuDataHandle(),
+                            &beta,
+                            m_outputGPUTensorDescriptor,
+                            _output->gpuDataHandle()
+                            ));
+                
+            }
+
+
         }
     };
 }

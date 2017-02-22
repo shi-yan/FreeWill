@@ -202,12 +202,12 @@ namespace FreeWill
         {
             if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
             {
-                cudnnDataType_t dataType;
+                cudnnDataType_t dataType = CUDNN_DATA_FLOAT;
                 if constexpr (std::is_same<DataType,float>::value)
                 {
                     dataType = CUDNN_DATA_FLOAT;
                 }
-                else if constexpr (std::is_same<DataType,float>::value)
+                else if constexpr (std::is_same<DataType,double>::value)
                 {
                     dataType = CUDNN_DATA_DOUBLE;
                 }
