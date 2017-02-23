@@ -30,4 +30,5 @@ private slots:
     void SoftmaxTest();
     void SoftmaxTestGPU();
     void SoftmaxDerivativeTest();
+    void SoftmaxDerivativeTestGPU();
 };

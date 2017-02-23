@@ -979,5 +979,191 @@ void FreeWillUnitTest::SoftmaxDerivativeTest()
 */
 }
 
+void FreeWillUnitTest::SoftmaxDerivativeTestGPU()
+{
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input({3,1});
+    input.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fakeGrad({3,1});
+    fakeGrad.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output({3,1});
+    output.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, unsigned int> label({1});
+    label.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> cost({1});
+    cost.init();
+
+    FreeWill::SoftmaxLogLoss<FreeWill::GPU_CUDA, float> softmaxLogLoss;
+    softmaxLogLoss.setInputParameter("Input" , &input);
+    softmaxLogLoss.setInputParameter("Label", &label);
+    softmaxLogLoss.setOutputParameter("Cost", &cost);
+    softmaxLogLoss.setOutputParameter("Output", &output);
+
+    QVERIFY(softmaxLogLoss.init());
+
+    input[0] = -2.85;
+    input[1] = 0.86;
+    input[2] = 0.28;
+    label[0] = 2;
+
+    //softmax.evaluate();
+
+    //qDebug() << "softmax cost" << cost[0];
+    //
+
+    //float groundTruth = 1.04;
+
+    //QVERIFY(std::abs(cost[0] - groundTruth) < 0.01);
+    //
+
+    const float epsilon = 0.001;
+
+    for(unsigned int e = 0; e<input.shape()[0];++e)
+    {
+        float original = input[e];
+
+        float cost_large = 0.0;
+
+        input[e] = original + epsilon;
+        input.copyFromHostToDevice();
+        label.copyFromHostToDevice();
+        softmaxLogLoss.evaluate();
+        cost.copyFromDeviceToHost();
+        output.copyFromDeviceToHost();
+
+        cost_large = cost[0];
+
+        cost.clear();
+        output.clear();
+
+        float cost_small = 0.0;
+
+        input[e] = original - epsilon;
+
+        input.copyFromHostToDevice();
+        label.copyFromHostToDevice();
+        softmaxLogLoss.evaluate();
+        cost.copyFromDeviceToHost();
+        output.copyFromDeviceToHost();
+
+        cost_small = cost[0];
+
+        cost.clear();
+        output.clear();
+
+        fakeGrad[e] = (cost_large - cost_small) / (2.0 * epsilon);
+
+        input[e] = original;
+    }
+
+    cost.clear();
+    output.clear();
+
+    input.copyFromHostToDevice();
+    label.copyFromHostToDevice();
+    softmaxLogLoss.evaluate();
+    output.copyFromDeviceToHost();
+    cost.copyFromDeviceToHost();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGrad({3,1});
+    inputGrad.init();
+
+    FreeWill::SoftmaxLogLossDerivative<FreeWill::GPU_CUDA, float> softmaxLogLossDerivative;
+    softmaxLogLossDerivative.setInputParameter("Output", &output);
+    softmaxLogLossDerivative.setInputParameter("Label", &label);
+    softmaxLogLossDerivative.setOutputParameter("InputGrad", &inputGrad);
+
+
+    QVERIFY(softmaxLogLossDerivative.init());
+
+    softmaxLogLossDerivative.evaluate();
+    inputGrad.copyFromDeviceToHost();
+
+    for(unsigned int i = 0;i<inputGrad.shape()[0];++i)
+    {
+        //qDebug() << "fake" << fakeGrad[i] << "real" << inputGrad[i];
+        QVERIFY((fakeGrad[i] - inputGrad[i]) < epsilon);
+    }
+
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input2({10,1});
+    input2.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output2({10,1});
+    output2.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, unsigned int> label2({1});
+    label2.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> cost2({1});
+    cost2.init();
+
+    FreeWill::SoftmaxLogLoss<FreeWill::GPU_CUDA, float> softmaxLogLoss2;
+    softmaxLogLoss2.setInputParameter("Input", &input2);
+    softmaxLogLoss2.setInputParameter("Label", &label2);
+    softmaxLogLoss2.setOutputParameter("Cost", &cost2);
+    softmaxLogLoss2.setOutputParameter("Output", &output2);
+
+    QVERIFY(softmaxLogLoss2.init());
+
+/*    input2[0] = 0.116663;
+    input2[1] = -0.316017;
+    input2[2] = -0.242819;
+    input2[3] = -0.157871;
+    input2[4] = -0.547314;
+    input2[5] = 0.177335;
+    input2[6] = -0.101721;
+    input2[7] =-0.132597;
+    input2[8] = -0.659628;
+    input2[9] = 0.697892;
+*/
+
+    input2[0]=-0.149088;
+    input2[1] = 0.565349;
+    input2[2] = -0.733031;
+    input2[3] = 0.039112;
+    input2[4] = -0.556532;
+    input2[5] = -0.009531;
+    input2[6] = -0.230422;
+    input2[7] = 0.295921;
+    input2[8] = 0.535369;
+    input2[9] = -0.333607;
+
+    label2[0] = 5.0;
+
+    input2.copyFromHostToDevice();
+    label2.copyFromHostToDevice();
+    softmaxLogLoss2.evaluate();
+
+
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGrad2({10,1});
+    inputGrad2.init();
+
+    FreeWill::SoftmaxLogLossDerivative<FreeWill::GPU_CUDA, float> softmaxLogLossDerivative2;
+    softmaxLogLossDerivative2.setInputParameter("Output", &output2);
+    softmaxLogLossDerivative2.setInputParameter("Label", &label2);
+    softmaxLogLossDerivative2.setOutputParameter("InputGrad", &inputGrad2);
+
+
+    QVERIFY(softmaxLogLossDerivative2.init());
+
+    softmaxLogLossDerivative2.evaluate();
+
+/*
+    for(unsigned int i = 0;i<inputGrad2.shape()[0];++i)
+    {
+        //qDebug() << "fake" << fakeGrad[i] << "real" << inputGrad[i];
+//        QVERIFY((fakeGrad[i] - inputGrad[i]) < epsilon);
+        printf("inputgrad: %f\n", inputGrad2[i]);
+    }
+
+*/
+}
+
+
 QTEST_MAIN(FreeWillUnitTest)
 #include "FreeWillUnitTest.moc"

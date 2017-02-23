@@ -68,7 +68,7 @@ namespace FreeWill
                 }
 
                 unsigned int vectorSize = input("Input")->shape()[0];
-                printf("vector size: %d, batchSize:%d\n", vectorSize, batchSize);
+                //printf("vector size: %d, batchSize:%d\n", vectorSize, batchSize);
                 int dimA[4] = {(int)batchSize,(int)vectorSize, 1, 1};
                 int strideA[4] = {(int)vectorSize,1,1,1};
 
@@ -83,7 +83,7 @@ namespace FreeWill
                                            4,
                                            dimA,
                                            strideA));
-                printf("done\n");
+                //printf("done\n");
 
                 /* looks like the dimA is in reverse order...
                 RUN_CUDNN(cudnnSetTensor4dDescriptorEx(m_inputGPUTensorDescriptor,dataType,

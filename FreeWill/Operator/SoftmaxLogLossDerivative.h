@@ -2,6 +2,7 @@
 #define SOFTMAXLOGLOSSDERIVATIVE_H
 
 #include "Operator.h"
+#include "SoftmaxLogLoss_CUDA.h"
 
 namespace FreeWill
 {
@@ -40,18 +41,25 @@ namespace FreeWill
             Tensor<DeviceUsed, DataType> *_inputGrad = (Tensor<DeviceUsed, DataType> *) output("InputGrad");
 
             unsigned int batchSize = _output->shape()[1];
+            unsigned int vectorSize = _output->shape()[0];
 
-            for(unsigned int b = 0;b<batchSize;++b)
+            if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
             {
-                unsigned int vectorSize = _output->shape()[0];
-
-                for(unsigned int i = 0;i<vectorSize;++i)
+                for(unsigned int b = 0;b<batchSize;++b)
                 {
-                    (*_inputGrad)[b*vectorSize+ i] = (*_output)[b*vectorSize +i]; 
-                }
 
-                (*_inputGrad)[b*vectorSize + (*_label)[b]] -= 1.0;
-            }        
+                    for(unsigned int i = 0;i<vectorSize;++i)
+                    {
+                        (*_inputGrad)[b*vectorSize+ i] = (*_output)[b*vectorSize +i];
+                    }
+
+                    (*_inputGrad)[b*vectorSize + (*_label)[b]] -= 1.0;
+                }
+            }
+            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            {
+                softmaxLogLossDerivativeCUDAKernel<DataType>(_inputGrad->gpuDataHandle(), _output->gpuDataHandle(), _label->gpuDataHandle(), vectorSize, batchSize);
+            }
         }
     };
 }

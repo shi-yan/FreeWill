@@ -84,7 +84,9 @@ set(FreeWill_SOURCES
     Operator/ElementwiseAdd.h
     Operator/Operator.h
     Operator/CrossEntropyLoss.h
-    Operator/SigmoidCrossEntropyLossDerivative.h)
+    Operator/SigmoidCrossEntropyLossDerivative.h
+    Operator/SoftmaxLogLossDerivative.h
+    Operator/Convolution.h)
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
 target_link_libraries(FreeWillUnitTest Qt5::Core)
