@@ -5,12 +5,12 @@
 #include "Operator/ElementwiseAdd.h"
 #include "Operator/Activation.h"
 #include "Operator/ActivationDerivative.h"
-#include "Operator/CrossEntropy.h"
-#include "Operator/SigmoidCrossEntropyDerivative.h"
+#include "Operator/CrossEntropyLoss.h"
+#include "Operator/SigmoidCrossEntropyLossDerivative.h"
 #include "Operator/DotProductWithBias.h"
 #include "Operator/DotProductWithBiasDerivative.h"
-#include "Operator/Softmax.h"
-#include "Operator/SoftmaxDerivative.h"
+#include "Operator/SoftmaxLogLoss.h"
+#include "Operator/SoftmaxLogLossDerivative.h"
 
 void FreeWillUnitTest::operatorSigmoidCrossEntropyTestCPUAndGPU()
 {
@@ -26,12 +26,12 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyTestCPUAndGPU()
     costCPU.init();
     costCPU.randomize();
 
-    FreeWill::CrossEntropy<FreeWill::CPU_NAIVE, float> crossEntropyCPU;
-    crossEntropyCPU.setInputParameter("Input", &inputCPU);
-    crossEntropyCPU.setInputParameter("Label", &labelCPU);
-    crossEntropyCPU.setOutputParameter("Cost", &costCPU);
+    FreeWill::CrossEntropyLoss<FreeWill::CPU_NAIVE, float> crossEntropyLossCPU;
+    crossEntropyLossCPU.setInputParameter("Input", &inputCPU);
+    crossEntropyLossCPU.setInputParameter("Label", &labelCPU);
+    crossEntropyLossCPU.setOutputParameter("Cost", &costCPU);
 
-    QVERIFY(crossEntropyCPU.init());
+    QVERIFY(crossEntropyLossCPU.init());
 
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGPU({10,64});
     inputGPU.init();
@@ -74,20 +74,20 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyTestCPUAndGPU()
     }
     
     labelGPU.copyFromHostToDevice();
-    crossEntropyCPU.evaluate();
+    crossEntropyLossCPU.evaluate();
 
 
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> costGPU({64});
     costGPU.init();
 
-    FreeWill::CrossEntropy<FreeWill::GPU_CUDA, float> crossEntropyGPU;
-    crossEntropyGPU.setInputParameter("Input", &inputGPU);
-    crossEntropyGPU.setInputParameter("Label", &labelGPU);
-    crossEntropyGPU.setOutputParameter("Cost", &costGPU);
+    FreeWill::CrossEntropyLoss<FreeWill::GPU_CUDA, float> crossEntropyLossGPU;
+    crossEntropyLossGPU.setInputParameter("Input", &inputGPU);
+    crossEntropyLossGPU.setInputParameter("Label", &labelGPU);
+    crossEntropyLossGPU.setOutputParameter("Cost", &costGPU);
 
-    QVERIFY(crossEntropyGPU.init());
+    QVERIFY(crossEntropyLossGPU.init());
 
-    crossEntropyGPU.evaluate();
+    crossEntropyLossGPU.evaluate();
 
     costGPU.copyFromDeviceToHost();
 
@@ -126,12 +126,12 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
     const float epsilon = 0.001;
     //const float threshold = 1e-5;
 
-    FreeWill::CrossEntropy<FreeWill::CPU_NAIVE, float> crossEntropy;
-    crossEntropy.setInputParameter("Input", &output);
-    crossEntropy.setInputParameter("Label", &label);
-    crossEntropy.setOutputParameter("Cost", &cost);
+    FreeWill::CrossEntropyLoss<FreeWill::CPU_NAIVE, float> crossEntropyLoss;
+    crossEntropyLoss.setInputParameter("Input", &output);
+    crossEntropyLoss.setInputParameter("Label", &label);
+    crossEntropyLoss.setOutputParameter("Cost", &cost);
 
-    QVERIFY(crossEntropy.init());
+    QVERIFY(crossEntropyLoss.init());
 
     //crossEntropy.evaluate();
     //printf("cost:%f\n",cost[0]);
@@ -151,14 +151,14 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
             input[e*vectorSize + i] = original + epsilon;
 
             sigmoid.evaluate();
-            crossEntropy.evaluate();
+            crossEntropyLoss.evaluate();
             cost_larger = cost[e];
 
             input[e*vectorSize + i] = original - epsilon;
 
             float cost_smaller = 0;
             sigmoid.evaluate();
-            crossEntropy.evaluate();
+            crossEntropyLoss.evaluate();
 
             cost_smaller = cost[e];
 
@@ -174,14 +174,14 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realGradient({10,64});
     realGradient.init();
 
-    FreeWill::SigmoidCrossEntropyDerivative<FreeWill::CPU_NAIVE, float> sigmoidCrossEntropyDerivative;
-    sigmoidCrossEntropyDerivative.setInputParameter("Input", &output);
-    sigmoidCrossEntropyDerivative.setInputParameter("Label", &label);
-    sigmoidCrossEntropyDerivative.setOutputParameter("Output", &realGradient);
+    FreeWill::SigmoidCrossEntropyLossDerivative<FreeWill::CPU_NAIVE, float> sigmoidCrossEntropyLossDerivative;
+    sigmoidCrossEntropyLossDerivative.setInputParameter("Input", &output);
+    sigmoidCrossEntropyLossDerivative.setInputParameter("Label", &label);
+    sigmoidCrossEntropyLossDerivative.setOutputParameter("Output", &realGradient);
 
-    QVERIFY(sigmoidCrossEntropyDerivative.init());
+    QVERIFY(sigmoidCrossEntropyLossDerivative.init());
 
-    sigmoidCrossEntropyDerivative.evaluate();
+    sigmoidCrossEntropyLossDerivative.evaluate();
     
     unsigned int size = realGradient.shape().size();
     for(unsigned int i = 0; i<size; ++i)
@@ -226,12 +226,12 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTestGPU()
     const float epsilon = 0.01;
     //const float threshold = 1e-5;
 
-    FreeWill::CrossEntropy<FreeWill::GPU_CUDA, float> crossEntropy;
-    crossEntropy.setInputParameter("Input", &output);
-    crossEntropy.setInputParameter("Label", &label);
-    crossEntropy.setOutputParameter("Cost", &cost);
+    FreeWill::CrossEntropyLoss<FreeWill::GPU_CUDA, float> crossEntropyLoss;
+    crossEntropyLoss.setInputParameter("Input", &output);
+    crossEntropyLoss.setInputParameter("Label", &label);
+    crossEntropyLoss.setOutputParameter("Cost", &cost);
 
-    QVERIFY(crossEntropy.init());
+    QVERIFY(crossEntropyLoss.init());
 
     //crossEntropy.evaluate();
     //printf("cost:%f\n",cost[0]);
@@ -251,7 +251,7 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTestGPU()
             input[e*vectorSize + i] = original + epsilon;
             input.copyFromHostToDevice();
             sigmoid.evaluate();
-            crossEntropy.evaluate();
+            crossEntropyLoss.evaluate();
             cost.copyFromDeviceToHost();
             cost_larger = cost[e];
 
@@ -259,7 +259,7 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTestGPU()
             input.copyFromHostToDevice();
             float cost_smaller = 0;
             sigmoid.evaluate();
-            crossEntropy.evaluate();
+            crossEntropyLoss.evaluate();
             cost.copyFromDeviceToHost();
             cost_smaller = cost[e];
 
@@ -276,14 +276,14 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTestGPU()
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> realGradient({10,64});
     realGradient.init();
 
-    FreeWill::SigmoidCrossEntropyDerivative<FreeWill::GPU_CUDA, float> sigmoidCrossEntropyDerivative;
-    sigmoidCrossEntropyDerivative.setInputParameter("Input", &output);
-    sigmoidCrossEntropyDerivative.setInputParameter("Label", &label);
-    sigmoidCrossEntropyDerivative.setOutputParameter("Output", &realGradient);
+    FreeWill::SigmoidCrossEntropyLossDerivative<FreeWill::GPU_CUDA, float> SigmoidCrossEntropyLossDerivative;
+    SigmoidCrossEntropyLossDerivative.setInputParameter("Input", &output);
+    SigmoidCrossEntropyLossDerivative.setInputParameter("Label", &label);
+    SigmoidCrossEntropyLossDerivative.setOutputParameter("Output", &realGradient);
 
-    QVERIFY(sigmoidCrossEntropyDerivative.init());
+    QVERIFY(SigmoidCrossEntropyLossDerivative.init());
 
-    sigmoidCrossEntropyDerivative.evaluate();
+    SigmoidCrossEntropyLossDerivative.evaluate();
     realGradient.copyFromDeviceToHost();
     
     unsigned int size = realGradient.shape().size();
@@ -436,12 +436,12 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({1});
     cost.init();
 
-    FreeWill::CrossEntropy<FreeWill::CPU_NAIVE, float> crossEntropy;
-    crossEntropy.setInputParameter("Input", &output);
-    crossEntropy.setInputParameter("Label", &label);
-    crossEntropy.setOutputParameter("Cost", &cost);
+    FreeWill::CrossEntropyLoss<FreeWill::CPU_NAIVE, float> crossEntropyLoss;
+    crossEntropyLoss.setInputParameter("Input", &output);
+    crossEntropyLoss.setInputParameter("Label", &label);
+    crossEntropyLoss.setOutputParameter("Cost", &cost);
 
-    QVERIFY(crossEntropy.init());
+    QVERIFY(crossEntropyLoss.init());
 
     unsigned int gradientSize = weight.shape().size();
 
@@ -458,7 +458,7 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
 
         dotProductWithBias.evaluate();
         sigmoid.evaluate();
-        crossEntropy.evaluate();
+        crossEntropyLoss.evaluate();
 
         cost_large = cost[0];
 
@@ -468,7 +468,7 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
 
         dotProductWithBias.evaluate();
         sigmoid.evaluate();
-        crossEntropy.evaluate();
+        crossEntropyLoss.evaluate();
 
         cost_small = cost[0];
         //qDebug() << "large" << cost_large << "small" << cost_small;
@@ -479,18 +479,18 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
 
     dotProductWithBias.evaluate();
     sigmoid.evaluate();
-    crossEntropy.evaluate();
+    crossEntropyLoss.evaluate();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> l1Grad({5,1});
     l1Grad.init();
 
-    FreeWill::SigmoidCrossEntropyDerivative<FreeWill::CPU_NAIVE, float> sigmoidCrossEntropyDerivative;
-    sigmoidCrossEntropyDerivative.setInputParameter("Input" , &output);
-    sigmoidCrossEntropyDerivative.setInputParameter("Label", &label);
-    sigmoidCrossEntropyDerivative.setOutputParameter("Output", &l1Grad);
+    FreeWill::SigmoidCrossEntropyLossDerivative<FreeWill::CPU_NAIVE, float> SigmoidCrossEntropyLossDerivative;
+    SigmoidCrossEntropyLossDerivative.setInputParameter("Input" , &output);
+    SigmoidCrossEntropyLossDerivative.setInputParameter("Label", &label);
+    SigmoidCrossEntropyLossDerivative.setOutputParameter("Output", &l1Grad);
 
-    QVERIFY(sigmoidCrossEntropyDerivative.init());
-    sigmoidCrossEntropyDerivative.evaluate();
+    QVERIFY(SigmoidCrossEntropyLossDerivative.init());
+    SigmoidCrossEntropyLossDerivative.evaluate();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> realGradient({5,10});
     realGradient.init();
@@ -652,20 +652,20 @@ void FreeWillUnitTest::SoftmaxTest()
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({1});
     cost.init();
 
-    FreeWill::Softmax<FreeWill::CPU_NAIVE, float> softmax;
-    softmax.setInputParameter("Input" , &input);
-    softmax.setInputParameter("Label", &label);
-    softmax.setOutputParameter("Cost", &cost);
-    softmax.setOutputParameter("Output", &output);
+    FreeWill::SoftmaxLogLoss<FreeWill::CPU_NAIVE, float> softmaxLogLoss;
+    softmaxLogLoss.setInputParameter("Input" , &input);
+    softmaxLogLoss.setInputParameter("Label", &label);
+    softmaxLogLoss.setOutputParameter("Cost", &cost);
+    softmaxLogLoss.setOutputParameter("Output", &output);
 
-    QVERIFY(softmax.init());
+    QVERIFY(softmaxLogLoss.init());
 
     input[0] = -2.85;
     input[1] = 0.86;
     input[2] = 0.28;
     label[0] = 2;
 
-    softmax.evaluate();
+    softmaxLogLoss.evaluate();
 
     //qDebug() << "softmax cost" << cost[0];
     //
@@ -686,13 +686,13 @@ void FreeWillUnitTest::SoftmaxTest()
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost2({1});
     cost2.init();
 
-    FreeWill::Softmax<FreeWill::CPU_NAIVE, float> softmax2;
-    softmax2.setInputParameter("Input", &input2);
-    softmax2.setInputParameter("Label", &label2);
-    softmax2.setOutputParameter("Cost", &cost2);
-    softmax2.setOutputParameter("Output", &output2);
+    FreeWill::SoftmaxLogLoss<FreeWill::CPU_NAIVE, float> softmaxLogLoss2;
+    softmaxLogLoss2.setInputParameter("Input", &input2);
+    softmaxLogLoss2.setInputParameter("Label", &label2);
+    softmaxLogLoss2.setOutputParameter("Cost", &cost2);
+    softmaxLogLoss2.setOutputParameter("Output", &output2);
 
-    QVERIFY(softmax2.init());
+    QVERIFY(softmaxLogLoss2.init());
 
     input2[0] = 0.116663;
     input2[1] = -0.316017;
@@ -707,7 +707,7 @@ void FreeWillUnitTest::SoftmaxTest()
 
     label2[0] = 5.0;
 
-    softmax2.evaluate();
+    softmaxLogLoss2.evaluate();
 
     for(int i = 0;i<10;++i)
     {
@@ -732,13 +732,13 @@ void FreeWillUnitTest::SoftmaxTestGPU()
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> cost({1});
     cost.init();
 
-    FreeWill::Softmax<FreeWill::GPU_CUDA, float> softmax;
-    softmax.setInputParameter("Input" , &input);
-    softmax.setInputParameter("Label", &label);
-    softmax.setOutputParameter("Cost", &cost);
-    softmax.setOutputParameter("Output", &output);
+    FreeWill::SoftmaxLogLoss<FreeWill::GPU_CUDA, float> softmaxLogLoss;
+    softmaxLogLoss.setInputParameter("Input" , &input);
+    softmaxLogLoss.setInputParameter("Label", &label);
+    softmaxLogLoss.setOutputParameter("Cost", &cost);
+    softmaxLogLoss.setOutputParameter("Output", &output);
 
-    QVERIFY(softmax.init());
+    QVERIFY(softmaxLogLoss.init());
 
     input[0] = -2.85;
     input[1] = 0.86;
@@ -746,13 +746,13 @@ void FreeWillUnitTest::SoftmaxTestGPU()
     label[0] = 2;
     input.copyFromHostToDevice();
     label.copyFromHostToDevice();
-    softmax.evaluate();
+    softmaxLogLoss.evaluate();
     cost.copyFromDeviceToHost();
     output.copyFromDeviceToHost();
 
     //qDebug() << "softmax cost" << cost[0];
     //
-    float groundTruth = 1.04;
+    //float groundTruth = 1.04;
 
     //QVERIFY(std::abs(cost[0] - groundTruth) < 0.01);
 
@@ -769,13 +769,13 @@ void FreeWillUnitTest::SoftmaxTestGPU()
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> cost2({1});
     cost2.init();
 
-    FreeWill::Softmax<FreeWill::GPU_CUDA, float> softmax2;
-    softmax2.setInputParameter("Input", &input2);
-    softmax2.setInputParameter("Label", &label2);
-    softmax2.setOutputParameter("Cost", &cost2);
-    softmax2.setOutputParameter("Output", &output2);
+    FreeWill::SoftmaxLogLoss<FreeWill::GPU_CUDA, float> softmaxLogLoss2;
+    softmaxLogLoss2.setInputParameter("Input", &input2);
+    softmaxLogLoss2.setInputParameter("Label", &label2);
+    softmaxLogLoss2.setOutputParameter("Cost", &cost2);
+    softmaxLogLoss2.setOutputParameter("Output", &output2);
 
-    QVERIFY(softmax2.init());
+    QVERIFY(softmaxLogLoss2.init());
 
     input2[0] = 0.116663;
     input2[1] = -0.316017;
@@ -794,7 +794,7 @@ void FreeWillUnitTest::SoftmaxTestGPU()
     label2.copyFromHostToDevice();
 
 
-    softmax2.evaluate();
+    softmaxLogLoss2.evaluate();
     cost2.copyFromDeviceToHost();
     output2.copyFromDeviceToHost();
 
@@ -824,13 +824,13 @@ void FreeWillUnitTest::SoftmaxDerivativeTest()
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({1});
     cost.init();
 
-    FreeWill::Softmax<FreeWill::CPU_NAIVE, float> softmax;
-    softmax.setInputParameter("Input" , &input);
-    softmax.setInputParameter("Label", &label);
-    softmax.setOutputParameter("Cost", &cost);
-    softmax.setOutputParameter("Output", &output);
+    FreeWill::SoftmaxLogLoss<FreeWill::CPU_NAIVE, float> softmaxLogLoss;
+    softmaxLogLoss.setInputParameter("Input" , &input);
+    softmaxLogLoss.setInputParameter("Label", &label);
+    softmaxLogLoss.setOutputParameter("Cost", &cost);
+    softmaxLogLoss.setOutputParameter("Output", &output);
 
-    QVERIFY(softmax.init());   
+    QVERIFY(softmaxLogLoss.init());   
 
     input[0] = -2.85;
     input[1] = 0.86;
@@ -841,6 +841,7 @@ void FreeWillUnitTest::SoftmaxDerivativeTest()
     
     //qDebug() << "softmax cost" << cost[0];
     //
+    
     //float groundTruth = 1.04;
 
     //QVERIFY(std::abs(cost[0] - groundTruth) < 0.01); 
@@ -856,7 +857,7 @@ void FreeWillUnitTest::SoftmaxDerivativeTest()
 
         input[e] = original + epsilon;
         
-        softmax.evaluate();
+        softmaxLogLoss.evaluate();
 
         cost_large = cost[0];
 
@@ -867,7 +868,7 @@ void FreeWillUnitTest::SoftmaxDerivativeTest()
 
         input[e] = original - epsilon;
 
-        softmax.evaluate();
+        softmaxLogLoss.evaluate();
 
         cost_small = cost[0];
 
@@ -881,20 +882,20 @@ void FreeWillUnitTest::SoftmaxDerivativeTest()
 
     cost.clear();
     output.clear();
-    softmax.evaluate();
+    softmaxLogLoss.evaluate();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputGrad({3,1});
     inputGrad.init();
 
-    FreeWill::SoftmaxDerivative<FreeWill::CPU_NAIVE, float> softmaxDerivative;
-    softmaxDerivative.setInputParameter("Output", &output);
-    softmaxDerivative.setInputParameter("Label", &label);
-    softmaxDerivative.setOutputParameter("InputGrad", &inputGrad);
+    FreeWill::SoftmaxLogLossDerivative<FreeWill::CPU_NAIVE, float> softmaxLogLossDerivative;
+    softmaxLogLossDerivative.setInputParameter("Output", &output);
+    softmaxLogLossDerivative.setInputParameter("Label", &label);
+    softmaxLogLossDerivative.setOutputParameter("InputGrad", &inputGrad);
 
 
-    QVERIFY(softmaxDerivative.init());
+    QVERIFY(softmaxLogLossDerivative.init());
 
-    softmaxDerivative.evaluate();
+    softmaxLogLossDerivative.evaluate();
 
     for(unsigned int i = 0;i<inputGrad.shape()[0];++i)
     {
@@ -918,13 +919,13 @@ void FreeWillUnitTest::SoftmaxDerivativeTest()
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost2({1});
     cost2.init();
 
-    FreeWill::Softmax<FreeWill::CPU_NAIVE, float> softmax2;
-    softmax2.setInputParameter("Input", &input2);
-    softmax2.setInputParameter("Label", &label2);
-    softmax2.setOutputParameter("Cost", &cost2);
-    softmax2.setOutputParameter("Output", &output2);
+    FreeWill::SoftmaxLogLoss<FreeWill::CPU_NAIVE, float> softmaxLogLoss2;
+    softmaxLogLoss2.setInputParameter("Input", &input2);
+    softmaxLogLoss2.setInputParameter("Label", &label2);
+    softmaxLogLoss2.setOutputParameter("Cost", &cost2);
+    softmaxLogLoss2.setOutputParameter("Output", &output2);
 
-    QVERIFY(softmax2.init());
+    QVERIFY(softmaxLogLoss2.init());
 
 /*    input2[0] = 0.116663;
     input2[1] = -0.316017;
@@ -951,22 +952,22 @@ void FreeWillUnitTest::SoftmaxDerivativeTest()
 
     label2[0] = 5.0;
 
-    softmax2.evaluate();
+    softmaxLogLoss2.evaluate();
 
  
     
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputGrad2({10,1});
     inputGrad2.init();
 
-    FreeWill::SoftmaxDerivative<FreeWill::CPU_NAIVE, float> softmaxDerivative2;
-    softmaxDerivative2.setInputParameter("Output", &output2);
-    softmaxDerivative2.setInputParameter("Label", &label2);
-    softmaxDerivative2.setOutputParameter("InputGrad", &inputGrad2);
+    FreeWill::SoftmaxLogLossDerivative<FreeWill::CPU_NAIVE, float> softmaxLogLossDerivative2;
+    softmaxLogLossDerivative2.setInputParameter("Output", &output2);
+    softmaxLogLossDerivative2.setInputParameter("Label", &label2);
+    softmaxLogLossDerivative2.setOutputParameter("InputGrad", &inputGrad2);
 
 
-    QVERIFY(softmaxDerivative2.init());
+    QVERIFY(softmaxLogLossDerivative2.init());
 
-    softmaxDerivative2.evaluate();
+    softmaxLogLossDerivative2.evaluate();
 /*
     for(unsigned int i = 0;i<inputGrad2.shape()[0];++i)
     {

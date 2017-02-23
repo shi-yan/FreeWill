@@ -63,10 +63,10 @@ SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
 cuda_add_library(cuda_kernel 
                  Operator/ElementwiseAdd_CUDA.cu 
                  Operator/ElementwiseAdd_CUDA.h
-                 Operator/CrossEntropy_CUDA.cu
-                 Operator/CrossEntropy_CUDA.h
-                 Operator/SoftmaxLoss_CUDA.h
-                 Operator/SoftmaxLoss_CUDA.cu)
+                 Operator/CrossEntropyLoss_CUDA.cu
+                 Operator/CrossEntropyLoss_CUDA.h
+                 Operator/SoftmaxLogLoss_CUDA.h
+                 Operator/SoftmaxLogLoss_CUDA.cu)
 
 link_directories("/usr/local/cuda/lib64")
 
@@ -80,9 +80,11 @@ set(FreeWill_SOURCES
     FreeWillUnitTestConvNet.cpp
     FreeWillUnitTestActivation.cpp
     Tensor/Tensor.h
-    Operator/Softmax.h
+    Operator/SoftmaxLogLoss.h
     Operator/ElementwiseAdd.h
-    Operator/Operator.h)
+    Operator/Operator.h
+    Operator/CrossEntropyLoss.h
+    Operator/SigmoidCrossEntropyLossDerivative.h)
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
 target_link_libraries(FreeWillUnitTest Qt5::Core)

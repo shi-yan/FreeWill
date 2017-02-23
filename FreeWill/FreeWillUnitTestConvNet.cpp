@@ -2,8 +2,8 @@
 #include "Operator/Convolution.h"
 #include "Operator/ConvolutionDerivative.h"
 #include "Operator/Activation.h"
-#include "Operator/CrossEntropy.h"
-#include "Operator/SigmoidCrossEntropyDerivative.h"
+#include "Operator/CrossEntropyLoss.h"
+#include "Operator/SigmoidCrossEntropyLossDerivative.h"
 #include "Operator/ActivationDerivative.h"
 
 
@@ -202,12 +202,12 @@ void FreeWillUnitTest::convDerivativeTest()
     cost.init();
     const float epsilon = 0.001;
 
-    FreeWill::CrossEntropy<FreeWill::CPU, float> crossEntropy;
-    crossEntropy.setInputParameter("Input", &flatOutput);
-    crossEntropy.setInputParameter("Label", &label);
-    crossEntropy.setOutputParameter("Cost", &cost);
+    FreeWill::CrossEntropyLoss<FreeWill::CPU, float> crossEntropyLoss;
+    crossEntropyLoss.setInputParameter("Input", &flatOutput);
+    crossEntropyLoss.setInputParameter("Label", &label);
+    crossEntropyLoss.setOutputParameter("Cost", &cost);
 
-    QVERIFY(crossEntropy.init());
+    QVERIFY(crossEntropyLoss.init());
 
     for(unsigned int i = 0;i<featureMapSize;++i)
     {
@@ -231,7 +231,7 @@ void FreeWillUnitTest::convDerivativeTest()
        //     printf("\n %f", flatOutput[e]);
         }
 
-        crossEntropy.evaluate();
+        crossEntropyLoss.evaluate();
 
         cost_big = cost[0];
 
@@ -254,7 +254,7 @@ void FreeWillUnitTest::convDerivativeTest()
          //   printf(", %f\n", flatOutput[e] );
         }
 
-        crossEntropy.evaluate();
+        crossEntropyLoss.evaluate();
 
         cost_small = cost[0];
 
@@ -281,19 +281,19 @@ void FreeWillUnitTest::convDerivativeTest()
         flatOutput[e] = output[e];
     }
 
-    crossEntropy.evaluate();
+    crossEntropyLoss.evaluate();
 
     FreeWill::Tensor<FreeWill::CPU, float> flatOuputGrad({outputSize,1});
     flatOuputGrad.init();
 
-    FreeWill::SigmoidCrossEntropyDerivative<FreeWill::CPU, float> sigmoidCrossEntropyDerivative;
-    sigmoidCrossEntropyDerivative.setInputParameter("Input", &flatOutput);
-    sigmoidCrossEntropyDerivative.setInputParameter("Label", &label);
-    sigmoidCrossEntropyDerivative.setOutputParameter("Output", &flatOuputGrad);
+    FreeWill::SigmoidCrossEntropyLossDerivative<FreeWill::CPU, float> sigmoidCrossEntropyLossDerivative;
+    sigmoidCrossEntropyLossDerivative.setInputParameter("Input", &flatOutput);
+    sigmoidCrossEntropyLossDerivative.setInputParameter("Label", &label);
+    sigmoidCrossEntropyLossDerivative.setOutputParameter("Output", &flatOuputGrad);
 
-    QVERIFY(sigmoidCrossEntropyDerivative.init());
+    QVERIFY(sigmoidCrossEntropyLossDerivative.init());
 
-    sigmoidCrossEntropyDerivative.evaluate();
+    sigmoidCrossEntropyLossDerivative.evaluate();
 
     for(unsigned int e = 0;e<outputSize;++e)
     {

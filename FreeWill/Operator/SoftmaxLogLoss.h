@@ -1,16 +1,16 @@
-#ifndef SOFTMAX_H
-#define SOFTMAX_H
+#ifndef SOFTMAXLOGLOSS_H
+#define SOFTMAXLOGLOSS_H
 
 #include "Operator.h"
 #include "cublas_v2.h"
 #include "cudnn.h"
-#include "SoftmaxLoss_CUDA.h"
+#include "SoftmaxLogLoss_CUDA.h"
 
 namespace FreeWill
 {
 
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
-    class Softmax : public Operator<DeviceUsed>
+    class SoftmaxLogLoss : public Operator<DeviceUsed>
     {
     protected:
         using Operator<DeviceUsed>::input;
@@ -19,7 +19,7 @@ namespace FreeWill
         cudnnTensorDescriptor_t m_outputGPUTensorDescriptor;
 
     public:
-        Softmax() : Operator<DeviceUsed>({"Input", "Label"},{"Cost","Output"})
+        SoftmaxLogLoss() : Operator<DeviceUsed>({"Input", "Label"},{"Cost","Output"})
         {
             if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
             {
@@ -28,7 +28,7 @@ namespace FreeWill
             }
         }
 
-        virtual ~Softmax() override
+        virtual ~SoftmaxLogLoss() override
         {
             if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
             {
@@ -176,7 +176,7 @@ namespace FreeWill
                             _output->gpuDataHandle()
                             ));
 
-                softmaxLossCUDAKernel(_output->gpuDataHandle(), _label->gpuDataHandle(), _cost->gpuDataHandle(), vectorSize, batchSize);
+                softmaxLogLossCUDAKernel(_output->gpuDataHandle(), _label->gpuDataHandle(), _cost->gpuDataHandle(), vectorSize, batchSize);
                 
             }
 

@@ -5,8 +5,8 @@
 #include <cstdio>
 #include "Operator/Convolution.h"
 #include "Operator/ConvolutionDerivative.h"
-#include "Operator/Softmax.h"
-#include "Operator/SoftmaxDerivative.h"
+#include "Operator/SoftmaxLogLoss.h"
+#include "Operator/SoftmaxLogLossDerivative.h"
 #include "Operator/DotProductWithBias.h"
 #include "Operator/DotProductWithBiasDerivative.h"
 #include "Operator/Activation.h"
@@ -238,22 +238,22 @@ void MNIST::trainConvolutionalModel()
     fullyConnected2.setOutputParameter("Output", &fullyConnected2Output);
     VERIFY_INIT(fullyConnected2.init());
 
-    FreeWill::Softmax<FreeWill::CPU_NAIVE, float> softmax;
-    softmax.setInputParameter("Input", &fullyConnected2Output);
-    softmax.setInputParameter("Label", &label);
-    softmax.setOutputParameter("Output", &softmaxOutput);
-    softmax.setOutputParameter("Cost", &cost);
-    VERIFY_INIT(softmax.init());
+    FreeWill::SoftmaxLogLoss<FreeWill::CPU_NAIVE, float> softmaxLogLoss;
+    softmaxLogLoss.setInputParameter("Input", &fullyConnected2Output);
+    softmaxLogLoss.setInputParameter("Label", &label);
+    softmaxLogLoss.setOutputParameter("Output", &softmaxOutput);
+    softmaxLogLoss.setOutputParameter("Cost", &cost);
+    VERIFY_INIT(softmaxLogLoss.init());
 
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> softmaxGrad({10,1});
     softmaxGrad.init();
 
-    FreeWill::SoftmaxDerivative<FreeWill::CPU_NAIVE, float> softmaxDerivative;
-    softmaxDerivative.setInputParameter("Output", &softmaxOutput);
-    softmaxDerivative.setInputParameter("Label", &label);
-    softmaxDerivative.setOutputParameter("InputGrad", &softmaxGrad);
-    VERIFY_INIT(softmaxDerivative.init());
+    FreeWill::SoftmaxLogLossDerivative<FreeWill::CPU_NAIVE, float> softmaxLogLossDerivative;
+    softmaxLogLossDerivative.setInputParameter("Output", &softmaxOutput);
+    softmaxLogLossDerivative.setInputParameter("Label", &label);
+    softmaxLogLossDerivative.setOutputParameter("InputGrad", &softmaxGrad);
+    VERIFY_INIT(softmaxLogLossDerivative.init());
 
     FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBias2Derivative;
     dotProductWithBias2Derivative.setInputParameter("PrevActivation", &fullyConnected1Output);
@@ -432,12 +432,12 @@ void MNIST::trainConvolutionalModel()
             sigmoid1.evaluate();
             //ReLu1.evaluate();
             fullyConnected2.evaluate();
-            softmax.evaluate();
+            softmaxLogLoss.evaluate();
 
             //qDebug() << "cost" << cost[0];
             overallCost += cost[0];
             //backward
-            softmaxDerivative.evaluate();
+            softmaxLogLossDerivative.evaluate();
             dotProductWithBias2Derivative.evaluate();
             sigmoidDerivative.evaluate();
             //reLUDerivative.evaluate();
@@ -621,22 +621,22 @@ void MNIST::trainFullyConnectedModel()
     fullyConnected2.setOutputParameter("Output", &fullyConnected2Output);
     VERIFY_INIT(fullyConnected2.init());
 
-    FreeWill::Softmax<FreeWill::CPU_NAIVE, float> softmax;
-    softmax.setInputParameter("Input", &fullyConnected2Output);
-    softmax.setInputParameter("Label", &label);
-    softmax.setOutputParameter("Output", &softmaxOutput);
-    softmax.setOutputParameter("Cost", &cost);
-    VERIFY_INIT(softmax.init());
+    FreeWill::SoftmaxLogLoss<FreeWill::CPU_NAIVE, float> softmaxLogLoss;
+    softmaxLogLoss.setInputParameter("Input", &fullyConnected2Output);
+    softmaxLogLoss.setInputParameter("Label", &label);
+    softmaxLogLoss.setOutputParameter("Output", &softmaxOutput);
+    softmaxLogLoss.setOutputParameter("Cost", &cost);
+    VERIFY_INIT(softmaxLogLoss.init());
 
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> softmaxGrad({10,1});
     softmaxGrad.init();
 
-    FreeWill::SoftmaxDerivative<FreeWill::CPU_NAIVE, float> softmaxDerivative;
-    softmaxDerivative.setInputParameter("Output", &softmaxOutput);
-    softmaxDerivative.setInputParameter("Label", &label);
-    softmaxDerivative.setOutputParameter("InputGrad", &softmaxGrad);
-    VERIFY_INIT(softmaxDerivative.init());
+    FreeWill::SoftmaxLogLossDerivative<FreeWill::CPU_NAIVE, float> softmaxLogLossDerivative;
+    softmaxLogLossDerivative.setInputParameter("Output", &softmaxOutput);
+    softmaxLogLossDerivative.setInputParameter("Label", &label);
+    softmaxLogLossDerivative.setOutputParameter("InputGrad", &softmaxGrad);
+    VERIFY_INIT(softmaxLogLossDerivative.init());
 
     FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBias2Derivative;
     dotProductWithBias2Derivative.setInputParameter("PrevActivation", &fullyConnected1Output);
@@ -734,12 +734,12 @@ void MNIST::trainFullyConnectedModel()
             sigmoid1.evaluate();
             //ReLu1.evaluate();
             fullyConnected2.evaluate();
-            softmax.evaluate();
+            softmaxLogLoss.evaluate();
 
             //qDebug() << "cost" << cost[0];
             overallCost += cost[0];
             //backward
-            softmaxDerivative.evaluate();
+            softmaxLogLossDerivative.evaluate();
             dotProductWithBias2Derivative.evaluate();
             sigmoidDerivative.evaluate();
             dotProductWithBias1Derivative.evaluate();
@@ -756,6 +756,7 @@ void MNIST::trainFullyConnectedModel()
                 //update weight
                 updateFullyConnected1Weight.setRate(-learningRate/(float)batchSize);
                 updateFullyConnected1Weight.evaluate();
+                
                 updateFullyConnected2Weight.setRate(-learningRate/(float)batchSize);
                 updateFullyConnected2Weight.evaluate();        
             

@@ -4,8 +4,8 @@
 #include "Operator/DotProductWithBiasDerivative.h"
 #include "Operator/Activation.h"
 #include "Operator/ActivationDerivative.h"
-#include "Operator/CrossEntropy.h"
-#include "Operator/SigmoidCrossEntropyDerivative.h"
+#include "Operator/CrossEntropyLoss.h"
+#include "Operator/SigmoidCrossEntropyLossDerivative.h"
 #include "Operator/ElementwiseAdd.h"
 #include "Operator/ElementwiseProduct.h"
 
@@ -114,20 +114,20 @@ void FreeWillUnitTest::xorTest()
 
     QVERIFY(secondLayerSigmoid.init());
 
-    FreeWill::CrossEntropy<FreeWill::CPU_NAIVE, float> crossEntropy;
-    crossEntropy.setInputParameter("Input", &secondLayerActivation);
-    crossEntropy.setInputParameter("Label", &label);
-    crossEntropy.setOutputParameter("Cost", &cost);
+    FreeWill::CrossEntropyLoss<FreeWill::CPU_NAIVE, float> crossEntropyLoss;
+    crossEntropyLoss.setInputParameter("Input", &secondLayerActivation);
+    crossEntropyLoss.setInputParameter("Label", &label);
+    crossEntropyLoss.setOutputParameter("Cost", &cost);
 
-    QVERIFY(crossEntropy.init());
+    QVERIFY(crossEntropyLoss.init());
 
 
-    FreeWill::SigmoidCrossEntropyDerivative<FreeWill::CPU_NAIVE, float> sigmoidCrossEntropyDerivative;
-    sigmoidCrossEntropyDerivative.setInputParameter("Input", &secondLayerActivation);
-    sigmoidCrossEntropyDerivative.setInputParameter("Label", &label);
-    sigmoidCrossEntropyDerivative.setOutputParameter("Output", &secondLayerNeuronDerivative);
+    FreeWill::SigmoidCrossEntropyLossDerivative<FreeWill::CPU_NAIVE, float> sigmoidCrossEntropyLossDerivative;
+    sigmoidCrossEntropyLossDerivative.setInputParameter("Input", &secondLayerActivation);
+    sigmoidCrossEntropyLossDerivative.setInputParameter("Label", &label);
+    sigmoidCrossEntropyLossDerivative.setOutputParameter("Output", &secondLayerNeuronDerivative);
 
-    QVERIFY(sigmoidCrossEntropyDerivative.init());
+    QVERIFY(sigmoidCrossEntropyLossDerivative.init());
 
     
     FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> secondLayerDotProductWithBiasDerivative(true);
@@ -249,7 +249,7 @@ void FreeWillUnitTest::xorTest()
 
         secondLayerFullyConnected.evaluate();
         secondLayerSigmoid.evaluate();
-        crossEntropy.evaluate();
+        crossEntropyLoss.evaluate();
         //      qDebug() << "input" << input[0] << input[1];
         //      qDebug() << "first" << firstLayerActivation[0] << firstLayerActivation[1];
         //      qDebug() << "result" << secondLayerActivation[0] << "cost" << cost[0];
@@ -259,7 +259,7 @@ void FreeWillUnitTest::xorTest()
         firstLayerWeightDerivative.clear();
         firstLayerBiasDerivative.clear();
         //overallCost += cost[0];
-        sigmoidCrossEntropyDerivative.evaluate();
+        sigmoidCrossEntropyLossDerivative.evaluate();
         secondLayerDotProductWithBiasDerivative.evaluate();
         firstLayerSigmoidDerivative.evaluate();
         firstLayerDotProductWithBiasDerivative.evaluate();

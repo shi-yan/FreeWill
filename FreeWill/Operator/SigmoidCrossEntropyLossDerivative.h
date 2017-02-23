@@ -1,20 +1,20 @@
-#ifndef SIGMOIDCROSSENTROPYDERIVATIVE_H
-#define SIGMOIDCROSSENTROPYDERIVATIVE_H
+#ifndef SIGMOIDCROSSENTROPYLOSSDERIVATIVE_H
+#define SIGMOIDCROSSENTROPYLOSSDERIVATIVE_H
 
 #include "Operator.h"
-#include "CrossEntropy_CUDA.h"
+#include "CrossEntropyLoss_CUDA.h"
 
 namespace FreeWill
 {
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
-    class SigmoidCrossEntropyDerivative : public Operator<DeviceUsed>
+    class SigmoidCrossEntropyLossDerivative : public Operator<DeviceUsed>
     {
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
 
     public:
-        SigmoidCrossEntropyDerivative()
+        SigmoidCrossEntropyLossDerivative()
         :Operator<DeviceUsed>({"Input", "Label"},{"Output"})
         {
         
@@ -68,7 +68,7 @@ namespace FreeWill
             }
             else if constexpr ((DeviceUsed & (GPU_CUDA | GPU)) != 0)
             {
-                sigmoidCrossEntropyDerivativeCUDAKernel<DataType>(_input->gpuDataHandle(), _label->gpuDataHandle(), _output->gpuDataHandle(), vectorSize * batchSize);            
+                sigmoidCrossEntropyLossDerivativeCUDAKernel<DataType>(_input->gpuDataHandle(), _label->gpuDataHandle(), _output->gpuDataHandle(), vectorSize * batchSize);            
             }
         }
 

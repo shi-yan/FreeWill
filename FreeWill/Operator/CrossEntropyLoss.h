@@ -1,22 +1,22 @@
-#ifndef SIGMOIDCROSSENTROPY_H
-#define SIGMOIDCROSSENTROPY_H
+#ifndef SIGMOIDCROSSENTROPYLOSS_H
+#define SIGMOIDCROSSENTROPYLOSS_H
 
 #include "Operator.h"
 #include "../DeviceSelection.h"
 
-#include "CrossEntropy_CUDA.h"
+#include "CrossEntropyLoss_CUDA.h"
 
 namespace FreeWill
 {
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
-    class CrossEntropy : public Operator<DeviceUsed>
+    class CrossEntropyLoss : public Operator<DeviceUsed>
     {
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
 
     public:
-        CrossEntropy()
+        CrossEntropyLoss()
             :Operator<DeviceUsed>({"Input", "Label"},{"Cost"})
         {}
 
@@ -61,12 +61,12 @@ namespace FreeWill
             {
                 if constexpr (std::is_same<float, DataType>::value)
                 {
-                    crossEntropyCUDAKernel<DataType>(_input->gpuDataHandle(), _label->gpuDataHandle(), _cost->gpuDataHandle(), vectorSize, batchSize);
+                    crossEntropyLossCUDAKernel<DataType>(_input->gpuDataHandle(), _label->gpuDataHandle(), _cost->gpuDataHandle(), vectorSize, batchSize);
                 }
                 else 
                 {
                     #if __CUDA_ARCH__ >= 600
-                    crossEntropyCUDAKernel<DataType>(_input->gpuDataHandle(), _label->gpuDataHandle(), _cost->gpuDataHandle(), vectorSize, batchSize);
+                    crossEntropyLossCUDAKernel<DataType>(_input->gpuDataHandle(), _label->gpuDataHandle(), _cost->gpuDataHandle(), vectorSize, batchSize);
                     #else
                     #warning "Cross Entropy CUDA kernel is not implemented yet for double type due to compute capability < 6.0"
                     #endif

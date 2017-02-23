@@ -1,5 +1,5 @@
-#ifndef SOFTMAXDERIVATIVE_H
-#define SOFTMAXDERIVATIVE_H
+#ifndef SOFTMAXLOGLOSSDERIVATIVE_H
+#define SOFTMAXLOGLOSSDERIVATIVE_H
 
 #include "Operator.h"
 
@@ -7,14 +7,14 @@ namespace FreeWill
 {
 
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
-    class SoftmaxDerivative : public Operator<DeviceUsed>
+    class SoftmaxLogLossDerivative : public Operator<DeviceUsed>
     {
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
 
     public:
-        SoftmaxDerivative() : Operator<DeviceUsed>({"Output", "Label"},{"InputGrad"})
+        SoftmaxLogLossDerivative() : Operator<DeviceUsed>({"Output", "Label"},{"InputGrad"})
         {
         }
 

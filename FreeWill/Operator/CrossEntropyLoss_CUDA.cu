@@ -1,9 +1,9 @@
-#include "CrossEntropy_CUDA.h"
+#include "CrossEntropyLoss_CUDA.h"
 #include "../DeviceSelection.h"
 #include <cuda_runtime.h>
 
 template <typename DataType>
-__global__ void crossEntropy(DataType *input, DataType *label, DataType *cost, unsigned int labelSize, unsigned int batchSize)
+__global__ void crossEntropyLoss(DataType *input, DataType *label, DataType *cost, unsigned int labelSize, unsigned int batchSize)
 {
     int id = blockIdx.x*blockDim.x+threadIdx.x;
 
@@ -18,7 +18,7 @@ __global__ void crossEntropy(DataType *input, DataType *label, DataType *cost, u
     
     
 template <typename DataType>
-__host__ void crossEntropyCUDAKernel(DataType *input, DataType *label, DataType *cost, unsigned int labelSize, unsigned int batchSize)
+__host__ void crossEntropyLossCUDAKernel(DataType *input, DataType *label, DataType *cost, unsigned int labelSize, unsigned int batchSize)
 {
     int blockSize = 1024;
     int gridSize =  (labelSize * batchSize) / blockSize ;
@@ -29,11 +29,11 @@ __host__ void crossEntropyCUDAKernel(DataType *input, DataType *label, DataType 
     }
 
     cudaMemset(cost, 0, sizeof(DataType) * batchSize);
-    crossEntropy<DataType><<<gridSize, blockSize>>>(input, label, cost, labelSize, batchSize);
+    crossEntropyLoss<DataType><<<gridSize, blockSize>>>(input, label, cost, labelSize, batchSize);
     CHECK_CUDA_ERROR
 }
 
-template __host__ void crossEntropyCUDAKernel(float *input, float *label, float *cost, unsigned int labelSize, unsigned int batchSize); 
+template __host__ void crossEntropyLossCUDAKernel(float *input, float *label, float *cost, unsigned int labelSize, unsigned int batchSize);
 //The kernel for double type is disabled, because the function atomicAdd is unavailable when cc < 6.0
 #if __CUDA_ARCH__ >= 600
 template __host__ void crossEntropyCUDAKernel(double *input, double *label, double *cost, unsigned int labelSize, unsigned int batchSize);
@@ -50,7 +50,7 @@ __global__ void elementwiseSub(DataType *operandA, DataType *operandB, DataType 
 }
         
 template <typename DataType>
-__host__ void sigmoidCrossEntropyDerivativeCUDAKernel(DataType *input, DataType *label, DataType *output, unsigned int size)
+__host__ void sigmoidCrossEntropyLossDerivativeCUDAKernel(DataType *input, DataType *label, DataType *output, unsigned int size)
 {
     int blockSize = 1024;
     int gridSize =  size / blockSize ;
@@ -64,7 +64,7 @@ __host__ void sigmoidCrossEntropyDerivativeCUDAKernel(DataType *input, DataType 
     CHECK_CUDA_ERROR
 }
 
-template __host__ void sigmoidCrossEntropyDerivativeCUDAKernel(float *input, float *label, float *output, unsigned int size);
-template __host__ void sigmoidCrossEntropyDerivativeCUDAKernel(double *input, double *label, double *output, unsigned int size);
+template __host__ void sigmoidCrossEntropyLossDerivativeCUDAKernel(float *input, float *label, float *output, unsigned int size);
+template __host__ void sigmoidCrossEntropyLossDerivativeCUDAKernel(double *input, double *label, double *output, unsigned int size);
 
 
