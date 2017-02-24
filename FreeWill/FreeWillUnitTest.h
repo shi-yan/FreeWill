@@ -24,11 +24,12 @@ private slots:
     void operatorDotProductWithBiasTestGPU();
     void operatorDotProductWithBiasDerivativeTest();
     void operatorDotProductWithBiasDerivativeTestGPU();
-    void xorTest();
-    void convNetTest();
-    void convDerivativeTest();
     void SoftmaxTest();
     void SoftmaxTestGPU();
     void SoftmaxDerivativeTest();
     void SoftmaxDerivativeTestGPU();
+    void convolutionTest();
+    void convolutionTestGPU();
+    void convolutionDerivativeTest();
+    void xorTest();
 };
