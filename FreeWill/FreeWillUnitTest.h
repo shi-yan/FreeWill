@@ -31,5 +31,6 @@ private slots:
     void convolutionTest();
     void convolutionTestGPU();
     void convolutionDerivativeTest();
+    void convolutionDerivativeTestGPU();
     void xorTest();
 };

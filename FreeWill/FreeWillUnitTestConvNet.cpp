@@ -548,3 +548,102 @@ void FreeWillUnitTest::convolutionDerivativeTest()
      QVERIFY(std::abs(fakeFeatureMapGrad[i] - featureMapGrad[i]) < 0.01);
    } 
 }
+
+void FreeWillUnitTest::convolutionDerivativeTestGPU()
+{
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> prevActivaion({3,5,5,1});
+    prevActivaion.init();
+    prevActivaion.randomize();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> featureMaps({3,3,3,2});
+    featureMaps.init();
+
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> outputGrad({2,3,3,1});
+    outputGrad.init();
+    outputGrad.randomize();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGrad({3,5,5,1});
+    inputGrad.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> featureMapGrad({3,3,3,2});
+    featureMapGrad.init();
+    
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fakeFeatureMapGrad({3,3,3,2});
+    fakeFeatureMapGrad.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> biasGrad({2});
+    biasGrad.init();
+
+
+    FreeWill::ConvolutionDerivative<FreeWill::GPU_CUDA, float> convolutionDerivative(2,2,1,1);
+    convolutionDerivative.setInputParameter("PrevActivation", &prevActivaion);
+    convolutionDerivative.setInputParameter("FeatureMap", &featureMaps);
+    convolutionDerivative.setInputParameter("OutputGrad", &outputGrad);
+
+    convolutionDerivative.setOutputParameter("InputGrad", &inputGrad);
+    convolutionDerivative.setOutputParameter("FeatureMapGrad", &featureMapGrad);
+    convolutionDerivative.setOutputParameter("BiasGrad", &biasGrad);
+
+    QVERIFY(convolutionDerivative.init());
+
+    prevActivaion.copyFromHostToDevice();
+    outputGrad.copyFromHostToDevice();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> prevActivaionCPU({3,5,5,1});
+    prevActivaionCPU.init();
+
+    for (unsigned int i = 0;i<prevActivaion.shape().size();++i)
+    {
+        prevActivaionCPU[i] = prevActivaion[i];
+    }
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> featureMapsCPU({3,3,3,2});
+    featureMapsCPU.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> outputGradCPU({2,3,3,1});
+    outputGradCPU.init();
+
+    for (unsigned int i =0;i<outputGradCPU.shape().size() ;++i)
+    {
+        outputGradCPU[i] = outputGrad[i];
+    }
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputGradCPU({3,5,5,1});
+    inputGradCPU.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> featureMapGradCPU({3,3,3,2});
+    featureMapGradCPU.init();
+    
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fakeFeatureMapGradCPU({3,3,3,2});
+    fakeFeatureMapGradCPU.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> biasGradCPU({2});
+    biasGradCPU.init();
+
+
+    FreeWill::ConvolutionDerivative<FreeWill::CPU_NAIVE, float> convolutionDerivativeCPU(2,2,1,1);
+    convolutionDerivativeCPU.setInputParameter("PrevActivation", &prevActivaionCPU);
+    convolutionDerivativeCPU.setInputParameter("FeatureMap", &featureMapsCPU);
+    convolutionDerivativeCPU.setInputParameter("OutputGrad", &outputGradCPU);
+
+    convolutionDerivativeCPU.setOutputParameter("InputGrad", &inputGradCPU);
+    convolutionDerivativeCPU.setOutputParameter("FeatureMapGrad", &featureMapGradCPU);
+    convolutionDerivativeCPU.setOutputParameter("BiasGrad", &biasGradCPU);
+
+    QVERIFY(convolutionDerivativeCPU.init());
+
+    
+    convolutionDerivative.evaluate();
+    convolutionDerivativeCPU.evaluate();
+
+    featureMapGrad.copyFromDeviceToHost();
+
+    for(unsigned int i=0;i<featureMapGrad.shape().size();++i)
+    {
+        qDebug() << featureMapGrad[i] << featureMapGradCPU[i];
+    }
+
+}
