@@ -709,12 +709,12 @@ void FreeWillUnitTest::SoftmaxTest()
 
     softmaxLogLoss2.evaluate();
 
-    for(int i = 0;i<10;++i)
+    /*for(int i = 0;i<10;++i)
     {
         printf("output:%f\n", output2[i]);
     }
 
-    printf("cost: %f\n", cost2[0]);
+    printf("cost: %f\n", cost2[0]);*/
 }
 
 
@@ -798,12 +798,12 @@ void FreeWillUnitTest::SoftmaxTestGPU()
     cost2.copyFromDeviceToHost();
     output2.copyFromDeviceToHost();
 
-    for(int i = 0;i<10;++i)
+    /*for(int i = 0;i<10;++i)
     {
         printf("output:%f\n", output2[i]);
     }
 
-    printf("cost: %f\n", cost2[0]);
+    printf("cost: %f\n", cost2[0]);*/
 }
 
 

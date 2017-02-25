@@ -110,7 +110,7 @@ namespace FreeWill
 
         virtual bool init() override
         {
-            FAIL_IF (!input("Input") || !input("FeatureMap") || !output("Output"));
+            FAIL_IF (!input("Input") || !input("FeatureMap") || !input("Bias") || !output("Output"));
 
             FAIL_IF (input("Input")->shape().dimension() != 4);
 
@@ -124,15 +124,13 @@ namespace FreeWill
 
             unsigned int originalWidth = input("Input")->shape()[1];
             unsigned int originalHeight = input("Input")->shape()[2];
-
             unsigned int filterSize = input("FeatureMap")->shape()[1];
-
-            FAIL_IF ((originalWidth - filterSize + 2*m_zeroPaddingX) % m_strideX != 0);
-
-            FAIL_IF ((originalHeight - filterSize + 2*m_zeroPaddingY) % m_strideY !=0);
 
             unsigned int newWidth = (originalWidth - filterSize + 2*m_zeroPaddingX) / m_strideX + 1;
             unsigned int newHeight = (originalHeight - filterSize + 2*m_zeroPaddingY) / m_strideY + 1;
+
+            FAIL_IF ((originalWidth - filterSize + 2*m_zeroPaddingX) % m_strideX != 0);
+            FAIL_IF ((originalHeight - filterSize + 2*m_zeroPaddingY) % m_strideY !=0);
 
             //qDebug() << "output" << output("Output")->shape()[1] <<";"<< output("Output")->shape()[2];
             //qDebug() << "newwidth" << newWidth << "newHeight" << newHeight;
@@ -188,6 +186,7 @@ namespace FreeWill
                                                       1,
                                                       1));
 
+                //qDebug() << "filterCount" << filterCount << "channelCount" << channelCount;
 
                 RUN_CUDNN(cudnnSetFilter4dDescriptor( m_filterDescriptor,
                                                       dataType,
@@ -197,14 +196,15 @@ namespace FreeWill
                                                       filterSize,
                                                       filterSize));
 
+                //qDebug() <<"zero padding stride:" << m_zeroPaddingX << m_zeroPaddingY << m_strideX << m_strideY;
                 RUN_CUDNN(cudnnSetConvolution2dDescriptor( m_convolutionDescriptor,
-                                                           m_zeroPaddingY,
-                                                           m_zeroPaddingX,
+                                                           m_zeroPaddingY ,
+                                                           m_zeroPaddingX ,
                                                            m_strideY,
                                                            m_strideX,
                                                            1,
                                                            1,
-                                                           CUDNN_CONVOLUTION ));
+                                                           CUDNN_CROSS_CORRELATION ));
 
                 RUN_CUDNN(cudnnGetConvolutionForwardAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
                                                                m_inputGPUTensorDescriptor,
@@ -215,8 +215,8 @@ namespace FreeWill
                                                                0,
                                                                &m_convolutionForwardAlgorithm));
 
-                qDebug() << "Convolution forward algorithm find based on huristic:";
-                displayConvolutionAlgorithm(m_convolutionForwardAlgorithm);
+                //qDebug() << "Convolution forward algorithm find based on huristic:";
+                //displayConvolutionAlgorithm(m_convolutionForwardAlgorithm);
 
                 RUN_CUDNN(cudnnGetConvolutionForwardWorkspaceSize( Context<DeviceUsed>::getSingleton().cudnnHandle(),
                                                                           m_inputGPUTensorDescriptor,
@@ -225,7 +225,7 @@ namespace FreeWill
                                                                           m_outputGPUTensorDescriptor,
                                                                           m_convolutionForwardAlgorithm,
                                                                           &m_workspaceSize));
-                qDebug() << "Required workspace size:" << m_workspaceSize;
+                //qDebug() << "Required workspace size:" << m_workspaceSize;
 
 
                 int returnedAlgoCount = 0;
@@ -241,14 +241,14 @@ namespace FreeWill
                                                                  &returnedAlgoCount,
                                                                  perfResults));
 
-                qDebug() << returnedAlgoCount << "convolution forward algorithm benchmarks:";
+                /*qDebug() << returnedAlgoCount << "convolution forward algorithm benchmarks:";
 
                 for(int i =0;i<returnedAlgoCount;++i)
                 {
                     qDebug() << i << "Status:" << perfResults[i].status << "Time:" << perfResults[i].time << "milliseconds" << "Memory need:" << perfResults[i].memory;
 
                     displayConvolutionAlgorithm(perfResults[i].algo);
-                }
+                }*/
 
             }
 
@@ -352,10 +352,11 @@ namespace FreeWill
                                                        m_outputGPUTensorDescriptor,
                                                        _output->gpuDataHandle()));
 
-                    /*beta = 1.0;
+                    beta = 1.0;
 
-                    displayTensorDescriptor(m_biasGPUTensorDescriptor);
-                    displayTensorDescriptor(m_outputGPUTensorDescriptor);
+                    //displayTensorDescriptor(m_biasGPUTensorDescriptor);
+                    //displayTensorDescriptor(m_inputGPUTensorDescriptor);
+                    //displayTensorDescriptor(m_outputGPUTensorDescriptor);
 
                     RUN_CUDNN(cudnnAddTensor( Context<DeviceUsed>::getSingleton().cudnnHandle(),
                                               &alpha,
@@ -363,7 +364,7 @@ namespace FreeWill
                                               _bias->gpuDataHandle(),
                                               &beta,
                                               m_outputGPUTensorDescriptor,
-                                              _output->gpuDataHandle()));*/
+                                              _output->gpuDataHandle()));
                 }
                 else
                 {
