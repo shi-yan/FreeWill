@@ -21,9 +21,12 @@ namespace FreeWill
         cudnnTensorDescriptor_t m_prevActivationGPUTensorDescriptor;
         cudnnTensorDescriptor_t m_outputDeltaGPUTensorDescriptor;
         cudnnTensorDescriptor_t m_biasGradGPUTensorDescriptor;
+        cudnnTensorDescriptor_t m_prevActivationDeltaGPUTensorDescriptor;
         cudnnFilterDescriptor_t m_featureMapFilterDescriptor;
         cudnnConvolutionDescriptor_t m_convolutionDescriptor;
         cudnnConvolutionBwdFilterAlgo_t m_filterBackwardAlgorithm;
+        cudnnConvolutionBwdDataAlgo_t m_prevActivationDeltaAlgorithm;
+
 
     public:
         ConvolutionDerivative(unsigned int strideX = 1, unsigned int strideY = 1,
@@ -36,15 +39,18 @@ namespace FreeWill
             m_prevActivationGPUTensorDescriptor(0),
             m_outputDeltaGPUTensorDescriptor(0),
             m_biasGradGPUTensorDescriptor(0),
+            m_prevActivationDeltaGPUTensorDescriptor(0),
             m_featureMapFilterDescriptor(0),
             m_convolutionDescriptor(0),
-            m_filterBackwardAlgorithm()
+            m_filterBackwardAlgorithm(),
+            m_prevActivationDeltaAlgorithm()
         {
             if ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
             {
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_prevActivationGPUTensorDescriptor));
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_outputDeltaGPUTensorDescriptor));
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_biasGradGPUTensorDescriptor));
+                RUN_CUDNN(cudnnCreateTensorDescriptor(&m_prevActivationDeltaGPUTensorDescriptor));
                 RUN_CUDNN(cudnnCreateFilterDescriptor(&m_featureMapFilterDescriptor));
                 RUN_CUDNN(cudnnCreateConvolutionDescriptor(&m_convolutionDescriptor));
             }
@@ -57,12 +63,14 @@ namespace FreeWill
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_prevActivationGPUTensorDescriptor));
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_outputDeltaGPUTensorDescriptor));
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_biasGradGPUTensorDescriptor));
+                RUN_CUDNN(cudnnDestroyTensorDescriptor(m_prevActivationDeltaGPUTensorDescriptor));
                 RUN_CUDNN(cudnnDestroyFilterDescriptor(m_featureMapFilterDescriptor));
                 RUN_CUDNN(cudnnDestroyConvolutionDescriptor(m_convolutionDescriptor));
 
                 m_prevActivationGPUTensorDescriptor = 0;
                 m_outputDeltaGPUTensorDescriptor = 0;
                 m_biasGradGPUTensorDescriptor = 0;
+                m_prevActivationDeltaGPUTensorDescriptor = 0;
                 m_featureMapFilterDescriptor = 0;
                 m_convolutionDescriptor = 0;
             }
@@ -82,6 +90,23 @@ namespace FreeWill
                 qDebug() << "Warning: unrecognized convolution filter backward algorithm:" << algorithm;
                 break;
             }
+        }
+
+        void displayPrevActivationDeltaAlgorithm(cudnnConvolutionBwdDataAlgo_t algorithm)
+        {
+            QString message = "Convolution PrevActivation delta algorithm:";
+            switch (algorithm)
+            {
+            ENUM_CASE(CUDNN_CONVOLUTION_BWD_DATA_ALGO_0, message)
+            ENUM_CASE(CUDNN_CONVOLUTION_BWD_DATA_ALGO_1, message)
+            ENUM_CASE(CUDNN_CONVOLUTION_BWD_DATA_ALGO_FFT, message)
+            ENUM_CASE(CUDNN_CONVOLUTION_BWD_DATA_ALGO_FFT_TILING, message)
+            ENUM_CASE(CUDNN_CONVOLUTION_BWD_DATA_ALGO_WINOGRAD, message)
+            ENUM_CASE(CUDNN_CONVOLUTION_BWD_DATA_ALGO_WINOGRAD_NONFUSED, message)
+            default:
+                qDebug() << "Warning: unrecognized convolution filter backward algorithm:" << algorithm;
+                break;
+            }           
         }
 
         virtual bool init() override
@@ -171,6 +196,25 @@ namespace FreeWill
                                                       1,
                                                       1));
 
+                RUN_CUDNN(cudnnSetTensor4dDescriptor( m_prevActivationGPUTensorDescriptor,
+                                                      CUDNN_TENSOR_NHWC,
+                                                      dataType,
+                                                      batchSize,
+                                                      channelCount,
+                                                      originalHeight,
+                                                      originalWidth));
+
+                RUN_CUDNN(cudnnSetTensor4dDescriptor( m_prevActivationDeltaGPUTensorDescriptor,
+                                                      CUDNN_TENSOR_NHWC,
+                                                      dataType,
+                                                      batchSize,
+                                                      channelCount,
+                                                      originalHeight,
+                                                      originalWidth));
+
+
+
+
                 //qDebug() << "filterCount" << filterCount << "channelCount" << channelCount;
 
                 RUN_CUDNN(cudnnSetFilter4dDescriptor( m_featureMapFilterDescriptor,
@@ -203,27 +247,63 @@ namespace FreeWill
 
                 displayFilterBackwardAlgorithm(m_filterBackwardAlgorithm);
 
-                const int requestedAlgoCount = 6;
-                cudnnConvolutionBwdFilterAlgoPerf_t perfResults[requestedAlgoCount];
-                int returnedAlgoCount = 0;
+                const int requestedFilterAlgoCount = 6;
+                cudnnConvolutionBwdFilterAlgoPerf_t filterBackwardPerfResults[requestedFilterAlgoCount];
+                int returnedFilterAlgoCount = 0;
 
                 RUN_CUDNN(cudnnFindConvolutionBackwardFilterAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
                                                                        m_prevActivationGPUTensorDescriptor,
                                                                        m_outputDeltaGPUTensorDescriptor,
                                                                        m_convolutionDescriptor,
                                                                        m_featureMapFilterDescriptor,
-                                                                       requestedAlgoCount,
-                                                                       &returnedAlgoCount,
-                                                                       perfResults ));
+                                                                       requestedFilterAlgoCount,
+                                                                       &returnedFilterAlgoCount,
+                                                                       filterBackwardPerfResults ));
 
-                qDebug() << returnedAlgoCount << "convolution filter backward algorithm benchmarks:";
+                qDebug() << returnedFilterAlgoCount << "convolution filter backward algorithm benchmarks:";
 
-                for(int i =0;i<returnedAlgoCount;++i)
+                for(int i =0;i<returnedFilterAlgoCount;++i)
                 {
-                    qDebug() << i << "Status:" << perfResults[i].status << "Time:" << perfResults[i].time << "milliseconds" << "Memory need:" << perfResults[i].memory;
+                    qDebug() << i << "Status:" << filterBackwardPerfResults[i].status 
+                        << "Time:" << filterBackwardPerfResults[i].time << "milliseconds" 
+                        << "Memory need:" << filterBackwardPerfResults[i].memory;
 
-                    displayFilterBackwardAlgorithm(perfResults[i].algo);
+                    displayFilterBackwardAlgorithm(filterBackwardPerfResults[i].algo);
                 }
+
+                RUN_CUDNN(cudnnGetConvolutionBackwardDataAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                                                                    m_featureMapFilterDescriptor,
+                                                                    m_outputDeltaGPUTensorDescriptor,
+                                                                    m_convolutionDescriptor,
+                                                                    m_prevActivationDeltaGPUTensorDescriptor,
+                                                                    CUDNN_CONVOLUTION_BWD_DATA_PREFER_FASTEST,
+                                                                    0,
+                                                                    &m_prevActivationDeltaAlgorithm));
+
+                displayPrevActivationDeltaAlgorithm(m_prevActivationDeltaAlgorithm);
+
+                const int requestedPrevActivationAlgoCount = 6;
+                cudnnConvolutionBwdDataAlgoPerf_t prevActivationPerfResults[requestedPrevActivationAlgoCount];
+                int returnedPrevActivationAlgoCount = 0;
+
+                RUN_CUDNN(cudnnFindConvolutionBackwardDataAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                                                                     m_featureMapFilterDescriptor,
+                                                                     m_outputDeltaGPUTensorDescriptor,
+                                                                     m_convolutionDescriptor,
+                                                                     m_prevActivationDeltaGPUTensorDescriptor,
+                                                                     requestedPrevActivationAlgoCount,
+                                                                     &returnedPrevActivationAlgoCount,
+                                                                     prevActivationPerfResults));
+
+                for(int i =0;i<returnedPrevActivationAlgoCount;++i)
+                {
+                    qDebug() << i << "Status:" << prevActivationPerfResults[i].status
+                        << "Time:" << prevActivationPerfResults[i].time << "milliseconds"
+                        << "Memory need:" << prevActivationPerfResults[i].memory;
+
+                    displayPrevActivationDeltaAlgorithm(prevActivationPerfResults[i].algo);
+                }
+                
             }
 
             return true;
@@ -315,7 +395,7 @@ namespace FreeWill
                     }                
                 }
 
-                DataType scale = 1.0 / (newWidth * newHeight);
+                //DataType scale = 1.0 / (newWidth * newHeight);
 
 
                /* for(unsigned int k = 0;k<_biasGrad->shape().size();++k)
@@ -328,11 +408,11 @@ namespace FreeWill
                     (*_featureMapGrad)[i] *= scale;
                 }
 */
-                for(unsigned int i =0;i<_inputGrad->shape().size(); ++i)
+/*                for(unsigned int i =0;i<_inputGrad->shape().size(); ++i)
                 {
                     (*_inputGrad)[i] *= scale;
                 }
-
+*/
             }
             else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) !=0 )
             {
@@ -360,6 +440,20 @@ namespace FreeWill
                                                        &beta,
                                                        m_biasGradGPUTensorDescriptor,
                                                        _biasGrad->gpuDataHandle()));
+
+                RUN_CUDNN(cudnnConvolutionBackwardData(Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                                                       &alpha,
+                                                       m_featureMapFilterDescriptor,
+                                                       _featureMap->gpuDataHandle(),
+                                                       m_outputDeltaGPUTensorDescriptor,
+                                                       _outputGrad->gpuDataHandle(),
+                                                       m_convolutionDescriptor,
+                                                       m_prevActivationDeltaAlgorithm,
+                                                       nullptr,
+                                                       0,
+                                                       &beta,
+                                                       m_prevActivationDeltaGPUTensorDescriptor,
+                                                       _inputGrad->gpuDataHandle()));
             }
             
 

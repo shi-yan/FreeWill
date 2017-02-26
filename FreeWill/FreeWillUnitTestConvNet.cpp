@@ -557,7 +557,7 @@ void FreeWillUnitTest::convolutionDerivativeTestGPU()
 
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> featureMaps({3,3,3,2});
     featureMaps.init();
-
+    featureMaps.randomize();
 
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> outputGrad({2,3,3,1});
     outputGrad.init();
@@ -589,6 +589,7 @@ void FreeWillUnitTest::convolutionDerivativeTestGPU()
     QVERIFY(convolutionDerivative.init());
 
     prevActivaion.copyFromHostToDevice();
+    featureMaps.copyFromHostToDevice();
     outputGrad.copyFromHostToDevice();
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> prevActivaionCPU({3,5,5,1});
@@ -601,6 +602,11 @@ void FreeWillUnitTest::convolutionDerivativeTestGPU()
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> featureMapsCPU({3,3,3,2});
     featureMapsCPU.init();
+
+    for (unsigned int i = 0; i<featureMapsCPU.shape().size();++i)
+    {
+        featureMapsCPU[i] = featureMaps[i];
+    }
 
     FreeWill::Tensor<FreeWill::CPU_NAIVE, float> outputGradCPU({2,3,3,1});
     outputGradCPU.init();
@@ -641,17 +647,30 @@ void FreeWillUnitTest::convolutionDerivativeTestGPU()
 
     featureMapGrad.copyFromDeviceToHost();
     biasGrad.copyFromDeviceToHost();
-    
-    qDebug() << "feature map grad:";
+    inputGrad.copyFromDeviceToHost();    
+//    qDebug() << "feature map grad:";
+
+    const float epsilon = 0.001;
+
     for(unsigned int i=0;i<featureMapGrad.shape().size();++i)
     {
-        qDebug() << featureMapGrad[i] << featureMapGradCPU[i];
+        QVERIFY(std::abs(featureMapGrad[i] - featureMapGradCPU[i]) < epsilon);
+//        qDebug() << featureMapGrad[i] << featureMapGradCPU[i];
     }
 
-    qDebug() << "bias grad:";
+//    qDebug() << "bias grad:";
     for(unsigned int i=0;i<biasGrad.shape().size();++i)
     {
-        qDebug() << biasGrad[i] << biasGradCPU[i];
+//        qDebug() << biasGrad[i] << biasGradCPU[i];
+        QVERIFY(std::abs(biasGrad[i] - biasGradCPU[i]) < epsilon);
     }
 
+
+  //  qDebug() << "PrevActivation grad:";
+
+    for (unsigned int i =0;i<inputGrad.shape().size();++i)
+    {
+//        qDebug() << inputGrad[i] << inputGradCPU[i];
+        QVERIFY(std::abs(inputGrad[i] - inputGradCPU[i]) < epsilon);
+    }
 }
