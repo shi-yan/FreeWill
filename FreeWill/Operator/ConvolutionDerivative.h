@@ -20,6 +20,7 @@ namespace FreeWill
 
         cudnnTensorDescriptor_t m_prevActivationGPUTensorDescriptor;
         cudnnTensorDescriptor_t m_outputDeltaGPUTensorDescriptor;
+        cudnnTensorDescriptor_t m_biasGradGPUTensorDescriptor;
         cudnnFilterDescriptor_t m_featureMapFilterDescriptor;
         cudnnConvolutionDescriptor_t m_convolutionDescriptor;
         cudnnConvolutionBwdFilterAlgo_t m_filterBackwardAlgorithm;
@@ -34,6 +35,7 @@ namespace FreeWill
             m_zeroPaddingY(zeroPaddingY),
             m_prevActivationGPUTensorDescriptor(0),
             m_outputDeltaGPUTensorDescriptor(0),
+            m_biasGradGPUTensorDescriptor(0),
             m_featureMapFilterDescriptor(0),
             m_convolutionDescriptor(0),
             m_filterBackwardAlgorithm()
@@ -42,6 +44,7 @@ namespace FreeWill
             {
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_prevActivationGPUTensorDescriptor));
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_outputDeltaGPUTensorDescriptor));
+                RUN_CUDNN(cudnnCreateTensorDescriptor(&m_biasGradGPUTensorDescriptor));
                 RUN_CUDNN(cudnnCreateFilterDescriptor(&m_featureMapFilterDescriptor));
                 RUN_CUDNN(cudnnCreateConvolutionDescriptor(&m_convolutionDescriptor));
             }
@@ -53,11 +56,13 @@ namespace FreeWill
             {
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_prevActivationGPUTensorDescriptor));
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_outputDeltaGPUTensorDescriptor));
+                RUN_CUDNN(cudnnDestroyTensorDescriptor(m_biasGradGPUTensorDescriptor));
                 RUN_CUDNN(cudnnDestroyFilterDescriptor(m_featureMapFilterDescriptor));
                 RUN_CUDNN(cudnnDestroyConvolutionDescriptor(m_convolutionDescriptor));
 
                 m_prevActivationGPUTensorDescriptor = 0;
                 m_outputDeltaGPUTensorDescriptor = 0;
+                m_biasGradGPUTensorDescriptor = 0;
                 m_featureMapFilterDescriptor = 0;
                 m_convolutionDescriptor = 0;
             }
@@ -158,13 +163,13 @@ namespace FreeWill
                                                       newWidth));
 
 
-                /*RUN_CUDNN(cudnnSetTensor4dDescriptor( m_biasGPUTensorDescriptor,
+                RUN_CUDNN(cudnnSetTensor4dDescriptor( m_biasGradGPUTensorDescriptor,
                                                       CUDNN_TENSOR_NHWC,
                                                       dataType,
-                                                      batchSize,
+                                                      1,
                                                       filterCount,
                                                       1,
-                                                      1));*/
+                                                      1));
 
                 //qDebug() << "filterCount" << filterCount << "channelCount" << channelCount;
 
@@ -313,10 +318,10 @@ namespace FreeWill
                 DataType scale = 1.0 / (newWidth * newHeight);
 
 
-                for(unsigned int k = 0;k<_biasGrad->shape().size();++k)
+               /* for(unsigned int k = 0;k<_biasGrad->shape().size();++k)
                 {
                     (*_biasGrad)[k] *= scale;
-                }
+                }*/
 
 /*                for(unsigned int i = 0;i< _featureMapGrad->shape().size();++i)
                 {
@@ -348,6 +353,13 @@ namespace FreeWill
                                                         m_featureMapFilterDescriptor,
                                                         _featureMapGrad->gpuDataHandle()));
 
+                RUN_CUDNN(cudnnConvolutionBackwardBias(Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                                                       &alpha,
+                                                       m_outputDeltaGPUTensorDescriptor,
+                                                       _outputGrad->gpuDataHandle(),
+                                                       &beta,
+                                                       m_biasGradGPUTensorDescriptor,
+                                                       _biasGrad->gpuDataHandle()));
             }
             
 

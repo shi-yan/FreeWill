@@ -640,10 +640,18 @@ void FreeWillUnitTest::convolutionDerivativeTestGPU()
     convolutionDerivativeCPU.evaluate();
 
     featureMapGrad.copyFromDeviceToHost();
-
+    biasGrad.copyFromDeviceToHost();
+    
+    qDebug() << "feature map grad:";
     for(unsigned int i=0;i<featureMapGrad.shape().size();++i)
     {
         qDebug() << featureMapGrad[i] << featureMapGradCPU[i];
+    }
+
+    qDebug() << "bias grad:";
+    for(unsigned int i=0;i<biasGrad.shape().size();++i)
+    {
+        qDebug() << biasGrad[i] << biasGradCPU[i];
     }
 
 }
