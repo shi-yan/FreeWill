@@ -11,6 +11,7 @@
 #include "Operator/DotProductWithBiasDerivative.h"
 #include "Operator/SoftmaxLogLoss.h"
 #include "Operator/SoftmaxLogLossDerivative.h"
+#include "Operator/MaxPooling.h"
 
 void FreeWillUnitTest::operatorSigmoidCrossEntropyTestCPUAndGPU()
 {
@@ -1164,6 +1165,68 @@ void FreeWillUnitTest::SoftmaxDerivativeTestGPU()
 */
 }
 
+void FreeWillUnitTest::maxPoolingTest()
+{
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGPU({3,10,10,2});
+    inputGPU.init();
+    inputGPU.randomize();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> outputGPU({3,5,5,2});
+    outputGPU.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> switchX({3,5,5,2});
+    switchX.init();
+    
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> switchY({3,5,5,2});
+    switchY.init();
+
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({3,10,10,2});
+    input.init();
+    
+    for (unsigned int i = 0; i<input.shape().size();++i)
+    {
+        input[i] = inputGPU[i];
+    }
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({3,5,5,2});
+    output.init();
+    
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> switchXCPU({3,5,5,2});
+    switchXCPU.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> switchYCPU({3,5,5,2});
+    switchYCPU.init();
+
+
+    FreeWill::MaxPooling<FreeWill::GPU_CUDA, float> maxpoolingGPU;
+    maxpoolingGPU.setInputParameter("Input", &inputGPU);
+    maxpoolingGPU.setOutputParameter("Output", &outputGPU);
+    maxpoolingGPU.setOutputParameter("SwitchX", &switchX);
+    maxpoolingGPU.setOutputParameter("SwitchY", &switchY);
+    QVERIFY(maxpoolingGPU.init());
+
+    FreeWill::MaxPooling<FreeWill::CPU_NAIVE, float> maxpoolingCPU;
+    maxpoolingCPU.setInputParameter("Input", &input);
+    maxpoolingCPU.setOutputParameter("Output", &output);
+    maxpoolingCPU.setOutputParameter("SwitchX", &switchXCPU);
+    maxpoolingCPU.setOutputParameter("SwitchY", &switchYCPU);
+    QVERIFY(maxpoolingCPU.init());
+
+    inputGPU.copyFromHostToDevice();
+
+    maxpoolingGPU.evaluate();
+    maxpoolingCPU.evaluate();
+
+    outputGPU.copyFromDeviceToHost();
+
+
+    for(unsigned int i =0;i<outputGPU.shape().size(); ++i)
+    {
+        //qDebug() << outputGPU[i] << output[i];
+        QVERIFY(std::abs(outputGPU[i] - output[i]) < 0.001);
+    }
+}
 
 QTEST_MAIN(FreeWillUnitTest)
 #include "FreeWillUnitTest.moc"
