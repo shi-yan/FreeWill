@@ -49,50 +49,28 @@ namespace FreeWill
 
         virtual bool init() override
         {
-            if (!input("Input") || !output("Output"))
+            FAIL_IF (!input("Input") || !output("Output"));
+
+            FAIL_IF (input("Input")->shape().dimension() != 4);
+            
+            FAIL_IF (output("Output")->shape().dimension() != 4);
+
+            if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
             {
-                return false;
+                FAIL_IF(!output("SwitchX") || !output("SwitchY"));
+
+                FAIL_IF (output("SwitchX")->shape() != output("Output")->shape());
+
+                FAIL_IF (output("SwitchY")->shape() != output("Output")->shape());
             }
 
-            if (input("Input")->shape().dimension() != 4)
-            {
-                return false;
-            }
+            FAIL_IF (input("Input")->shape()[0] != output("Output")->shape()[0]);
 
-            if (output("Output")->shape().dimension() != 4)
-            {
-                return false;
-            }
+            FAIL_IF (input("Input")->shape()[1] != 2 * output("Output")->shape()[1]);
 
-            if (output("SwitchX")->shape() != output("Output")->shape())
-            {
-                return false;
-            }
+            FAIL_IF (input("Input")->shape()[2]!=2*output("Output")->shape()[2]);
 
-            if (output("SwitchY")->shape() != output("Output")->shape())
-            {
-                return false;
-            }
-
-            if (input("Input")->shape()[0] != output("Output")->shape()[0])
-            {
-                return false;
-            }
-
-            if (input("Input")->shape()[1] != 2 * output("Output")->shape()[1])
-            {
-                return false;
-            }
-
-            if (input("Input")->shape()[2]!=2*output("Output")->shape()[2])
-            {
-                return false;
-            }
-
-            if (input("Input")->shape()[3]!=output("Output")->shape()[3])
-            {
-                return false;
-            }
+            FAIL_IF (input("Input")->shape()[3]!=output("Output")->shape()[3]);
 
             if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
             {

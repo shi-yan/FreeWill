@@ -12,6 +12,7 @@
 #include "Operator/SoftmaxLogLoss.h"
 #include "Operator/SoftmaxLogLossDerivative.h"
 #include "Operator/MaxPooling.h"
+#include "Operator/MaxPoolingDerivative.h"
 
 void FreeWillUnitTest::operatorSigmoidCrossEntropyTestCPUAndGPU()
 {
@@ -1165,7 +1166,7 @@ void FreeWillUnitTest::SoftmaxDerivativeTestGPU()
 */
 }
 
-void FreeWillUnitTest::maxPoolingTest()
+void FreeWillUnitTest::maxPoolingTestCPUAndGPU()
 {
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGPU({3,10,10,2});
     inputGPU.init();
@@ -1220,11 +1221,58 @@ void FreeWillUnitTest::maxPoolingTest()
 
     outputGPU.copyFromDeviceToHost();
 
-
+    const float epsilon = 0.001;
     for(unsigned int i =0;i<outputGPU.shape().size(); ++i)
     {
         //qDebug() << outputGPU[i] << output[i];
-        QVERIFY(std::abs(outputGPU[i] - output[i]) < 0.001);
+        QVERIFY(std::abs(outputGPU[i] - output[i]) < epsilon);
+    }
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGradGPU({3,10,10,2});
+    inputGradGPU.init();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputGradCPU({3,10,10,2});
+    inputGradCPU.init();
+
+    FreeWill::Tensor<FreeWill::GPU_CUDA, float> outputGradGPU({3,5,5,2});
+    outputGradGPU.init();
+    outputGradGPU.randomize();
+
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> outputGradCPU({3,5,5,2});
+    outputGradCPU.init();
+
+    for (unsigned int i = 0;i<outputGradGPU.shape().size();++i)
+    {
+        outputGradCPU[i] = outputGradGPU[i];
+    }
+
+    FreeWill::MaxPoolingDerivative<FreeWill::GPU_CUDA, float> maxPoolingDerivativeGPU;
+    maxPoolingDerivativeGPU.setInputParameter("Input", &inputGPU);
+    maxPoolingDerivativeGPU.setInputParameter("Output", &outputGPU);
+    maxPoolingDerivativeGPU.setInputParameter("OutputGrad", &outputGradGPU);
+    maxPoolingDerivativeGPU.setOutputParameter("InputGrad", &inputGradGPU);
+
+    QVERIFY(maxPoolingDerivativeGPU.init());
+
+    FreeWill::MaxPoolingDerivative<FreeWill::CPU_NAIVE, float> maxPoolingDerivativeCPU;
+    maxPoolingDerivativeCPU.setInputParameter("OutputGrad", &outputGradCPU);
+    maxPoolingDerivativeCPU.setInputParameter("SwitchX", &switchXCPU);
+    maxPoolingDerivativeCPU.setInputParameter("SwitchY", &switchYCPU);
+    maxPoolingDerivativeCPU.setOutputParameter("InputGrad", &inputGradCPU);
+
+    QVERIFY(maxPoolingDerivativeCPU.init());
+
+    outputGradGPU.copyFromHostToDevice();
+    maxPoolingDerivativeCPU.evaluate();
+    maxPoolingDerivativeGPU.evaluate();
+
+    inputGradGPU.copyFromDeviceToHost();
+
+
+    for(unsigned int i = 0; i< inputGradGPU.shape().size();++i)
+    {
+//        qDebug() << inputGradGPU[i] << inputGradCPU[i];
+        QVERIFY(std::abs(inputGradCPU[i] - inputGradGPU[i])<epsilon);
     }
 }
 
