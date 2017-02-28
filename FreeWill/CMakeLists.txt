@@ -88,7 +88,8 @@ set(FreeWill_SOURCES
     Operator/SoftmaxLogLossDerivative.h
     Operator/Convolution.h
     DeviceSelection.h
-    Operator/ConvolutionDerivative.h)
+    Operator/ConvolutionDerivative.h
+    Operator/DotProductWithBiasDerivative.h)
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
 target_link_libraries(FreeWillUnitTest Qt5::Core)
