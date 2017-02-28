@@ -66,6 +66,15 @@ include_directories("../../Utils/WebUI/Swiftly/http-parser")
 include_directories("../../Utils/WebUI/Swiftly/qt-mustache/src")
 include_directories("/usr/include/x86_64-linux-gnu/qt5/QtWebSockets")
 
+find_package(CUDA REQUIRED)
+include_directories( ${CUDA_INCLUDE_DIRS} )
+
+MESSAGE("Using Qt version ${Qt5Core_VERSION} under ${QtCore_Location}")
+set(CUDA_HOST_COMPILER /usr/bin/gcc)
+list(APPEND CUDA_NVCC_FLAGS "-arch=sm_52;-std=c++11;-O3;--use_fast_math;--expt-extended-lambda")
+SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
+
+
 link_directories("/usr/local/cuda/lib64")
 
 # get_directory_property(OUT_VAR LINK_DIRECTORIES)
@@ -87,5 +96,8 @@ target_link_libraries(MNIST Qt5::Core)
 target_link_libraries(MNIST Qt5::Network)
 target_link_libraries(MNIST Qt5WebSockets)
 target_link_libraries(MNIST Swiftly)
+target_link_libraries(MNIST cuda_kernel)
+target_link_libraries(MNIST ${CUDA_LIBRARIES})
 target_link_libraries(MNIST cudnn)
+target_link_libraries(MNIST cublas)
 

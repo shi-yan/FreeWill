@@ -133,6 +133,7 @@ namespace FreeWill
             FAIL_IF ((originalHeight - filterSize + 2*m_zeroPaddingY) % m_strideY !=0);
 
             //qDebug() << "output" << output("Output")->shape()[1] <<";"<< output("Output")->shape()[2];
+            //qDebug() << "originalWidth" << originalWidth << "originalHeight" << originalHeight;
             //qDebug() << "newwidth" << newWidth << "newHeight" << newHeight;
 
             FAIL_IF (output("Output")->shape()[1] != newWidth || output("Output")->shape()[2] != newHeight);

@@ -58,7 +58,7 @@ namespace FreeWill
             }
             else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) !=0)
             {
-                elementwiseAddCUDAKernel<DataType>(operandA->gpuDataHandle(), operandB->gpuDataHandle(), result->gpuDataHandle(), size);
+                elementwiseAddCUDAKernel<DataType>(operandA->gpuDataHandle(), operandB->gpuDataHandle(), m_rate, result->gpuDataHandle(), size);
 
 
             }

@@ -89,7 +89,9 @@ set(FreeWill_SOURCES
     Operator/Convolution.h
     DeviceSelection.h
     Operator/ConvolutionDerivative.h
-    Operator/DotProductWithBiasDerivative.h)
+    Operator/DotProductWithBiasDerivative.h
+    Operator/MaxPooling.h
+    Operator/MaxPoolingDerivative.h)
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
 target_link_libraries(FreeWillUnitTest Qt5::Core)

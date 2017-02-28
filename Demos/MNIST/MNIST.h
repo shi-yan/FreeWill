@@ -40,10 +40,13 @@ public:
         void closeTrainData();
         void loadOneTrainData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor<FreeWill::CPU, unsigned int> &label);
         void loadOneTestData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor<FreeWill::CPU, unsigned int> &label);
+        void loadOneTrainDataGPU(FreeWill::Tensor<FreeWill::GPU_CUDA, float> &image, FreeWill::Tensor<FreeWill::GPU_CUDA, unsigned int> &label);
+        void loadOneTestDataGPU(FreeWill::Tensor<FreeWill::GPU_CUDA, float> &image, FreeWill::Tensor<FreeWill::GPU_CUDA, unsigned int> &label);
 
 
         void trainFullyConnectedModel();
         void trainConvolutionalModel();
+        void trainConvolutionalModelGPU();
 
         void run();
 
