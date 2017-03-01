@@ -7,7 +7,8 @@ class DemoUI : public WebApp
 {
     Q_OBJECT
 
-        QString m_content;
+        //QString m_content;
+        QString m_template;
 public:
         DemoUI();
         ~DemoUI();

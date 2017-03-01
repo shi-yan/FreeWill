@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     qDebug() << "MNIST Demo";
     QCoreApplication a(argc, argv);
     REGISTER_WEBAPP(DemoUI);
-    HttpServer::getSingleton().start(QThread::idealThreadCount(), 8083);
+    HttpServer::getSingleton().start(1, 8083);
     WebsocketServer websocketServer;
 
     MNIST *mnist = new MNIST(&websocketServer);
