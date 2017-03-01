@@ -65,11 +65,12 @@ namespace FreeWill
                 }
                 else 
                 {
-                    #if __CUDA_ARCH__ >= 600
+                    //#if __CUDA_ARCH__ >= 600
+                    //printf("cost size:%d\n", _cost->shape().size());
                     crossEntropyLossCUDAKernel<DataType>(_input->gpuDataHandle(), _label->gpuDataHandle(), _cost->gpuDataHandle(), vectorSize, batchSize);
-                    #else
-                    #warning "Cross Entropy CUDA kernel is not implemented yet for double type due to compute capability < 6.0"
-                    #endif
+                    //#else
+                    //#warning "Cross Entropy CUDA kernel is not implemented yet for double type due to compute capability < 6.0"
+                    //#endif
                 }
             }
         }

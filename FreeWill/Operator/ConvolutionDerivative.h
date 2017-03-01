@@ -245,7 +245,7 @@ namespace FreeWill
                                                                       0,
                                                                       &m_filterBackwardAlgorithm ));
 
-                displayFilterBackwardAlgorithm(m_filterBackwardAlgorithm);
+                //displayFilterBackwardAlgorithm(m_filterBackwardAlgorithm);
 
                 const int requestedFilterAlgoCount = 6;
                 cudnnConvolutionBwdFilterAlgoPerf_t filterBackwardPerfResults[requestedFilterAlgoCount];
@@ -260,16 +260,16 @@ namespace FreeWill
                                                                        &returnedFilterAlgoCount,
                                                                        filterBackwardPerfResults ));
 
-                qDebug() << returnedFilterAlgoCount << "convolution filter backward algorithm benchmarks:";
+                //qDebug() << returnedFilterAlgoCount << "convolution filter backward algorithm benchmarks:";
 
-                for(int i =0;i<returnedFilterAlgoCount;++i)
+                /*for(int i =0;i<returnedFilterAlgoCount;++i)
                 {
                     qDebug() << i << "Status:" << filterBackwardPerfResults[i].status 
                         << "Time:" << filterBackwardPerfResults[i].time << "milliseconds" 
                         << "Memory need:" << filterBackwardPerfResults[i].memory;
 
                     displayFilterBackwardAlgorithm(filterBackwardPerfResults[i].algo);
-                }
+                }*/
 
                 RUN_CUDNN(cudnnGetConvolutionBackwardDataAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
                                                                     m_featureMapFilterDescriptor,
@@ -280,7 +280,7 @@ namespace FreeWill
                                                                     0,
                                                                     &m_prevActivationDeltaAlgorithm));
 
-                displayPrevActivationDeltaAlgorithm(m_prevActivationDeltaAlgorithm);
+                //displayPrevActivationDeltaAlgorithm(m_prevActivationDeltaAlgorithm);
 
                 const int requestedPrevActivationAlgoCount = 6;
                 cudnnConvolutionBwdDataAlgoPerf_t prevActivationPerfResults[requestedPrevActivationAlgoCount];
@@ -295,14 +295,14 @@ namespace FreeWill
                                                                      &returnedPrevActivationAlgoCount,
                                                                      prevActivationPerfResults));
 
-                for(int i =0;i<returnedPrevActivationAlgoCount;++i)
+                /*for(int i =0;i<returnedPrevActivationAlgoCount;++i)
                 {
                     qDebug() << i << "Status:" << prevActivationPerfResults[i].status
                         << "Time:" << prevActivationPerfResults[i].time << "milliseconds"
                         << "Memory need:" << prevActivationPerfResults[i].memory;
 
                     displayPrevActivationDeltaAlgorithm(prevActivationPerfResults[i].algo);
-                }
+                }*/
                 
             }
 

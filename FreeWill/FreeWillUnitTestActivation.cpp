@@ -45,7 +45,6 @@ void FreeWillUnitTest::operatorSigmoidTestCPUAndGPU()
 
     outputGPU.copyFromDeviceToHost();
 
-    const float epsilon = 0.01;
     for (unsigned int i = 0;i<inputGPU.shape().size(); ++i)
     {
         QVERIFY(std::abs(outputGPU[i] - outputCPU[i]) < epsilon);
@@ -54,33 +53,30 @@ void FreeWillUnitTest::operatorSigmoidTestCPUAndGPU()
 
 void FreeWillUnitTest::operatorSigmoidDerivativeTest()
 {
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> input({1});
     input.init();
     input.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> output({1});
     output.init();
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> sigmoid;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, double> sigmoid;
     sigmoid.setInputParameter("Input", &input);
     sigmoid.setOutputParameter("Output", &output);
     QVERIFY(sigmoid.init());
     sigmoid.evaluate();
 
-    const float epsilon = 0.001;
-    //const float threshold = 1e-5; 
-
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input_larger({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> input_larger({1});
     input_larger.init();
     input_larger[0] = input[0] + epsilon;
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output_larger({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> output_larger({1});
     output_larger.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input_smaller({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> input_smaller({1});
     input_smaller.init();
     input_smaller[0] = input[0] - epsilon;
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output_smaller({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> output_smaller({1});
     output_smaller.init();
     
     sigmoid.clear(); 
@@ -97,13 +93,13 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
     QVERIFY(sigmoid.init());
     sigmoid.evaluate();
 
-    float fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon); 
+    double fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon);
    
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> ones({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> ones({1});
     ones.init();
     ones[0] = 1; 
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> sigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, double> sigmoidDerivative;
     sigmoidDerivative.setInputParameter("Output", &output);
     sigmoidDerivative.setInputParameter("OutputDelta", &ones);
     sigmoidDerivative.setOutputParameter("InputDelta", &input);
@@ -111,21 +107,21 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
     QVERIFY(sigmoidDerivative.init());
     sigmoidDerivative.evaluate();
 
-    QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
+    QVERIFY(relativeError(fakeDerivative, input[0]) < epsilon);
 }
 
 void FreeWillUnitTest::operatorSigmoidDerivativeTestGPU()
 {
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> input({1});
     input.init();
     input.randomize();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> output({1});
     output.init();
 
     input.copyFromHostToDevice();
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::GPU_CUDA, float> sigmoid;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::GPU_CUDA, double> sigmoid;
     sigmoid.setInputParameter("Input", &input);
     sigmoid.setOutputParameter("Output", &output);
     QVERIFY(sigmoid.init());
@@ -133,22 +129,19 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTestGPU()
 
     output.copyFromDeviceToHost();
 
-    const float epsilon = 0.001;
-    //const float threshold = 1e-5; 
-
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input_larger({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> input_larger({1});
     input_larger.init();
     input_larger[0] = input[0] + epsilon;
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output_larger({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> output_larger({1});
     output_larger.init();
 
     input_larger.copyFromHostToDevice();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input_smaller({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> input_smaller({1});
     input_smaller.init();
     input_smaller[0] = input[0] - epsilon;
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output_smaller({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> output_smaller({1});
     output_smaller.init();
 
     input_smaller.copyFromHostToDevice();
@@ -171,14 +164,14 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTestGPU()
 
     output_smaller.copyFromDeviceToHost();
 
-    float fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon); 
+    double fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon);
     
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::GPU_CUDA, float> sigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::GPU_CUDA, double> sigmoidDerivative;
     input[0] = 0;
     input.copyFromHostToDevice();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> ones({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> ones({1});
     ones.init();
     ones[0] = 1;
     ones.copyFromHostToDevice();
@@ -193,39 +186,36 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTestGPU()
     input.copyFromDeviceToHost();
 
     //printf("fake:%f, real:%f\n",fakeDerivative, input[0]);
-    QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
+    QVERIFY(relativeError(fakeDerivative, input[0]) < epsilon);
 }
 
 void FreeWillUnitTest::operatorReLUDerivativeTest()
 {
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> input({1});
     input.init();
     input.randomize();
     input[0] = input[0] - 0.5;
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> output({1});
     output.init();
 
-    FreeWill::Activation<FreeWill::RELU, FreeWill::CPU_NAIVE, float> relu;
+    FreeWill::Activation<FreeWill::RELU, FreeWill::CPU_NAIVE, double> relu;
     relu.setInputParameter("Input", &input);
     relu.setOutputParameter("Output", &output);
     QVERIFY(relu.init());
     relu.evaluate();
 
-    const float epsilon = 0.001;
-    //const float threshold = 1e-5; 
-
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input_larger({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> input_larger({1});
     input_larger.init();
     input_larger[0] = input[0] + epsilon;
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output_larger({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> output_larger({1});
     output_larger.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input_smaller({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> input_smaller({1});
     input_smaller.init();
     input_smaller[0] = input[0] - epsilon;
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output_smaller({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> output_smaller({1});
     output_smaller.init();
     
     relu.clear(); 
@@ -242,14 +232,14 @@ void FreeWillUnitTest::operatorReLUDerivativeTest()
     QVERIFY(relu.init());
     relu.evaluate();
 
-    float fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon); 
+    double fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon);
    
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> ones({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> ones({1});
     ones.init();
     ones[0] = 1; 
 
     //printf("input: %f output %f deriv %f\n", input[0], output[0], 4.0);
-    FreeWill::ActivationDerivative<FreeWill::RELU, FreeWill::CPU_NAIVE, float> reluDerivative;
+    FreeWill::ActivationDerivative<FreeWill::RELU, FreeWill::CPU_NAIVE, double> reluDerivative;
     reluDerivative.setInputParameter("Output", &output);
     reluDerivative.setInputParameter("OutputDelta", &ones);
     reluDerivative.setOutputParameter("InputDelta", &input);
@@ -257,22 +247,22 @@ void FreeWillUnitTest::operatorReLUDerivativeTest()
     QVERIFY(reluDerivative.init());
     reluDerivative.evaluate();
 
-    //printf("fake %f, real %f\n", fakeDerivative, input[0]);
-    QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
+    //printf("fake %f, real %f, diff %f\n", fakeDerivative, input[0], relativeError(fakeDerivative, input[0]));
+    QVERIFY(relativeError(fakeDerivative, input[0]) < epsilon);
 }
 
 void FreeWillUnitTest::operatorReLUDerivativeTestGPU()
 {
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> input({1});
     input.init();
     input.randomize();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> output({1});
     output.init();
 
     input.copyFromHostToDevice();
 
-    FreeWill::Activation<FreeWill::RELU, FreeWill::GPU_CUDA, float> relu;
+    FreeWill::Activation<FreeWill::RELU, FreeWill::GPU_CUDA, double> relu;
     relu.setInputParameter("Input", &input);
     relu.setOutputParameter("Output", &output);
     QVERIFY(relu.init());
@@ -280,22 +270,19 @@ void FreeWillUnitTest::operatorReLUDerivativeTestGPU()
 
     output.copyFromDeviceToHost();
 
-    const float epsilon = 0.001;
-    //const float threshold = 1e-5; 
-
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input_larger({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> input_larger({1});
     input_larger.init();
     input_larger[0] = input[0] + epsilon;
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output_larger({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> output_larger({1});
     output_larger.init();
 
     input_larger.copyFromHostToDevice();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input_smaller({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> input_smaller({1});
     input_smaller.init();
     input_smaller[0] = input[0] - epsilon;
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output_smaller({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> output_smaller({1});
     output_smaller.init();
 
     input_smaller.copyFromHostToDevice();
@@ -318,14 +305,14 @@ void FreeWillUnitTest::operatorReLUDerivativeTestGPU()
 
     output_smaller.copyFromDeviceToHost();
 
-    float fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon); 
+    double fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon);
     
 
-    FreeWill::ActivationDerivative<FreeWill::RELU, FreeWill::GPU_CUDA, float> reluDerivative;
+    FreeWill::ActivationDerivative<FreeWill::RELU, FreeWill::GPU_CUDA, double> reluDerivative;
     input[0] = 0;
     input.copyFromHostToDevice();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> ones({1});
+    FreeWill::Tensor<FreeWill::GPU_CUDA, double> ones({1});
     ones.init();
     ones[0] = 1;
     ones.copyFromHostToDevice();
@@ -340,7 +327,7 @@ void FreeWillUnitTest::operatorReLUDerivativeTestGPU()
     input.copyFromDeviceToHost();
 
     //printf("fake:%f, real:%f\n",fakeDerivative, input[0]);
-    QVERIFY(std::abs(input[0] - fakeDerivative) < epsilon);
+    QVERIFY(relativeError(fakeDerivative, input[0]) < epsilon);
 }
 
 

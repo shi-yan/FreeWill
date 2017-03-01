@@ -1,6 +1,8 @@
 #ifndef DEVICESELECTION_H
 #define DEVICESELECTION_H
 
+#include <cmath>
+
 #define VERIFY_INIT(a) \
     if (! a) \
     {qDebug() << "Operator check failed:" << #a ; abort();}
@@ -36,10 +38,9 @@ namespace FreeWill
         {printf("CUBLAS error: %s:%d Error[%d]\n", __FILE__, __LINE__, result);}}
 
 #define CHECK_CUDA_ERROR \
-    if (cudaGetLastError() != cudaSuccess) \
-        {printf("CUDA Launch Kernel error: %s:%d\n", __FILE__, __LINE__);}
-
-#endif
+    {cudaError_t result = cudaGetLastError(); \
+    if (result != cudaSuccess) \
+        {printf("CUDA Launch Kernel error: %s:%d Error[%s]\n", __FILE__, __LINE__, cudaGetErrorString(result));}}
 
 #define FAIL_IF(EXP) \
     do { if (EXP) { \
@@ -48,3 +49,17 @@ namespace FreeWill
 
 #define ENUM_CASE(option, message) \
     case option: qDebug() << message << #option << option; break;
+
+static const double epsilon = 1e-4;
+
+static inline double relativeError(double fakeGradient, double realGradient)
+{
+    double norm = std::max(std::abs(fakeGradient), std::abs(realGradient));
+    if (norm == 0.0)
+    {
+        norm = 1.0;
+    }
+    return std::abs(fakeGradient - realGradient) / norm;
+}
+
+#endif

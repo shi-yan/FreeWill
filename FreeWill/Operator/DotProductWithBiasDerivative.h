@@ -71,7 +71,6 @@ namespace FreeWill
            Tensor<DeviceUsed, DataType> *weight = (Tensor<DeviceUsed, DataType> *) input("Weight");
            Tensor<DeviceUsed, DataType> *biasGrad = (Tensor<DeviceUsed, DataType> *) output("BiasGrad");
 
-           (*weightGrad)[0] = 0;
            if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
            {
                 for(unsigned int b = 0;b<batchSize;++b)
@@ -145,7 +144,7 @@ namespace FreeWill
                     {
                         RUN_CUBLAS(cublasDgemv(Context<DeviceUsed>::getSingleton().cublasHandle(),CUBLAS_OP_N,
                                     outputSize, batchSize, &alpha, outputGrad->gpuDataHandle(),outputSize,
-                                    Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(outputSize), 1, 
+                                    Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(batchSize), 1,
                                      &beta,biasGrad->gpuDataHandle(), 1));
                     }
 
