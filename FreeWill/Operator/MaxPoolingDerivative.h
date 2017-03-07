@@ -189,7 +189,7 @@ namespace FreeWill
                                                 &alpha,
                                                 m_outputGPUTensorDescriptor,
                                                 _output->gpuDataHandle(),
-                                                m_outputGPUTensorDescriptor,
+                                                m_outputDeltaGPUTensorDescriptor,
                                                 _outputGrad->gpuDataHandle(),
                                                 m_inputGPUTensorDescriptor,
                                                 _input->gpuDataHandle(),

@@ -38,10 +38,12 @@ public:
         void openTrainData();
         void closeTestData();
         void closeTrainData();
-        void loadOneTrainData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor<FreeWill::CPU, unsigned int> &label);
-        void loadOneTestData(FreeWill::Tensor<FreeWill::CPU, float> &image, FreeWill::Tensor<FreeWill::CPU, unsigned int> &label);
-        void loadOneTrainDataGPU(FreeWill::Tensor<FreeWill::GPU_CUDA, float> &image, FreeWill::Tensor<FreeWill::GPU_CUDA, unsigned int> &label);
-        void loadOneTestDataGPU(FreeWill::Tensor<FreeWill::GPU_CUDA, float> &image, FreeWill::Tensor<FreeWill::GPU_CUDA, unsigned int> &label);
+        
+        template<FreeWill::DeviceType DeviceUsed = FreeWill::CPU_NAIVE>
+        void loadOneTrainData(FreeWill::Tensor<DeviceUsed, float> &image, FreeWill::Tensor<DeviceUsed, unsigned int> &label,unsigned int batchSize);
+
+        template<FreeWill::DeviceType DeviceUsed = FreeWill::CPU_NAIVE>
+        void loadOneTestData(FreeWill::Tensor<DeviceUsed, float> &image, FreeWill::Tensor<DeviceUsed, unsigned int> &label, unsigned int batchSize);
 
 
         void trainFullyConnectedModel();

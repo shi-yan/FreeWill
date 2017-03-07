@@ -182,7 +182,7 @@ namespace FreeWill
                 RUN_CUDNN(cudnnSetTensor4dDescriptor( m_biasGPUTensorDescriptor,
                                                       CUDNN_TENSOR_NHWC,
                                                       dataType,
-                                                      batchSize,
+                                                      1,
                                                       filterCount,
                                                       1,
                                                       1));
@@ -358,6 +358,9 @@ namespace FreeWill
                     //displayTensorDescriptor(m_biasGPUTensorDescriptor);
                     //displayTensorDescriptor(m_inputGPUTensorDescriptor);
                     //displayTensorDescriptor(m_outputGPUTensorDescriptor);
+
+                    //printf("bias size:%d\n", _bias->shape().size());
+                    //printf("output size:%d\n", _output->shape().size());
 
                     RUN_CUDNN(cudnnAddTensor( Context<DeviceUsed>::getSingleton().cudnnHandle(),
                                               &alpha,

@@ -80,6 +80,7 @@ set(FreeWill_SOURCES
     FreeWillUnitTestConvNet.cpp
     FreeWillUnitTestActivation.cpp
     Tensor/Tensor.h
+    Tensor/ReferenceCountedBlob.h
     Operator/SoftmaxLogLoss.h
     Operator/ElementwiseAdd.h
     Operator/Operator.h

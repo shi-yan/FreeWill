@@ -14,7 +14,7 @@ __global__ void softmaxLogLoss(DataType *output, unsigned int *label, DataType *
 
         if (label[batchId] == vectorId)
         {
-            cost[batchId] = -log(output[vectorId]);
+            cost[batchId] = -log(output[id]);
         }
     }
 }
@@ -51,7 +51,7 @@ __global__ void softmaxLogLossDerivative(DataType *inputDelta, DataType *output,
         int vectorId = id % vectorSize;
         int batchId = id / vectorSize;
 
-        inputDelta[batchId*vectorSize+ vectorId] = output[batchId*vectorSize +vectorId] + ((label[batchId] == vectorId)?-1.0:0.0);
+        inputDelta[id] = output[id] + ((label[batchId] == vectorId)?-1.0:0.0);
     }
 }
 

@@ -34,4 +34,5 @@ private slots:
     void convolutionDerivativeTestGPU();
     void maxPoolingTestCPUAndGPU();
     void xorTest();
+    void xorTestGPU();
 };

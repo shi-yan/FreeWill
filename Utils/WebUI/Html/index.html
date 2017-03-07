@@ -53,8 +53,9 @@
 
       var g = new Dygraph(document.getElementById("div_g"), plotData,
                           {
-                                drawPoints: true,
+                                drawPoints: false,
                                 showRoller: true,
+                                rollPeriod: 15,
                                 valueRange: [0.0, 10.0],
                                 labels: ['Step', 'Cost']
                           });
@@ -66,7 +67,7 @@
         g.updateOptions( { 'file': data } );
       }, 1000);
 */
-      var socket = new WebSocket('ws://vca10:5678');
+      var socket = new WebSocket('ws://{{websocket_address}}:5678');
 	  socket.binaryType = 'arraybuffer';
 
 	  socket.onopen = function (event) 
