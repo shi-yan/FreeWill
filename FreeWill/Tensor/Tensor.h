@@ -28,7 +28,7 @@ namespace FreeWill
             m_gpuTensorDescriptor(0),
             m_data()
        {
-           RUN_CUDA(cudnnCreateTensorDescriptor(&m_gpuTensorDescriptor));
+           RUN_CUDNN(cudnnCreateTensorDescriptor(&m_gpuTensorDescriptor));
        }
 
        TensorBase(const ReferenceCountedBlob<DeviceUsed> &data, const Shape &shape = Shape())
@@ -82,6 +82,13 @@ namespace FreeWill
     public:
         using TensorBase<DeviceUsed>::shape;
 
+        explicit Tensor(const std::initializer_list<unsigned int> &shape, 
+                const std::string &name = "no_name")
+            :TensorBase<DeviceUsed>(shape),
+            m_name(name)
+        {
+
+        }
         
         explicit Tensor(const Shape &shape = Shape(),
 	       const std::string &name = "no_name")

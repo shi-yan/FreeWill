@@ -13,6 +13,7 @@
 #include "Operator/SoftmaxLogLossDerivative.h"
 #include "Operator/MaxPooling.h"
 #include "Operator/MaxPoolingDerivative.h"
+#include "Model/Model.h"
 
 void FreeWillUnitTest::operatorSigmoidCrossEntropyTestCPUAndGPU()
 {
@@ -1259,6 +1260,12 @@ void FreeWillUnitTest::maxPoolingTestCPUAndGPU()
         QVERIFY(std::abs(inputGradCPU[i] - inputGradGPU[i])<epsilon);
     }
 }
+
+void FreeWillUnitTest::modelTest()
+{
+    FreeWill::Model model();
+}
+
 
 QTEST_MAIN(FreeWillUnitTest)
 #include "FreeWillUnitTest.moc"

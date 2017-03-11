@@ -54,7 +54,7 @@ static const double epsilon = 1e-4;
 
 static inline double relativeError(double fakeGradient, double realGradient)
 {
-    double norm = std::max(std::abs(fakeGradient), std::abs(realGradient));
+    double norm = std::fmax(std::abs(fakeGradient), std::abs(realGradient));
     if (norm == 0.0)
     {
         norm = 1.0;

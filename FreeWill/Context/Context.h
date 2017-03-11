@@ -8,6 +8,7 @@
 #include <cublas_v2.h>
 #include <cstdlib>
 #include <type_traits>
+#include <cstdio>
 
 namespace FreeWill
 {

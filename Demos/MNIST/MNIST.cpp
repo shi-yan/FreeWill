@@ -936,14 +936,10 @@ void MNIST::trainConvolutionalModelGPU()
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> featureMap({1,5,5, featureMapSize});
     featureMap.init();
     featureMap.randomize();
-    //readFileDump(featureMap);
-    //featureMap.copyFromHostToDevice();
 
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> bias({featureMapSize});
     bias.init();
     bias.randomize();
-    //readFileDump(bias);
-    //bias.copyFromHostToDevice();
 
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> convOutput({featureMapSize,24,24,batchSize});
     convOutput.init();
@@ -951,23 +947,13 @@ void MNIST::trainConvolutionalModelGPU()
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> poolingOutput({featureMapSize,12,12,batchSize});
     poolingOutput.init();
 
-    //FreeWill::Tensor<FreeWill::GPU_CUDA, unsigned int> poolingSwitchX({featureMapSize,12,12,1});
-    //poolingSwitchX.init();
-
-    //FreeWill::Tensor<FreeWill::GPU_CUDA, unsigned int> poolingSwitchY({featureMapSize,12,12,1});
-    //poolingSwitchY.init();
-
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected1Weight({100, featureMapSize*12*12});
     fullyConnected1Weight.init();
     fullyConnected1Weight.randomize();
-    //readFileDump(fullyConnected1Weight);
-    //fullyConnected1Weight.copyFromHostToDevice();
 
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected1Bias({100});
     fullyConnected1Bias.init();
     fullyConnected1Bias.randomize();
-    //readFileDump(fullyConnected1Bias);
-    //fullyConnected1Bias.copyFromHostToDevice();
 
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected1Output({100, batchSize});
     fullyConnected1Output.init();
@@ -975,14 +961,10 @@ void MNIST::trainConvolutionalModelGPU()
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected2Weight({10, 100});
     fullyConnected2Weight.init();
     fullyConnected2Weight.randomize();
-    //readFileDump(fullyConnected2Weight);
-    //fullyConnected2Weight.copyFromHostToDevice();
 
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected2Bias({10});
     fullyConnected2Bias.init();
     fullyConnected2Bias.randomize();
-    //readFileDump(fullyConnected2Bias);
-    //fullyConnected2Bias.copyFromHostToDevice();
 
     FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected2Output({10, batchSize});
     fullyConnected2Output.init();
@@ -1009,8 +991,6 @@ void MNIST::trainConvolutionalModelGPU()
     FreeWill::MaxPooling<FreeWill::GPU_CUDA, float> maxPooling;
     maxPooling.setInputParameter("Input", &convOutput);
     maxPooling.setOutputParameter("Output", &poolingOutput);
-    //maxPooling.setOutputParameter("SwitchX", &poolingSwitchX);
-    //maxPooling.setOutputParameter("SwitchY", &poolingSwitchY);
     VERIFY_INIT(maxPooling.init());
 
 
@@ -1142,8 +1122,6 @@ void MNIST::trainConvolutionalModelGPU()
 
     VERIFY_INIT(convDerivative.init());
 
-//    closeFileDump();
-
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateConvWeight;
     updateConvWeight.setInputParameter("Operand", &featureMap);
     updateConvWeight.setInputParameter("Operand", &convFeatureMapGrad);
@@ -1259,7 +1237,6 @@ void MNIST::trainConvolutionalModelGPU()
             }
 
             //test
-            //
             if (i % testInterval == 0)
             {
                 unsigned int correct = 0;
@@ -1270,8 +1247,6 @@ void MNIST::trainConvolutionalModelGPU()
                 {
                     convOutput.clear();
                     poolingOutput.clear();
-                    //poolingSwitchX.clear();
-                    //poolingSwitchY.clear();
                     fullyConnected1Output.clear();
                     fullyConnected2Output.clear();
                     softmaxOutput.clear();
@@ -1285,13 +1260,11 @@ void MNIST::trainConvolutionalModelGPU()
                     //forward
                     convolution.evaluate();
                     convSigmoid.evaluate();
-                    //convReLU.evaluate();
                     poolingOutput.reshape({featureMapSize,12,12,batchSize});
                     maxPooling.evaluate();
                     poolingOutput.reshape({featureMapSize*12*12,batchSize});
                     fullyConnected1.evaluate();
                     sigmoid1.evaluate();
-                    //ReLu1.evaluate();
                     fullyConnected2.evaluate();
                     softmaxLogLoss.evaluate();
 
@@ -1311,7 +1284,6 @@ void MNIST::trainConvolutionalModelGPU()
                             }
                         }
 
-  //                      printf("test cost: %f maxIndex %d label %d \n", cost[b], maxIndex, label[b]);
 
                         if ((float) maxIndex == label[b])
                         {
@@ -1331,8 +1303,6 @@ void MNIST::trainConvolutionalModelGPU()
 
             convOutput.clear();
             poolingOutput.clear();
-            //poolingSwitchX.clear();
-            //poolingSwitchY.clear();
             fullyConnected1Output.clear();
             fullyConnected2Output.clear();
             softmaxOutput.clear();
@@ -1349,7 +1319,6 @@ void MNIST::trainConvolutionalModelGPU()
             convFeatureMapGrad.clear();
             inputGrad.clear();
 
-            //closeData();
 
             emit updateProgress(i / (float)(numOfImage), ((e-1)*numOfImage + i) / (60.0f*numOfImage));
         }

@@ -222,7 +222,7 @@ namespace FreeWill
             }
         }
 
-        void operator==(const ReferenceCountedBlob<DeviceUsed> &blob) const 
+        bool operator==(const ReferenceCountedBlob<DeviceUsed> &blob) const 
         {
             if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0) 
             {
