@@ -9,18 +9,19 @@
 #include <utility>
 #include "../Tensor/Shape.h"
 #include <variant>
+
 namespace FreeWill
 {
+    typedef enum
+    {
+        FLOAT,
+        DOUBLE,
+        UNSIGNED_INT
+    } DataType;
+
     class Model
     {
     private:
-        typedef enum
-        {
-            FLOAT,
-            DOUBLE,
-            UNSIGNED_INT
-        } DataType;
-
         class TensorDescriptor
         {
             friend class Model;
@@ -31,9 +32,9 @@ namespace FreeWill
             int m_batchSize;
             DataType m_dataType;
             //change this to variant or any
-            std::map<DeviceType, std::variant<TensorBase<GPU_CUDA> *>> m_tensors;
+            std::map<DeviceType, std::variant<TensorBase<GPU_CUDA>*, TensorBase<CPU_NAIVE>*>> m_tensors;
 
-            TensorDescriptor(const std::string &name, const Shape &shape, DataType dataType = FLOAT, bool isBatchTensor = false);
+            TensorDescriptor(const std::string &name, const Shape &shape, bool isBatchTensor = false, DataType dataType = FLOAT);
             ~TensorDescriptor();
 
             void operator=(const TensorDescriptor &in);
@@ -47,7 +48,7 @@ namespace FreeWill
             std::string m_name;
             DataType m_dataType;
             
-            OperatorDescriptor(const std::string &name);
+            OperatorDescriptor(const std::string &name, DataType dataType = FLOAT);
             ~OperatorDescriptor();
         };
 
@@ -65,7 +66,8 @@ namespace FreeWill
         static Model* create();
         ~Model();
         bool init();
-        int addTensor(const std::string &name, const Shape &shape, bool isBatchTensor = true);
+        int addTensor(const std::string &name, const Shape &shape, bool isBatchTensor = true, DataType dataType = FLOAT);
+        int addOperator(const std::string &name, const std::map<std::string, std::variant<std::string, int, unsigned int, float, double>> &arguments, DataType dataType = FLOAT);
     };
 }
 

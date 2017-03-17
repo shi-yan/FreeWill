@@ -6,9 +6,9 @@ SET (Qt5Network_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Network)
 
 SET (CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/qt5)
 #SET (CMAKE_C_COMPILER clang)
-SET (CMAKE_C_FLAGS          "-std=gnu++1z -march=x86-64 -m64 -Wno-c++1z-extensions")
+SET (CMAKE_C_FLAGS          "-std=gnu++17 -march=x86-64 -m64")
 #SET (CMAKE_CXX_COMPILER clang++)
-SET (CMAKE_CXX_FLAGS        "-std=gnu++1z -march=x86-64 -m64 -fno-omit-frame-pointer -fPIC -I/usr/local/include -Wall -Wextra -Woverloaded-virtual -Wno-unused-local-typedefs -Wno-c++1z-extensions")
+SET (CMAKE_CXX_FLAGS        "-std=gnu++17 -march=x86-64 -m64 -fno-omit-frame-pointer -fPIC -I/usr/local/include -Wall -Wextra -Woverloaded-virtual -Wno-unused-local-typedefs")
 
 set (CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}" CACHE STRING "c flags")
 set (CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}" CACHE STRING "c++ flags")
@@ -43,17 +43,20 @@ set(CMAKE_AUTOMOC ON)
 #set(CMAKE_CXX_STANDARD 14)
 
 find_package(Qt5Core REQUIRED)
+set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 include_directories(${Qt5Core_INCLUDE_DIRS})
 add_definitions(${Qt5Core_DEFINITIONS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
 
 find_package(Qt5Network REQUIRED)
+set_property(TARGET Qt5::Network PROPERTY INTERFACE_COMPILE_FEATURES "")
 include_directories(${Qt5Network_INCLUDE_DIRS})
 add_definitions(${Qt5Network_DEFINITIONS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
 
 
 find_package(Qt5Test REQUIRED)
+set_property(TARGET Qt5::Test PROPERTY INTERFACE_COMPILE_FEATURES "")
 include_directories(${Qt5Test_INCLUDE_DIRS})
 
 get_target_property(QtCore_Location Qt5::Core LOCATION)

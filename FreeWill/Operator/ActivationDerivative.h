@@ -40,7 +40,7 @@ namespace FreeWill
             FAIL_IF (input("OutputDelta")->shape() != input("Output")->shape());
             
 
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
 
                 if (!m_cudnnActivationDescriptor)
@@ -82,7 +82,7 @@ namespace FreeWill
             Tensor<DeviceUsed, DataType> *_inputDelta = (Tensor<DeviceUsed, DataType> *) output("InputDelta");
             Tensor<DeviceUsed, DataType> *_outputDelta = (Tensor<DeviceUsed, DataType> *) input("OutputDelta");
 
-            if constexpr ((DeviceUsed & (CPU | CPU_NAIVE | CPU_SIMD)) != 0)
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {
                 if constexpr (ActivationModeUsed == SIGMOID)
                 {
@@ -106,7 +106,7 @@ namespace FreeWill
            
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 DataType alpha = 1.0;
                 DataType beta = 0.0;
@@ -132,7 +132,7 @@ namespace FreeWill
         {
             Operator<DeviceUsed>::clear();
 
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 RUN_CUDNN(cudnnDestroyActivationDescriptor(m_cudnnActivationDescriptor));
                 m_cudnnActivationDescriptor = 0;

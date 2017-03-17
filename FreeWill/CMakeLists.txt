@@ -5,9 +5,9 @@ SET (Qt5Core_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Core)
 SET (Qt5Test_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Test)
 SET (CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/qt5)
 #SET (CMAKE_C_COMPILER clang)
-SET (CMAKE_C_FLAGS          "-std=gnu++1z -march=x86-64 -Wno-c++1z-extensions")
+SET (CMAKE_C_FLAGS          "-std=gnu++17 -march=x86-64 -Wno-c++1z-extensions -Wno-unknown-pragmas")
 #SET (CMAKE_CXX_COMPILER clang++)
-SET (CMAKE_CXX_FLAGS        "-std=gnu++1z -march=x86-64 -m64 -fno-omit-frame-pointer -fPIC -I/usr/local/include -Wall -Wextra -Woverloaded-virtual -Wno-unused-local-typedefs -Wno-c++1z-extensions")
+SET (CMAKE_CXX_FLAGS        "-std=gnu++17 -march=x86-64 -m64 -fno-omit-frame-pointer -fPIC -I/usr/local/include -Wall -Wextra -Woverloaded-virtual -Wno-unused-local-typedefs -Wno-unknown-pragmas -Wno-format -Wunused-but-set-variable")
 
 set (CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}" CACHE STRING "c flags")
 set (CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}" CACHE STRING "c++ flags")
@@ -39,18 +39,21 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
 
-#set(CMAKE_CXX_STANDARD 14)
+#set(CMAKE_CXX_STANDARD 17)
 
 find_package(Qt5Core REQUIRED)
+set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 include_directories(${Qt5Core_INCLUDE_DIRS})
 add_definitions(${Qt5Core_DEFINITIONS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
 
 
 find_package(Qt5Test REQUIRED)
+set_property(TARGET Qt5::Test PROPERTY INTERFACE_COMPILE_FEATURES "")
 include_directories(${Qt5Test_INCLUDE_DIRS})
 
 get_target_property(QtCore_Location Qt5::Core LOCATION)
+
 
 find_package(CUDA REQUIRED)
 include_directories( ${CUDA_INCLUDE_DIRS} )
@@ -79,8 +82,12 @@ set(FreeWill_SOURCES
     FreeWillUnitTestXOR.cpp
     FreeWillUnitTestConvNet.cpp
     FreeWillUnitTestActivation.cpp
+    FreeWillUnitTestModel.cpp
     Tensor/Tensor.h
     Tensor/ReferenceCountedBlob.h
+    Operator/Activation.h
+    Operator/ActivationDerivative.h
+    Operator/DotProductWithBias.h
     Operator/SoftmaxLogLoss.h
     Operator/ElementwiseAdd.h
     Operator/Operator.h

@@ -72,7 +72,7 @@ namespace FreeWill
             Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) output("Output");
             Tensor<DeviceUsed, DataType> *_bias = (Tensor<DeviceUsed, DataType> *) input("Bias");
 
-            if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {
                 for(unsigned int b = 0; b < batchSize; ++b)
                 {

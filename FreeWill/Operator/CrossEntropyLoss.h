@@ -43,7 +43,7 @@ namespace FreeWill
             unsigned int batchSize = _cost->shape()[0];
             unsigned int vectorSize = _input->shape()[0];
 
-            if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {
                 for(unsigned int e = 0; e< batchSize; ++e)
                 {
@@ -57,7 +57,7 @@ namespace FreeWill
                     (*_cost)[e] *= -1.0;
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 if constexpr (std::is_same<float, DataType>::value)
                 {

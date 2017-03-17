@@ -43,7 +43,7 @@ namespace FreeWill
 
             FAIL_IF (input("Input")->shape() != output("Output")->shape());
 
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 if (!m_cudnnActivationDescriptor)
                 {
@@ -78,7 +78,7 @@ namespace FreeWill
             Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) output("Output");
 
 
-            if constexpr ((DeviceUsed & (CPU_SIMD | CPU_NAIVE)) != 0)
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {
                 unsigned int size = _input->shape().size();
 
@@ -103,7 +103,7 @@ namespace FreeWill
                 {
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                DataType alpha = 1.0;
                DataType beta = 0.0;

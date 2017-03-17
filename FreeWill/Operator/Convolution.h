@@ -10,7 +10,7 @@ namespace FreeWill
 
 
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
-    class Convolution : public Operator<DeviceUsed>
+    class Convolution : public Operator<DeviceUsed>, OperatorRegistry<Convolution<DeviceUsed, DataType>>
     {
     protected:
         using Operator<DeviceUsed>::input;
@@ -106,6 +106,11 @@ namespace FreeWill
                                                  strideA));
 
             printf("Tensor descriptor: %d, dim: %d,%d,%d,%d | stride: %d,%d,%d,%d\n", dimnb, dimA[0], dimA[1], dimA[2], dimA[3],strideA[0],strideA[1],strideA[2],strideA[3]);
+        }
+
+        static void reg()
+        {
+            OperatorRegistry<Convolution<DeviceUsed, DataType>>::m_operatorFactoryInitializer.getA();
         }
 
         virtual bool init() override

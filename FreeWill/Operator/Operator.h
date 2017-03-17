@@ -10,10 +10,15 @@
 
 #include <cuda.h>
 #include <cudnn.h>
-
+#include <functional>
+#include <variant>
+#include <iostream>
 
 namespace FreeWill
 {
+    template <DeviceType DeviceUsed>
+    class OperatorFactory;
+
     template <DeviceType DeviceUsed = CPU>
     class Operator
     {
@@ -156,6 +161,65 @@ namespace FreeWill
             } 
 
         }
+
     };
+
+    template <typename T, T /*unnamed*/>
+    struct OperatorFactoryInitializer_ForceInit { };
+
+
+    template <DeviceType DeviceUsed = CPU>
+    class OperatorFactory
+    {
+        friend class Operator<DeviceUsed>;
+    private:
+        std::map<std::string, std::function<Operator<DeviceUsed>*(const std::map<std::string, std::variant<int, unsigned int, float, double>> &)>> m_creatFunctions;
+
+        OperatorFactory()
+            :m_creatFunctions(){};
+        ~OperatorFactory(){};
+
+    public:
+        static OperatorFactory & getSingleton()
+        {
+            static OperatorFactory obj;
+            return obj;
+        }
+
+
+    };
+
+    template<typename OperatorType>
+    class OperatorRegistry
+    {
+    public:
+        class OperatorFactoryInitializer
+        {
+        public:
+            int a;
+            OperatorFactoryInitializer()
+            {
+                OperatorFactory<CPU>::getSingleton();
+                std::cout << "registered class:" << typeid(OperatorType).name();
+                OperatorType::reg();
+            }
+
+            int getA()
+            {
+                return a;
+            }
+
+        };
+
+        static OperatorFactoryInitializer m_operatorFactoryInitializer;
+        typedef OperatorFactoryInitializer_ForceInit<OperatorFactoryInitializer&, m_operatorFactoryInitializer> __nnb_typedef_dummy__;
+    };
+
+
+
+    template<typename OperatorType> typename OperatorRegistry<OperatorType>::OperatorFactoryInitializer OperatorRegistry<OperatorType>::m_operatorFactoryInitializer;
+
+   // template<>
+   // Operator<CPU>::OperatorFactoryInitializer Operator<CPU>::m_operatorFactoryInitializer;
 }
 #endif

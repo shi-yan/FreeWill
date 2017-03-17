@@ -116,7 +116,7 @@ namespace FreeWill
 
         bool alloc(unsigned int sizeInByte)
         {
-            if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {
                 m_dataHandle = (unsigned char *) malloc(sizeInByte);
                 if (m_dataHandle) 
@@ -165,7 +165,7 @@ namespace FreeWill
 
 /*        void randomize()
         {
-            if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {
                  std::random_device rd;
                  std::mt19937 gen(rd());
@@ -182,7 +182,7 @@ namespace FreeWill
             ReferenceCountedBlob<DeviceUsed> copy;
             copy.alloc(m_sizeInByte);
 
-            if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {
                 std::copy(m_dataHandle, m_dataHandle + m_sizeInByte, copy.m_dataHandle);
             }
@@ -197,7 +197,7 @@ namespace FreeWill
 
         void operator=(const ReferenceCountedBlob<DeviceUsed> &blob)
         {
-            if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0)
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {
                 if (blob.m_dataHandle)
                 {
@@ -224,11 +224,11 @@ namespace FreeWill
 
         bool operator==(const ReferenceCountedBlob<DeviceUsed> &blob) const 
         {
-            if constexpr ((DeviceUsed & (CPU_NAIVE | CPU_SIMD)) != 0) 
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {
                 return m_dataHandle == blob.m_dataHandle;
             }
-            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 return m_gpuDataHandle == blob.m_gpuDataHandle;
             }
@@ -236,7 +236,7 @@ namespace FreeWill
 
         void copyFromHostToDevice()
         {
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) !=0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) !=0)
             {
                 RUN_CUDA(cudaMemcpy(m_gpuDataHandle, m_dataHandle, m_sizeInByte, cudaMemcpyHostToDevice));
             }
@@ -244,7 +244,7 @@ namespace FreeWill
 
         void copyFromDeviceToHost()
         {
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) !=0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) !=0)
             {
                 RUN_CUDA(cudaMemcpy(m_dataHandle, m_gpuDataHandle, m_sizeInByte, cudaMemcpyDeviceToHost));
             }

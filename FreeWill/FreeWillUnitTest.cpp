@@ -1258,14 +1258,10 @@ void FreeWillUnitTest::maxPoolingTestCPUAndGPU()
     {
 //        qDebug() << inputGradGPU[i] << inputGradCPU[i];
         QVERIFY(std::abs(inputGradCPU[i] - inputGradGPU[i])<epsilon);
+
+        //qDebug()<< FreeWill::Operator<FreeWill::CPU>::m_operatorFactoryInitializer.getA();
     }
 }
-
-void FreeWillUnitTest::modelTest()
-{
-    FreeWill::Model model();
-}
-
 
 QTEST_MAIN(FreeWillUnitTest)
 #include "FreeWillUnitTest.moc"
