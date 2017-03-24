@@ -1,10 +1,10 @@
 cmake_minimum_required (VERSION 3.5)
 project (FreeWill)
 
-SET (Qt5Core_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Core)
-SET (Qt5Network_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Network)
+#SET (Qt5Core_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Core)
+#SET (Qt5Network_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Network)
 
-SET (CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/qt5)
+#SET (CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/qt5)
 #SET (CMAKE_C_COMPILER clang)
 SET (CMAKE_C_FLAGS          "-std=gnu++17 -march=x86-64 -m64")
 #SET (CMAKE_CXX_COMPILER clang++)
@@ -67,7 +67,7 @@ include_directories("../../FreeWill")
 include_directories("../../Utils/WebUI/Swiftly/Swiftly")
 include_directories("../../Utils/WebUI/Swiftly/http-parser")
 include_directories("../../Utils/WebUI/Swiftly/qt-mustache/src")
-include_directories("/usr/include/x86_64-linux-gnu/qt5/QtWebSockets")
+#include_directories("/usr/include/x86_64-linux-gnu/qt5/QtWebSockets")
 
 find_package(CUDA REQUIRED)
 include_directories( ${CUDA_INCLUDE_DIRS} )
@@ -93,14 +93,26 @@ set(MNIST_SOURCES
     WebsocketServer.cpp
     main.cpp)
 
+if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/train-images-idx3-ubyte.gz")
+    MESSAGE("Downloading Dataset for MNIST ...")
+    execute_process(COMMAND wget http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz --directory-prefix=${CMAKE_CURRENT_BINARY_DIR})
+    execute_process(COMMAND wget http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz --directory-prefix=${CMAKE_CURRENT_BINARY_DIR})
+    execute_process(COMMAND wget http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz --directory-prefix=${CMAKE_CURRENT_BINARY_DIR})
+    execute_process(COMMAND wget http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz --directory-prefix=${CMAKE_CURRENT_BINARY_DIR})
+    execute_process(COMMAND gzip -d ${CMAKE_CURRENT_BINARY_DIR}/t10k-images-idx3-ubyte.gz)
+    execute_process(COMMAND gzip -d ${CMAKE_CURRENT_BINARY_DIR}/t10k-labels-idx1-ubyte.gz)
+    execute_process(COMMAND gzip -d ${CMAKE_CURRENT_BINARY_DIR}/train-images-idx3-ubyte.gz)
+    execute_process(COMMAND gzip -d ${CMAKE_CURRENT_BINARY_DIR}/train-labels-idx1-ubyte.gz)
+endif()
+
+file(COPY ${CMAKE_SOURCE_DIR}/Utils/WebUI/Html DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(MNIST ${MNIST_SOURCES})
-target_link_libraries(MNIST Qt5::Core)
 target_link_libraries(MNIST Qt5::Network)
+target_link_libraries(MNIST Qt5::Core)
 target_link_libraries(MNIST Qt5WebSockets)
 target_link_libraries(MNIST Swiftly)
 target_link_libraries(MNIST cuda_kernel)
 target_link_libraries(MNIST ${CUDA_LIBRARIES})
 target_link_libraries(MNIST cudnn)
 target_link_libraries(MNIST cublas)
-

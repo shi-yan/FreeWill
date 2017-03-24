@@ -10,7 +10,7 @@ namespace FreeWill
 
 
     template<DeviceType DeviceUsed = CPU, typename DataType = float>
-    class Convolution : public Operator<DeviceUsed>, OperatorRegistry<Convolution<DeviceUsed, DataType>>
+    class Convolution : public Operator<DeviceUsed>
     {
     protected:
         using Operator<DeviceUsed>::input;

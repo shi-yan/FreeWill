@@ -3,8 +3,8 @@
 
 #include <QObject>
 #include <QFile>
-#include <QWebSocket>
 #include <QList>
+#include <QtWebSockets/QWebSocket>
 
 class Session : public QObject
 {

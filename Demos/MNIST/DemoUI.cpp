@@ -5,11 +5,10 @@
 #include <QTextStream>
 #include <QTcpSocket>
 #include "TcpSocket.h"
-#include <QHostAddress>
 
 DemoUI::DemoUI()
 {
-   QFile file("index.html");
+   QFile file("./Html/index.html");
    file.open(QFile::ReadOnly);
 
    QTextStream ts(&file);
@@ -31,7 +30,7 @@ void DemoUI::handleFileGet(HttpRequest &request, HttpResponse &response)
     //qDebug() << "-----------%%%" << request.getHeader().getPath();
 
     //qDebug() << request.getHeader().getHeaderInfo();
-    QFile file(QString(".").append(request.getHeader().getPath()));
+    QFile file(QString("./Html").append(request.getHeader().getPath()));
     if (file.exists())
     {
         if (file.open(QFile::ReadOnly))
@@ -40,13 +39,21 @@ void DemoUI::handleFileGet(HttpRequest &request, HttpResponse &response)
 
             QFileInfo fileInfo(file);
            // qDebug() << fileInfo.completeSuffix() << fileInfo.fileName() ;
-           // if (fileInfo.completeSuffix() == "html" || fileInfo.completeSuffix() == "htm")
+            if (fileInfo.suffix() == "css")
             {
-                response.finish(HttpResponse::TEXT);
+                response.finish(HttpResponse::TEXT, "text/css");
             }
-            //else
+            else if (fileInfo.suffix() == "jpg")
             {
-              //  response.finish(HttpResponse::BINARY);
+                response.finish(HttpResponse::BINARY, "image/jpeg");
+            }
+            else if (fileInfo.suffix() == "js")
+            {
+                response.finish(HttpResponse::TEXT, "text/javascript");
+            }
+            else
+            {
+                response.finish(HttpResponse::BINARY, QString("application/").append(fileInfo.suffix()));
             }
             file.close();
         }
@@ -58,8 +65,8 @@ void DemoUI::handleFileGet(HttpRequest &request, HttpResponse &response)
 
         QVariantHash info;
         info["model_name"] = "MNIST Dataset";
-        QString address = request.getLocalAddress().toString();
-        info["websocket_address"] = address.right(address.length() - QString("::ffff:").length());
+        QString address = "localhost"; //request.getLocalAddress().toString();
+        info["websocket_address"] = address;//.right(address.length() - QString("::ffff:").length());
 
         Mustache::Renderer renderer;
         Mustache::QtVariantContext context(info);

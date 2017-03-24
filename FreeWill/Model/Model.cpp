@@ -1,5 +1,6 @@
 #include "Model.h"
 #include <cmath>
+#include "../Operator/Operator.h"
 
 FreeWill::Model* FreeWill::Model::create()
 {
@@ -79,12 +80,40 @@ FreeWill::Model::Model()
 {
 }
 
-int FreeWill::Model::addOperator(const std::string &name, const std::map<std::string, std::variant<std::string, int, unsigned int, float, double>> &arguments, DataType dataType)
+int FreeWill::Model::addOperator(const std::string &name, const std::string &operatorNameString, const std::map<std::string, std::any> &arguments, DataType dataType)
 {
+    if (FreeWill::operatorNameTable.find(operatorNameString) != FreeWill::operatorNameTable.end())
+    {
+        FreeWill::OperatorName operatorName = operatorNameTable[operatorNameString];
 
+        addOperator(name, operatorName, arguments, dataType);
+    }
+
+    return -1;
 }
 
-FreeWill::Model::OperatorDescriptor::OperatorDescriptor(const std::string &name, DataType dataType)
+int FreeWill::Model::addOperator(const std::string &name, FreeWill::OperatorName operatorName, const std::map<std::string, std::any> &arguments, DataType dataType)
+{
+    if (m_operators.find(name) != m_operators.end())
+    {
+        return -1;
+    }
+
+    OperatorDescriptor *opDescriptor = new OperatorDescriptor(name, operatorName, arguments, dataType);
+
+    m_operators[name] = opDescriptor;
+
+    return m_operators.size() - 1;
+}
+
+FreeWill::Model::OperatorDescriptor::OperatorDescriptor(const std::string &name,
+        FreeWill::OperatorName operatorName,
+        const std::map<std::string, std::any> &parameters, 
+        DataType dataType)
+    :m_name(name),
+      m_operatorName(operatorName),
+      m_parameters(parameters),
+      m_dataType(dataType)
 {
 
 }

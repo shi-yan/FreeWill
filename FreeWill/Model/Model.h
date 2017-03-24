@@ -9,6 +9,8 @@
 #include <utility>
 #include "../Tensor/Shape.h"
 #include <variant>
+#include <any>
+#include "../Operator/Operator.h"
 
 namespace FreeWill
 {
@@ -47,8 +49,10 @@ namespace FreeWill
         private:
             std::string m_name;
             DataType m_dataType;
-            
-            OperatorDescriptor(const std::string &name, DataType dataType = FLOAT);
+            OperatorName m_operatorName;
+            std::map<std::string, std::any> m_parameters;
+
+            OperatorDescriptor(const std::string &name, OperatorName operatorName, const std::map<std::string, std::any> &parameters, DataType dataType = FLOAT);
             ~OperatorDescriptor();
         };
 
@@ -67,7 +71,8 @@ namespace FreeWill
         ~Model();
         bool init();
         int addTensor(const std::string &name, const Shape &shape, bool isBatchTensor = true, DataType dataType = FLOAT);
-        int addOperator(const std::string &name, const std::map<std::string, std::variant<std::string, int, unsigned int, float, double>> &arguments, DataType dataType = FLOAT);
+        int addOperator(const std::string &name, const std::string &operatorName, const std::map<std::string, std::any> &arguments, DataType dataType = FLOAT);
+        int addOperator(const std::string &name, FreeWill::OperatorName operatorName, const std::map<std::string, std::any> &arguments, DataType DataType = FLOAT);
     };
 }
 

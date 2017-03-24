@@ -14,7 +14,6 @@
 #include "Operator/ElementwiseProduct.h"
 #include <QDebug>
 #include "Operator/ElementwiseAdd.h"
-#include <QHostAddress>
 #include "MNIST.h"
 
 MNIST::MNIST(WebsocketServer *websocketServer, bool usingConvolution)
@@ -1320,7 +1319,7 @@ void MNIST::trainConvolutionalModelGPU()
             inputGrad.clear();
 
 
-            emit updateProgress(i / (float)(numOfImage), ((e-1)*numOfImage + i) / (60.0f*numOfImage));
+            emit updateProgress(i*batchSize / (float)(numOfImage), ((e-1)*numOfImage + i*batchSize) / (60.0f*numOfImage));
         }
 
         closeTrainData();

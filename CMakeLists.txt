@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 3.5)
 project (FreeWill)
 
-SET (Qt5Core_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Core)
-SET (Qt5Test_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Test)
-SET (CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/qt5)
+#SET (Qt5Core_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Core)
+#SET (Qt5Test_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Test)
+#SET (CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/qt5)
 #SET (CMAKE_C_COMPILER clang)
 SET (CMAKE_C_FLAGS          "-std=gnu++1z -march=x86-64 -m64 -Wno-c++1z-extensions")
 #SET (CMAKE_CXX_COMPILER clang++)

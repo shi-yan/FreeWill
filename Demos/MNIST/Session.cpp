@@ -21,13 +21,22 @@ void Session::open()
     if (!m_sessionFile.open(QFile::ReadWrite))
     {
         qDebug() << "can't open";
+        return;
+    }
+
+    if (m_sessionFile.size() == 0)
+    {
+        //extend file
+        m_sessionFile.seek(1024*1024*32);
+        char buf[256] = {1};
+        m_sessionFile.write(buf, 256);
+        m_sessionFile.seek(0);
     }
 
     m_writeMap = m_sessionFile.map(m_tail * (sizeof(unsigned int) + sizeof(float)), m_chunkSize * (sizeof(unsigned int) + sizeof(float)));
 
     if (!m_writeMap)
     {
-
         qDebug() << "bug! can't open file";
     }
 

@@ -13,11 +13,42 @@
 #include <functional>
 #include <variant>
 #include <iostream>
+#include <cxxabi.h>
 
 namespace FreeWill
 {
     template <DeviceType DeviceUsed>
     class OperatorFactory;
+
+    typedef enum
+    {
+        ACTIVATION,
+        ACTIVATION_DERIVATIVE,
+        CONVOLUTION,
+        CONVOLUTION_DERIVATIVE,
+        CROSS_ENTROPY_LOSS,
+        DOT_PRODUCT_WITH_BIAS,
+        DOT_PRODUCT_WITH_BIAS_DERIVATIVE,
+        ELEMENTWISE_ADD,
+        MAX_POOLING,
+        MAX_POOLING_DERIVATIVE,
+        SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE,
+        SOFTMAX_LOG_LOSS,
+        SOFTMAX_LOG_LOSS_DERIVATIVE
+    } OperatorName;
+
+    static std::map<std::string, OperatorName> operatorNameTable {{"Activation", ACTIVATION},
+                {"ActivationDerivative", ACTIVATION_DERIVATIVE},
+                {"Convolution", CONVOLUTION},
+                {"ConvolutionDerivative", CONVOLUTION_DERIVATIVE},
+                {"CrossEntropyLoss", CROSS_ENTROPY_LOSS},
+                {"DotProductWithBias", DOT_PRODUCT_WITH_BIAS},
+                {"ElementAdd", ELEMENTWISE_ADD},
+                {"MaxPooling", MAX_POOLING},
+                {"MaxPoolingDerivative", MAX_POOLING_DERIVATIVE},
+                {"SigmoidCrossEntropyLossDerivative", SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE},
+                {"SoftmaxLogLoss", SOFTMAX_LOG_LOSS},
+                {"SoftmaxLogLossDerivative", SOFTMAX_LOG_LOSS_DERIVATIVE}};
 
     template <DeviceType DeviceUsed = CPU>
     class Operator
@@ -200,7 +231,9 @@ namespace FreeWill
             OperatorFactoryInitializer()
             {
                 OperatorFactory<CPU>::getSingleton();
-                std::cout << "registered class:" << typeid(OperatorType).name();
+                char *realname;
+                int status = 0;
+                std::cout << "registered class:" << abi::__cxa_demangle(typeid(OperatorType).name(),0,0,&status) << std::endl;
                 OperatorType::reg();
             }
 
@@ -221,5 +254,8 @@ namespace FreeWill
 
    // template<>
    // Operator<CPU>::OperatorFactoryInitializer Operator<CPU>::m_operatorFactoryInitializer;
+
+
+
 }
 #endif
