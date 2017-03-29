@@ -3,10 +3,10 @@
 
 #include <QThread>
 #include <Tensor/Tensor.h>
-#include "WebsocketServer.h"
+#include "DemoBase.h"
 
 
-class MNIST : public QThread
+class MNIST : public DemoBase
 {
     Q_OBJECT
 
@@ -25,8 +25,6 @@ class MNIST : public QThread
     unsigned int numOfTestRow;
     unsigned int numOfTestColumn;
     unsigned int labelTestCount;
-
-    WebsocketServer *m_websocketServer;
 
     bool m_usingConvolution;
 
@@ -50,11 +48,7 @@ public:
         void trainConvolutionalModel();
         void trainConvolutionalModelGPU();
 
-        void run();
-
-signals:
-        void updateCost(float cost);
-        void updateProgress(float epoch, float overall);
+        void run() override;
 };
 
 #endif

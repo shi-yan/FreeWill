@@ -17,7 +17,7 @@
 #include "MNIST.h"
 
 MNIST::MNIST(WebsocketServer *websocketServer, bool usingConvolution)
-    :QThread(),
+    :DemoBase(websocketServer),
     datafp(NULL),
     labelfp(NULL),
     numOfImage(0),
@@ -30,7 +30,6 @@ MNIST::MNIST(WebsocketServer *websocketServer, bool usingConvolution)
     numOfTestRow(0),
     numOfTestColumn(0),
     labelTestCount(0),
-    m_websocketServer(websocketServer),
     m_usingConvolution(usingConvolution)
 {
 }

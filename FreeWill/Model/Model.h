@@ -67,12 +67,22 @@ namespace FreeWill
 
 
     public:
+        typedef std::string TensorDescriptorHandle;
+
         static Model* create();
         ~Model();
         bool init();
-        int addTensor(const std::string &name, const Shape &shape, bool isBatchTensor = true, DataType dataType = FLOAT);
-        int addOperator(const std::string &name, const std::string &operatorName, const std::map<std::string, std::any> &arguments, DataType dataType = FLOAT);
-        int addOperator(const std::string &name, FreeWill::OperatorName operatorName, const std::map<std::string, std::any> &arguments, DataType DataType = FLOAT);
+        TensorDescriptorHandle addTensor(const std::string &name, const Shape &shape, bool isBatchTensor = true, DataType dataType = FLOAT);
+        int addOperator(const std::string &name,
+                        const std::string &operatorName,
+                        const std::map<std::string, TensorDescriptorHandle> &inputs,
+                        const std::map<std::string, TensorDescriptorHandle> &outputs,
+                        const std::map<std::string, std::any> &properties = {}, DataType dataType = FLOAT);
+        int addOperator(const std::string &name,
+                        FreeWill::OperatorName operatorName,
+                        const std::map<std::string, TensorDescriptorHandle> &inputs,
+                        const std::map<std::string, TensorDescriptorHandle> &outputs,
+                        const std::map<std::string, std::any> &properties = {}, DataType DataType = FLOAT);
     };
 }
 

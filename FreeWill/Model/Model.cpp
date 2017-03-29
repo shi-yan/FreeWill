@@ -8,16 +8,16 @@ FreeWill::Model* FreeWill::Model::create()
     return model;
 }
 
-int FreeWill::Model::addTensor(const std::string &name, const Shape &shape, bool isBatchTensor, DataType dataType)
+FreeWill::Model::TensorDescriptorHandle FreeWill::Model::addTensor(const std::string &name, const Shape &shape, bool isBatchTensor, DataType dataType)
 {
     if (m_tensors.find(name) == m_tensors.end())
     {
-        return -1;
+        return std::string();
     }
    
     m_tensors[name] = new FreeWill::Model::TensorDescriptor(name, shape, isBatchTensor, dataType);
     
-   return 1;
+   return name;
 }
 
 FreeWill::Model::TensorDescriptor::TensorDescriptor(const TensorDescriptor &in)
@@ -80,26 +80,34 @@ FreeWill::Model::Model()
 {
 }
 
-int FreeWill::Model::addOperator(const std::string &name, const std::string &operatorNameString, const std::map<std::string, std::any> &arguments, DataType dataType)
+int FreeWill::Model::addOperator(const std::string &name,
+                                 const std::string &operatorNameString,
+                                 const std::map<std::string, FreeWill::Model::TensorDescriptorHandle> &inputs,
+                                 const std::map<std::string, FreeWill::Model::TensorDescriptorHandle> &outputs,
+                                 const std::map<std::string, std::any> &properties, DataType dataType)
 {
     if (FreeWill::operatorNameTable.find(operatorNameString) != FreeWill::operatorNameTable.end())
     {
         FreeWill::OperatorName operatorName = operatorNameTable[operatorNameString];
 
-        addOperator(name, operatorName, arguments, dataType);
+        addOperator(name, operatorName, inputs, outputs, properties, dataType);
     }
 
     return -1;
 }
 
-int FreeWill::Model::addOperator(const std::string &name, FreeWill::OperatorName operatorName, const std::map<std::string, std::any> &arguments, DataType dataType)
+int FreeWill::Model::addOperator(const std::string &name,
+                                 FreeWill::OperatorName operatorName,
+                                 const std::map<std::string, FreeWill::Model::TensorDescriptorHandle> &inputs,
+                                 const std::map<std::string, FreeWill::Model::TensorDescriptorHandle> &outputs,
+                                 const std::map<std::string, std::any> &properties, DataType dataType)
 {
     if (m_operators.find(name) != m_operators.end())
     {
         return -1;
     }
 
-    OperatorDescriptor *opDescriptor = new OperatorDescriptor(name, operatorName, arguments, dataType);
+    OperatorDescriptor *opDescriptor = new OperatorDescriptor(name, operatorName, properties, dataType);
 
     m_operators[name] = opDescriptor;
 

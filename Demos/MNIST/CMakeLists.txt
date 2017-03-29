@@ -5,10 +5,10 @@ project (FreeWill)
 #SET (Qt5Network_DIR /usr/lib/x86_64-linux-gnu/cmake/Qt5Network)
 
 #SET (CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/qt5)
-#SET (CMAKE_C_COMPILER clang)
-SET (CMAKE_C_FLAGS          "-std=gnu++17 -march=x86-64 -m64")
-#SET (CMAKE_CXX_COMPILER clang++)
-SET (CMAKE_CXX_FLAGS        "-std=gnu++17 -march=x86-64 -m64 -fno-omit-frame-pointer -fPIC -I/usr/local/include -Wall -Wextra -Woverloaded-virtual -Wno-unused-local-typedefs")
+#SET (CMAKE_C_COMPILER /home/shiy/gcc7/bin/gcc)
+SET (CMAKE_C_FLAGS          "-std=gnu++1z -march=x86-64 -m64 -Wno-c++1z-extensions")
+#SET (CMAKE_CXX_COMPILER /home/shiy/gcc7/bin/g++)
+SET (CMAKE_CXX_FLAGS        "-std=gnu++1z -march=x86-64 -m64 -fno-omit-frame-pointer -fPIC -I/usr/local/include -Wall -Wextra -Woverloaded-virtual -Wno-unused-local-typedefs")
 
 set (CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}" CACHE STRING "c flags")
 set (CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}" CACHE STRING "c++ flags")
@@ -83,14 +83,14 @@ link_directories("/usr/local/cuda/lib64")
 # get_directory_property(OUT_VAR LINK_DIRECTORIES)
 # message(STATUS "DIR: ${OUT_VAR}")
 
-
+include_directories(../../Utils/WebUI/DemoBase)
 
 set(MNIST_SOURCES 
     MNIST.cpp
-    DemoBase.cpp
-    DemoUI.cpp
-    Session.cpp
-    WebsocketServer.cpp
+    ../../Utils/WebUI/DemoBase/DemoBase.cpp
+    ../../Utils/WebUI/DemoBase/DemoUI.cpp
+    ../../Utils/WebUI/DemoBase/Session.cpp
+    ../../Utils/WebUI/DemoBase/WebsocketServer.cpp
     main.cpp)
 
 if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/train-images-idx3-ubyte.gz")
@@ -105,7 +105,10 @@ if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/train-images-idx3-ubyte.gz")
     execute_process(COMMAND gzip -d ${CMAKE_CURRENT_BINARY_DIR}/train-labels-idx1-ubyte.gz)
 endif()
 
-file(COPY ${CMAKE_SOURCE_DIR}/Utils/WebUI/Html DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_SOURCE_DIR}/Utils/WebUI/Html/index.html ${CMAKE_CURRENT_BINARY_DIR}/Html/index.html COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/Utils/WebUI/Html/dygraph-combined-dev.js ${CMAKE_CURRENT_BINARY_DIR}/Html/dygraph-combined-dev.js COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/Utils/WebUI/Html/dat.gui.min.js ${CMAKE_CURRENT_BINARY_DIR}/Html/dat.gui.min.js COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/Utils/WebUI/Html/dygraph-extra.js ${CMAKE_CURRENT_BINARY_DIR}/Html/dygraph-extra.js COPYONLY)
 
 add_executable(MNIST ${MNIST_SOURCES})
 target_link_libraries(MNIST Qt5::Network)
