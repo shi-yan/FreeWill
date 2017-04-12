@@ -64,12 +64,12 @@ namespace FreeWill
            //printf("inputsize:%d, batchsize:%d, outputsize:%d\n", inputSize, batchSize, outputSize);
            //unsigned int weightSize = outputSize * inputSize;
 
-           Tensor<DeviceUsed, DataType> *preActivation = (Tensor<DeviceUsed, DataType> *) input("InputActivation");
-           Tensor<DeviceUsed, DataType> *outputGrad = (Tensor<DeviceUsed, DataType> *) input("OutputDelta");
-           Tensor<DeviceUsed, DataType> *weightGrad = (Tensor<DeviceUsed, DataType> *) output("WeightGrad");
-           Tensor<DeviceUsed, DataType> *inputGrad = (Tensor<DeviceUsed, DataType> *) output("InputDelta");
-           Tensor<DeviceUsed, DataType> *weight = (Tensor<DeviceUsed, DataType> *) input("Weight");
-           Tensor<DeviceUsed, DataType> *biasGrad = (Tensor<DeviceUsed, DataType> *) output("BiasGrad");
+           Tensor<DeviceUsed, DataType> *preActivation = input("InputActivation")->template toType<DataType>();
+           Tensor<DeviceUsed, DataType> *outputGrad = input("OutputDelta")->template toType<DataType>();
+           Tensor<DeviceUsed, DataType> *weightGrad = output("WeightGrad")->template toType<DataType>();
+           Tensor<DeviceUsed, DataType> *inputGrad = output("InputDelta")->template toType<DataType>();
+           Tensor<DeviceUsed, DataType> *weight = input("Weight")->template toType<DataType>();
+           Tensor<DeviceUsed, DataType> *biasGrad = output("BiasGrad")->template toType<DataType>();
 
            if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
            {

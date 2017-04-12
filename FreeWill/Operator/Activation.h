@@ -74,8 +74,8 @@ namespace FreeWill
         void evaluate() override
         {
 
-            Tensor<DeviceUsed, DataType> *_input = (Tensor<DeviceUsed, DataType> *) input("Input");
-            Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) output("Output");
+            Tensor<DeviceUsed, DataType> *_input = input("Input")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_output = output("Output")->template toType<DataType>();
 
 
             if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)

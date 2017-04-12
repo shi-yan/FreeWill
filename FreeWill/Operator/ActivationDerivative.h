@@ -78,9 +78,9 @@ namespace FreeWill
         {
             unsigned int size = input("Output")->shape().size();
 
-            Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) input("Output");
-            Tensor<DeviceUsed, DataType> *_inputDelta = (Tensor<DeviceUsed, DataType> *) output("InputDelta");
-            Tensor<DeviceUsed, DataType> *_outputDelta = (Tensor<DeviceUsed, DataType> *) input("OutputDelta");
+            Tensor<DeviceUsed, DataType> *_output = input("Output")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_inputDelta = output("InputDelta")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_outputDelta = input("OutputDelta")->template toType<DataType>();
 
             if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {

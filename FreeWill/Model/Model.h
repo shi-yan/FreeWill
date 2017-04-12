@@ -4,57 +4,20 @@
 #include "../DeviceSelection.h"
 #include "../Context/Context.h"
 #include <string>
-#include "../Tensor/Tensor.h"
 #include <map>
 #include <utility>
-#include "../Tensor/Shape.h"
 #include <variant>
 #include <any>
-#include "../Operator/Operator.h"
+#include "TensorDescriptor.h"
+#include "OperatorDescriptor.h"
+
 
 namespace FreeWill
 {
-    typedef enum
-    {
-        FLOAT,
-        DOUBLE,
-        UNSIGNED_INT
-    } DataType;
-
     class Model
     {
-    private:
-        class TensorDescriptor
-        {
-            friend class Model;
-        public:
-            std::string m_name;
-            Shape m_shape;
-            bool m_isBatchTensor;
-            int m_batchSize;
-            DataType m_dataType;
-            //change this to variant or any
-            std::map<DeviceType, std::variant<TensorBase<GPU_CUDA>*, TensorBase<CPU_NAIVE>*>> m_tensors;
 
-            TensorDescriptor(const std::string &name, const Shape &shape, bool isBatchTensor = false, DataType dataType = FLOAT);
-            ~TensorDescriptor();
 
-            void operator=(const TensorDescriptor &in);
-            TensorDescriptor(const TensorDescriptor &in);
-        };
-
-        class OperatorDescriptor
-        {
-            friend class Model;
-        private:
-            std::string m_name;
-            DataType m_dataType;
-            OperatorName m_operatorName;
-            std::map<std::string, std::any> m_parameters;
-
-            OperatorDescriptor(const std::string &name, OperatorName operatorName, const std::map<std::string, std::any> &parameters, DataType dataType = FLOAT);
-            ~OperatorDescriptor();
-        };
 
 
     private:
@@ -67,8 +30,6 @@ namespace FreeWill
 
 
     public:
-        typedef std::string TensorDescriptorHandle;
-
         static Model* create();
         ~Model();
         bool init();

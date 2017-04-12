@@ -311,13 +311,13 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
-            Tensor<DeviceUsed, DataType> *_prevActivation = (Tensor<DeviceUsed, DataType> *) input("PrevActivation");
-            Tensor<DeviceUsed, DataType> *_featureMap = (Tensor<DeviceUsed, DataType> *) input("FeatureMap");
-            Tensor<DeviceUsed, DataType> *_outputGrad = (Tensor<DeviceUsed, DataType> *) input("OutputGrad");
+            Tensor<DeviceUsed, DataType> *_prevActivation = input("PrevActivation")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_featureMap = input("FeatureMap")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_outputGrad = input("OutputGrad")->template toType<DataType>();
 
-            Tensor<DeviceUsed, DataType> *_featureMapGrad = (Tensor<DeviceUsed, DataType> *) output("FeatureMapGrad");
-            Tensor<DeviceUsed, DataType> *_biasGrad = (Tensor<DeviceUsed, DataType> *) output("BiasGrad");
-            Tensor<DeviceUsed, DataType> *_inputGrad = (Tensor<DeviceUsed, DataType> *) output("InputGrad");
+            Tensor<DeviceUsed, DataType> *_featureMapGrad = output("FeatureMapGrad")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_biasGrad = output("BiasGrad")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_inputGrad = output("InputGrad")->template toType<DataType>();
 
             unsigned int featureMapCount = _featureMap->shape()[3];
             unsigned int featureMapLength = _featureMap->shape()[1];

@@ -142,8 +142,8 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
-            Tensor<DeviceUsed, DataType> *_inputGrad = (Tensor<DeviceUsed, DataType> *) output("InputGrad");
-            Tensor<DeviceUsed, DataType> *_outputGrad = (Tensor<DeviceUsed, DataType> *) input("OutputGrad");
+            Tensor<DeviceUsed, DataType> *_inputGrad = output("InputGrad")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_outputGrad = input("OutputGrad")->template toType<DataType>();
 
 
             unsigned int outputWidth = _outputGrad->shape()[1];
@@ -153,8 +153,8 @@ namespace FreeWill
 
             if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
             {
-                Tensor<DeviceUsed, unsigned int> *_switchX = (Tensor<DeviceUsed, unsigned int>*) input("SwitchX");
-                Tensor<DeviceUsed, unsigned int> *_switchY = (Tensor<DeviceUsed, unsigned int> *) input("SwitchY");
+                Tensor<DeviceUsed, unsigned int> *_switchX = input("SwitchX")->template toType<unsigned int>();
+                Tensor<DeviceUsed, unsigned int> *_switchY = input("SwitchY")->template toType<unsigned int>();
 
 
                 for(unsigned int b = 0;b<batchSize;++b)
@@ -178,8 +178,8 @@ namespace FreeWill
             }
             else if constexpr ((DeviceUsed & (GPU | GPU_CUDA))!=0)
             {
-                Tensor<DeviceUsed, DataType> *_input = (Tensor<DeviceUsed, DataType> *) input("Input");
-                Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) input("Output");
+                Tensor<DeviceUsed, DataType> *_input = input("Input")->template toType<DataType>();
+                Tensor<DeviceUsed, DataType> *_output = input("Output")->template toType<DataType>();
 
                 DataType alpha = 1.0;
                 DataType beta = 0.0;

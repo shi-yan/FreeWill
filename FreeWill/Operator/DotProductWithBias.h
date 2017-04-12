@@ -67,10 +67,10 @@ namespace FreeWill
             unsigned int inputSize = input("Input")->shape()[0];
             unsigned int outputSize = output("Output")->shape()[0];
 
-            Tensor<DeviceUsed, DataType> *_input = (Tensor<DeviceUsed, DataType> *) input("Input");
-            Tensor<DeviceUsed, DataType> *_weight = (Tensor<DeviceUsed, DataType> *) input("Weight");
-            Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) output("Output");
-            Tensor<DeviceUsed, DataType> *_bias = (Tensor<DeviceUsed, DataType> *) input("Bias");
+            Tensor<DeviceUsed, DataType> *_input = input("Input")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_weight = input("Weight")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_output = output("Output")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_bias = input("Bias")->template toType<DataType>();
 
             if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {

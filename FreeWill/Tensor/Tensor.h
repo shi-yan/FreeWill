@@ -14,6 +14,10 @@
 
 namespace FreeWill 
 {
+
+    template<DeviceType DeviceUsed, typename DataType>
+    class Tensor;
+
     template<DeviceType DeviceUsed>
     class TensorBase
     {
@@ -68,6 +72,12 @@ namespace FreeWill
        virtual ~TensorBase() 
        {
            RUN_CUDNN(cudnnDestroyTensorDescriptor(m_gpuTensorDescriptor));
+       }
+
+       template<typename DataType = float>
+       Tensor<DeviceUsed, DataType> *toType()
+       {
+            return dynamic_cast< Tensor<DeviceUsed, DataType> *>(this);
        }
     };
     

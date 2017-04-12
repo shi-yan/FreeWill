@@ -103,7 +103,11 @@ set(FreeWill_SOURCES
     Context/Context.h
     Model/Model.h
     Model/Model.cpp
-    Model/Trainer.h)
+    Model/Trainer.h
+    Model/TensorDescriptor.h
+    Model/TensorDescriptor.cpp
+    Model/OperatorDescriptor.h
+    Model/OperatorDescriptor.cpp)
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
 target_link_libraries(FreeWillUnitTest Qt5::Core)

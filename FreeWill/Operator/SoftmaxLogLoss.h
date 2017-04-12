@@ -107,10 +107,10 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
-            Tensor<DeviceUsed, DataType> *_input = (Tensor<DeviceUsed, DataType> *) input("Input");
-            Tensor<DeviceUsed, unsigned int> *_label = (Tensor<DeviceUsed, unsigned int> *) input("Label");
-            Tensor<DeviceUsed, DataType> *_cost = (Tensor<DeviceUsed, DataType> *) output("Cost");
-            Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) output("Output");
+            Tensor<DeviceUsed, DataType> *_input = input("Input")->template toType<DataType>();
+            Tensor<DeviceUsed, unsigned int> *_label = input("Label")->template toType<unsigned int>();
+            Tensor<DeviceUsed, DataType> *_cost = output("Cost")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_output = output("Output")->template toType<DataType>();
 
             unsigned int batchSize = _input->shape()[1];
             unsigned int vectorSize = _input->shape()[0];

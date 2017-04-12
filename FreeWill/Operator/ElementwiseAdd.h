@@ -43,9 +43,9 @@ namespace FreeWill
         virtual void evaluate() override
         {
 
-            Tensor<DeviceUsed, DataType> *result = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors[0];
-            Tensor<DeviceUsed, DataType> *operandA = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[0];
-            Tensor<DeviceUsed, DataType> *operandB = (Tensor<DeviceUsed, DataType> *) Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[1];
+            Tensor<DeviceUsed, DataType> *result = Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors[0]->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *operandA = Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[0]->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *operandB = Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[1]->template toType<DataType>();
 
             unsigned int size = result->shape().size();
 

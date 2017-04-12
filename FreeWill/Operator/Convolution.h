@@ -263,10 +263,10 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
-            Tensor<DeviceUsed, DataType> *_input = (Tensor<DeviceUsed, DataType> *) input("Input");
-            Tensor<DeviceUsed, DataType> *_featureMap = (Tensor<DeviceUsed, DataType> *) input("FeatureMap");
-            Tensor<DeviceUsed, DataType> *_bias = (Tensor<DeviceUsed, DataType> *) input("Bias");
-            Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) output("Output");
+            Tensor<DeviceUsed, DataType> *_input = input("Input")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_featureMap = input("FeatureMap")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_bias = input("Bias")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_output = output("Output")->template toType<DataType>();
 
             unsigned int featureMapCount = _featureMap->shape()[3];
             unsigned int featureMapLength = _featureMap->shape()[1];

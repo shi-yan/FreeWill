@@ -43,7 +43,7 @@ namespace FreeWill
 
 #define FAIL_IF(EXP) \
     do { if (EXP) { \
-             printf ("Operator integrity check failed: " #EXP ", %s:%d\n", __FILE__, __LINE__); return false;}} \
+             printf ("Operator integrity check failed: #EXP, %s:%d\n", __FILE__, __LINE__); return false;}} \
     while (0)
 
 #define ENUM_CASE(option, message) \

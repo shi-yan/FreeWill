@@ -119,8 +119,8 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
-            Tensor<DeviceUsed, DataType> *_input = (Tensor<DeviceUsed, DataType> *) input("Input");
-            Tensor<DeviceUsed, DataType> *_output = (Tensor<DeviceUsed, DataType> *) output("Output");
+            Tensor<DeviceUsed, DataType> *_input = input("Input")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *_output = output("Output")->template toType<DataType>();
 
             unsigned int newWidth = _output->shape()[1];
             unsigned int newHeight = _output->shape()[2];
@@ -132,8 +132,8 @@ namespace FreeWill
 
             if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) !=0 )
             {
-                Tensor<DeviceUsed, unsigned int> *_switchX = (Tensor<DeviceUsed, unsigned int> *) output("SwitchX");
-                Tensor<DeviceUsed, unsigned int> *_switchY = (Tensor<DeviceUsed, unsigned int> *) output("SwitchY");
+                Tensor<DeviceUsed, unsigned int> *_switchX = output("SwitchX")->template toType<unsigned int>();
+                Tensor<DeviceUsed, unsigned int> *_switchY = output("SwitchY")->template toType<unsigned int>();
 
                 for (unsigned int b = 0; b < batchSize; ++b)
                 {
@@ -141,7 +141,6 @@ namespace FreeWill
                     {
                         for(unsigned int x =0;x<newWidth; ++x)
                         {
-
                             for(unsigned int depth = 0;depth<depthSize;++depth)
                             {
 

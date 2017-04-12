@@ -41,7 +41,7 @@ namespace FreeWill
             delete [] m_dim;
             m_dim = new unsigned int [size];
             m_size = size;
-            #pragma unroll
+            //#pragma unroll
             for(unsigned int i = 0; i < size; ++i)
             {
                 m_dim[i] = in[i];
@@ -57,8 +57,8 @@ namespace FreeWill
 
         unsigned int size() const 
         {
-		    unsigned int size = 1;
-            #pragma unroll
+            unsigned int size = 1;
+            //#pragma unroll
             for(unsigned int i = 0; i < m_size; ++i)
             {
                 size *= m_dim[i];
@@ -76,7 +76,7 @@ namespace FreeWill
             delete [] m_dim;
             m_dim = new unsigned int[shape.m_size];
             m_size = shape.m_size;
-            #pragma unroll
+            //#pragma unroll
             for(unsigned int i = 0; i < m_size; ++i)
             {
                 m_dim[i] = shape.m_dim[i];
@@ -97,7 +97,7 @@ namespace FreeWill
             {
                 return false;
             }
-            #pragma unroll
+            //#pragma unroll
             for(unsigned int i = 0; i < m_size; ++i)
             {
                 if (m_dim[i] != shape.m_dim[i])
