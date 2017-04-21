@@ -176,7 +176,7 @@ static void printTensor(FreeWill::Tensor<FreeWill::GPU_CUDA, float> &tensor)
 {
     printf("front:\n");
 
-    for(int i = 0;i<20;++i)
+    for( int i = 0;i<20;++i)
     {
         if (i<tensor.shape().size())
         {
@@ -186,7 +186,7 @@ static void printTensor(FreeWill::Tensor<FreeWill::GPU_CUDA, float> &tensor)
 
     printf("\nmiddle:\n");
 
-    for(int i = tensor.shape().size()/2 - 10;i<tensor.shape().size()/2+10;++i)
+    for( int i = tensor.shape().size()/2 - 10;i<tensor.shape().size()/2+10;++i)
     {
         if (i<tensor.shape().size() && i>=0)
         {
@@ -195,7 +195,7 @@ static void printTensor(FreeWill::Tensor<FreeWill::GPU_CUDA, float> &tensor)
     }
 
     printf("\nend:\n");
-    for(int i = tensor.shape().size() - 20;i<tensor.shape().size();++i)
+    for( int i = tensor.shape().size() - 20;i<tensor.shape().size();++i)
     {
         if (i<tensor.shape().size() && i>=0)
         {
@@ -210,7 +210,7 @@ static void printTensor(FreeWill::Tensor<FreeWill::CPU_NAIVE, float> &tensor)
 {
     printf("front:\n");
 
-    for(int i = 0;i<20;++i)
+    for( int i = 0;i<20;++i)
     {
         if (i<tensor.shape().size())
         {
@@ -220,7 +220,7 @@ static void printTensor(FreeWill::Tensor<FreeWill::CPU_NAIVE, float> &tensor)
 
     printf("\nmiddle:\n");
 
-    for(int i = tensor.shape().size()/2 - 10;i<tensor.shape().size()/2+10;++i)
+    for( int i = tensor.shape().size()/2 - 10;i<tensor.shape().size()/2+10;++i)
     {
         if (i<tensor.shape().size() && i>=0)
         {
@@ -229,7 +229,7 @@ static void printTensor(FreeWill::Tensor<FreeWill::CPU_NAIVE, float> &tensor)
     }
 
     printf("\nend:\n");
-    for(int i = tensor.shape().size() - 20;i<tensor.shape().size();++i)
+    for( int i = tensor.shape().size() - 20;i<tensor.shape().size();++i)
     {
         if (i<tensor.shape().size() && i>=0)
         {
@@ -451,44 +451,44 @@ void MNIST::trainConvolutionalModel()
     VERIFY_INIT(convDerivative.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateConvWeight;
-    updateConvWeight.setInputParameter("Operand", &featureMap);
-    updateConvWeight.setInputParameter("Operand", &convFeatureMapGrad);
+    updateConvWeight.setInputParameter("OperandA", &featureMap);
+    updateConvWeight.setInputParameter("OperandB", &convFeatureMapGrad);
     updateConvWeight.setOutputParameter("Result", &featureMap);
 
     VERIFY_INIT(updateConvWeight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateConvBias;
 
-    updateConvBias.setInputParameter("Operand", &bias);
-    updateConvBias.setInputParameter("Operand", &convBiasGrad);
+    updateConvBias.setInputParameter("OperandA", &bias);
+    updateConvBias.setInputParameter("OperandB", &convBiasGrad);
     updateConvBias.setOutputParameter("Result", &bias);
 
     VERIFY_INIT(updateConvBias.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected1Weight;
-    updateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1Weight);
-    updateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1WeightGrad);
+    updateFullyConnected1Weight.setInputParameter("OperandA", &fullyConnected1Weight);
+    updateFullyConnected1Weight.setInputParameter("OperandB", &fullyConnected1WeightGrad);
     updateFullyConnected1Weight.setOutputParameter("Result", &fullyConnected1Weight);
 
     VERIFY_INIT(updateFullyConnected1Weight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected2Weight;
-    updateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2Weight);
-    updateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2WeightGrad);
+    updateFullyConnected2Weight.setInputParameter("OperandA", &fullyConnected2Weight);
+    updateFullyConnected2Weight.setInputParameter("OperandB", &fullyConnected2WeightGrad);
     updateFullyConnected2Weight.setOutputParameter("Result", &fullyConnected2Weight);
 
     VERIFY_INIT(updateFullyConnected2Weight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected1Bias;
-    updateFullyConnected1Bias.setInputParameter("Operand", &fullyConnected1Bias);
-    updateFullyConnected1Bias.setInputParameter("Operand", &fullyConnected1BiasGrad);
+    updateFullyConnected1Bias.setInputParameter("OperandA", &fullyConnected1Bias);
+    updateFullyConnected1Bias.setInputParameter("OperandB", &fullyConnected1BiasGrad);
     updateFullyConnected1Bias.setOutputParameter("Result", &fullyConnected1Bias);
 
     VERIFY_INIT(updateFullyConnected1Bias.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected2Bias;
-    updateFullyConnected2Bias.setInputParameter("Operand", &fullyConnected2Bias);
-    updateFullyConnected2Bias.setInputParameter("Operand", &fullyConnected2BiasGrad);
+    updateFullyConnected2Bias.setInputParameter("OperandA", &fullyConnected2Bias);
+    updateFullyConnected2Bias.setInputParameter("OperandB", &fullyConnected2BiasGrad);
     updateFullyConnected2Bias.setOutputParameter("Result", &fullyConnected2Bias);
 
     VERIFY_INIT(updateFullyConnected2Bias.init());
@@ -766,29 +766,29 @@ void MNIST::trainFullyConnectedModel()
     VERIFY_INIT(dotProductWithBias1Derivative.init());
    
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected1Weight;
-    updateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1Weight);
-    updateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1WeightGrad);
+    updateFullyConnected1Weight.setInputParameter("OperandA", &fullyConnected1Weight);
+    updateFullyConnected1Weight.setInputParameter("OperandB", &fullyConnected1WeightGrad);
     updateFullyConnected1Weight.setOutputParameter("Result", &fullyConnected1Weight);
 
     VERIFY_INIT(updateFullyConnected1Weight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected1Bias;
-    updateFullyConnected1Bias.setInputParameter("Operand", &fullyConnected1Bias);
-    updateFullyConnected1Bias.setInputParameter("Operand", &fullyConnected1BiasGrad);
+    updateFullyConnected1Bias.setInputParameter("OperandA", &fullyConnected1Bias);
+    updateFullyConnected1Bias.setInputParameter("OperandB", &fullyConnected1BiasGrad);
     updateFullyConnected1Bias.setOutputParameter("Result", &fullyConnected1Bias);
 
     VERIFY_INIT(updateFullyConnected1Bias.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected2Weight;
-    updateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2Weight);
-    updateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2WeightGrad);
+    updateFullyConnected2Weight.setInputParameter("OperandA", &fullyConnected2Weight);
+    updateFullyConnected2Weight.setInputParameter("OperandB", &fullyConnected2WeightGrad);
     updateFullyConnected2Weight.setOutputParameter("Result", &fullyConnected2Weight);
 
     VERIFY_INIT(updateFullyConnected2Weight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected2Bias;
-    updateFullyConnected2Bias.setInputParameter("Operand", &fullyConnected2Bias);
-    updateFullyConnected2Bias.setInputParameter("Operand", &fullyConnected2BiasGrad);
+    updateFullyConnected2Bias.setInputParameter("OperandA", &fullyConnected2Bias);
+    updateFullyConnected2Bias.setInputParameter("OperandB", &fullyConnected2BiasGrad);
     updateFullyConnected2Bias.setOutputParameter("Result", &fullyConnected2Bias);
 
     VERIFY_INIT(updateFullyConnected2Bias.init());
@@ -1121,44 +1121,44 @@ void MNIST::trainConvolutionalModelGPU()
     VERIFY_INIT(convDerivative.init());
 
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateConvWeight;
-    updateConvWeight.setInputParameter("Operand", &featureMap);
-    updateConvWeight.setInputParameter("Operand", &convFeatureMapGrad);
+    updateConvWeight.setInputParameter("OperandA", &featureMap);
+    updateConvWeight.setInputParameter("OperandB", &convFeatureMapGrad);
     updateConvWeight.setOutputParameter("Result", &featureMap);
 
     VERIFY_INIT(updateConvWeight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateConvBias;
 
-    updateConvBias.setInputParameter("Operand", &bias);
-    updateConvBias.setInputParameter("Operand", &convBiasGrad);
+    updateConvBias.setInputParameter("OperandA", &bias);
+    updateConvBias.setInputParameter("OperandB", &convBiasGrad);
     updateConvBias.setOutputParameter("Result", &bias);
 
     VERIFY_INIT(updateConvBias.init());
 
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateFullyConnected1Weight;
-    updateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1Weight);
-    updateFullyConnected1Weight.setInputParameter("Operand", &fullyConnected1WeightGrad);
+    updateFullyConnected1Weight.setInputParameter("OperandA", &fullyConnected1Weight);
+    updateFullyConnected1Weight.setInputParameter("OperandB", &fullyConnected1WeightGrad);
     updateFullyConnected1Weight.setOutputParameter("Result", &fullyConnected1Weight);
 
     VERIFY_INIT(updateFullyConnected1Weight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateFullyConnected2Weight;
-    updateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2Weight);
-    updateFullyConnected2Weight.setInputParameter("Operand", &fullyConnected2WeightGrad);
+    updateFullyConnected2Weight.setInputParameter("OperandA", &fullyConnected2Weight);
+    updateFullyConnected2Weight.setInputParameter("OperandB", &fullyConnected2WeightGrad);
     updateFullyConnected2Weight.setOutputParameter("Result", &fullyConnected2Weight);
 
     VERIFY_INIT(updateFullyConnected2Weight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateFullyConnected1Bias;
-    updateFullyConnected1Bias.setInputParameter("Operand", &fullyConnected1Bias);
-    updateFullyConnected1Bias.setInputParameter("Operand", &fullyConnected1BiasGrad);
+    updateFullyConnected1Bias.setInputParameter("OperandA", &fullyConnected1Bias);
+    updateFullyConnected1Bias.setInputParameter("OperandB", &fullyConnected1BiasGrad);
     updateFullyConnected1Bias.setOutputParameter("Result", &fullyConnected1Bias);
 
     VERIFY_INIT(updateFullyConnected1Bias.init());
 
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateFullyConnected2Bias;
-    updateFullyConnected2Bias.setInputParameter("Operand", &fullyConnected2Bias);
-    updateFullyConnected2Bias.setInputParameter("Operand", &fullyConnected2BiasGrad);
+    updateFullyConnected2Bias.setInputParameter("OperandA", &fullyConnected2Bias);
+    updateFullyConnected2Bias.setInputParameter("OperandB", &fullyConnected2BiasGrad);
     updateFullyConnected2Bias.setOutputParameter("Result", &fullyConnected2Bias);
 
     VERIFY_INIT(updateFullyConnected2Bias.init());
@@ -1331,11 +1331,11 @@ void MNIST::run()
 
     srand(/*time(NULL)*/0);
 
-    FreeWill::Context<FreeWill::GPU>::getSingleton().open();
+    FreeWill::Context<FreeWill::GPU_CUDA>::getSingleton().open();
 
    trainConvolutionalModelGPU();
   //  trainConvolutionalModel();
-    FreeWill::Context<FreeWill::GPU>::getSingleton().close();
+    FreeWill::Context<FreeWill::GPU_CUDA>::getSingleton().close();
   //
   //trainFullyConnectedModel();
 return;

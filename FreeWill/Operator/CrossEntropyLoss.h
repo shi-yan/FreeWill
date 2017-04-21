@@ -8,7 +8,7 @@
 
 namespace FreeWill
 {
-    template<DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
     class CrossEntropyLoss : public Operator<DeviceUsed>
     {
     protected:
@@ -24,11 +24,13 @@ namespace FreeWill
         {
             FAIL_IF(!input("Input") || !output("Cost") || !input("Label"));
           
-            FAIL_IF (input("Input")->shape().dimension() != 2 || output("Cost")->shape().dimension() != 1);
+            FAIL_IF (input("Input")->shape().dimension() != 2 || output("Cost")->shape().dimension() != 2);
 
             FAIL_IF (input("Input")->shape() != input("Label")->shape());
 
-            FAIL_IF (input("Input")->shape()[1] != output("Cost")->shape()[0]);
+            FAIL_IF (output("Cost")->shape()[0] != 1);
+
+            FAIL_IF (input("Input")->shape()[1] != output("Cost")->shape()[1]);
 
             return true;
         }

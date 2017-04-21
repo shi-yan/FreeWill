@@ -9,7 +9,7 @@ namespace FreeWill
 {
 
 
-    template<DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
     class Convolution : public Operator<DeviceUsed>
     {
     protected:
@@ -45,7 +45,7 @@ namespace FreeWill
             m_convolutionForwardAlgorithm(),
             m_workspaceSize(0)
         {
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_inputGPUTensorDescriptor));
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_outputGPUTensorDescriptor));
@@ -57,7 +57,7 @@ namespace FreeWill
 
         ~Convolution()
         {
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_inputGPUTensorDescriptor));
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_outputGPUTensorDescriptor));
@@ -151,12 +151,12 @@ namespace FreeWill
 
             FAIL_IF (input("Input")->shape()[3] != output("Output")->shape()[3]);
 
-            unsigned int batchSize = input("Input")->shape()[3];
-            unsigned int channelCount = input("FeatureMap")->shape()[0];
-            unsigned int filterCount = input("FeatureMap")->shape()[3];
-
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
+                unsigned int batchSize = input("Input")->shape()[3];
+                unsigned int channelCount = input("FeatureMap")->shape()[0];
+                unsigned int filterCount = input("FeatureMap")->shape()[3];
+
                 cudnnDataType_t dataType = CUDNN_DATA_FLOAT;
                 if constexpr (std::is_same<DataType,float>::value)
                 {
@@ -282,7 +282,7 @@ namespace FreeWill
 
             unsigned int batchSize = _input->shape()[3];
 
-            if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {
                 for (unsigned int b = 0; b < batchSize; ++b)
                 {
@@ -338,7 +338,7 @@ namespace FreeWill
                 }
 
             }
-            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 if (m_workspaceSize == 0)
                 {

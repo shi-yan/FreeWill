@@ -15,6 +15,15 @@
 #include <iostream>
 #include <cxxabi.h>
 
+#define FAIL_IF(EXP) \
+    do { if (EXP) { \
+             std::cerr << "Operator integrity check failed: " << #EXP << std::endl; \
+             std::cerr << __FILE__ << ":"<< __LINE__ << std::endl; \
+             Operator<DeviceUsed>::debugOutput(); \
+             return false; \
+    }} \
+    while (0)
+
 namespace FreeWill
 {
     template <DeviceType DeviceUsed>
@@ -50,19 +59,14 @@ namespace FreeWill
                 {"SoftmaxLogLoss", SOFTMAX_LOG_LOSS},
                 {"SoftmaxLogLossDerivative", SOFTMAX_LOG_LOSS_DERIVATIVE}};
 
-    template <DeviceType DeviceUsed = CPU>
+    template <DeviceType DeviceUsed = CPU_NAIVE>
     class Operator
     {
     protected:
         struct ParameterDescriptor
         {
             std::string m_name;
-            std::vector<TensorBase<DeviceUsed>*> m_tensors;
-
-            TensorBase<DeviceUsed> * operator[](unsigned int index)
-            {
-                return m_tensors[index];
-            }
+            TensorBase<DeviceUsed>* m_tensor;
         };
         
         std::map<std::string, struct ParameterDescriptor > m_inputParameters;
@@ -98,38 +102,46 @@ namespace FreeWill
        
         virtual ~Operator(){};
 
-        virtual int inputCount() 
+        void debugOutput()
         {
-            typename std::map<std::string, struct ParameterDescriptor>::iterator iter = m_inputParameters.begin();
+            std::cerr << "================= operator debug output =========================" << std::endl;
+            typename std::map<std::string, struct ParameterDescriptor>::iterator iterInput = m_inputParameters.begin();
 
-            unsigned int result = 0;
-            for (; iter != m_inputParameters.end(); ++iter)
+            for (; iterInput != m_inputParameters.end(); ++iterInput)
             {
-                result += (*iter).second.m_tensors.size();
+                std::cerr << "Input: " << iterInput->first;
+                std::cerr << " Tensor: " << iterInput->second.m_tensor->name();
+                std::cerr << " Shape: " << (iterInput->second.m_tensor->shape()) << std::endl;
             }
 
-            return result;
+            typename std::map<std::string, struct ParameterDescriptor>::iterator iterOutput = m_outputParameters.begin();
+
+            for (; iterOutput != m_outputParameters.end(); ++iterOutput)
+            {
+                std::cerr << "Output: " << iterOutput->first;
+                std::cerr << " Tensor: " << iterOutput->second.m_tensor->name();
+                std::cerr << " Shape: " << (iterOutput->second.m_tensor->shape()) << std::endl;
+            }
+
+            std::cerr << "================= ===================== =========================" << std::endl;
+
+        }
+
+        virtual int inputCount() 
+        {
+            return m_inputParameters.size();
         }
 
         virtual int outputCount()
         {
-            typename std::map<std::string, struct ParameterDescriptor>::iterator iter = m_outputParameters.begin();
-
-            unsigned int result = 0;
-
-            for (; iter != m_outputParameters.end(); ++iter)
-            {
-                result += (*iter).second.m_tensors.size();
-            }
-
-            return result;
+            return m_outputParameters.size();
         }
 
         virtual void setInputParameter(const std::string &name, TensorBase<DeviceUsed> *tensor)
         {
            if (m_inputParameters.find(name) != m_inputParameters.end())
            {
-               m_inputParameters[name].m_tensors.push_back(tensor);
+               m_inputParameters[name].m_tensor = tensor;
            }
            else 
            {
@@ -141,7 +153,7 @@ namespace FreeWill
         {
             if (m_outputParameters.find(name) != m_outputParameters.end())
             {
-                m_outputParameters[name].m_tensors.push_back(tensor);
+                m_outputParameters[name].m_tensor = tensor;
             }
             else
             {
@@ -149,27 +161,21 @@ namespace FreeWill
             }
         }
 
-        virtual TensorBase<DeviceUsed> * input(const std::string &name, unsigned int index = 0)
+        virtual TensorBase<DeviceUsed> * input(const std::string &name)
         {
             if (m_inputParameters.find(name) != m_inputParameters.end())
             {
-                if (m_inputParameters[name].m_tensors.size())
-                {
-                    return m_inputParameters[name].m_tensors[index];
-                }
+                return m_inputParameters[name].m_tensor;
             }
 
             return 0;
         }
 
-        virtual TensorBase<DeviceUsed> * output(const std::string &name, unsigned int index = 0)
+        virtual TensorBase<DeviceUsed> * output(const std::string &name)
         {
             if (m_outputParameters.find(name) != m_outputParameters.end())
             {
-                if (m_outputParameters[name].m_tensors.size())
-                {
-                    return m_outputParameters[name].m_tensors[index];
-                }
+                return m_outputParameters[name].m_tensor;
             }
 
             return 0;
@@ -181,14 +187,14 @@ namespace FreeWill
 
             for (; iterInput != m_inputParameters.end(); ++iterInput)
             {
-                (*iterInput).second.m_tensors.clear();
+                (*iterInput).second.m_tensor = nullptr;
             }
 
             typename std::map<std::string, struct ParameterDescriptor>::iterator iterOutput = m_outputParameters.begin();
 
             for (; iterOutput != m_outputParameters.end(); ++iterOutput)
             {
-                (*iterOutput).second.m_tensors.clear();
+                (*iterOutput).second.m_tensor = nullptr;
             } 
 
         }
@@ -199,7 +205,7 @@ namespace FreeWill
     struct OperatorFactoryInitializer_ForceInit { };
 
 
-    template <DeviceType DeviceUsed = CPU>
+    template <DeviceType DeviceUsed = CPU_NAIVE>
     class OperatorFactory
     {
         friend class Operator<DeviceUsed>;
@@ -230,7 +236,7 @@ namespace FreeWill
             int a;
             OperatorFactoryInitializer()
             {
-                OperatorFactory<CPU>::getSingleton();
+                OperatorFactory<CPU_NAIVE>::getSingleton();
                 char *realname;
                 int status = 0;
                 std::cout << "registered class:" << abi::__cxa_demangle(typeid(OperatorType).name(),0,0,&status) << std::endl;

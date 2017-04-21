@@ -64,29 +64,61 @@ int FreeWill::Model::addOperator(const std::string &name,
 
 
 
-bool FreeWill::Model::init()
+bool FreeWill::Model::init(const Solver &solver)
 {
     //allocating tensors
     std::map<std::string, TensorDescriptor*>::iterator iterTensor = m_tensors.begin();
-
-    for(;iterTensor != m_tensors.end(); ++iterTensor)
-    {
-        std::cout << iterTensor->first << std::endl;
-        TensorDescriptor *descriptor = iterTensor->second;
-        descriptor->allocateTensor<FreeWill::GPU_CUDA>();
-    }
 
     //creating operators
 
     std::map<std::string, OperatorDescriptor*>::iterator iterOperator = m_operators.begin();
 
-    for(;iterOperator != m_operators.end(); ++iterOperator)
+    switch (solver.m_deviceUsed)
     {
-        std::cout << iterOperator->first << std::endl;
-        OperatorDescriptor *descriptor = iterOperator->second;
+    case CPU_NAIVE:
+        for(;iterTensor != m_tensors.end(); ++iterTensor)
+        {
+            std::cout << iterTensor->first << std::endl;
+            TensorDescriptor *descriptor = iterTensor->second;
+            descriptor->allocateTensor<FreeWill::CPU_NAIVE>(solver);
+        }
 
+        for(;iterOperator != m_operators.end(); ++iterOperator)
+        {
+            std::cout << iterOperator->first << std::endl;
+            OperatorDescriptor *descriptor = iterOperator->second;
 
+            if (!descriptor->init<FreeWill::CPU_NAIVE>(m_tensors))
+            {
+                return false;
+            }
+        }
 
+        break;
+    case GPU_CUDA:
+
+        for(;iterTensor != m_tensors.end(); ++iterTensor)
+        {
+            std::cout << iterTensor->first << std::endl;
+            TensorDescriptor *descriptor = iterTensor->second;
+            descriptor->allocateTensor<FreeWill::GPU_CUDA>(solver);
+        }
+
+        for(;iterOperator != m_operators.end(); ++iterOperator)
+        {
+            std::cout << iterOperator->first << std::endl;
+            OperatorDescriptor *descriptor = iterOperator->second;
+
+            if (!descriptor->init<FreeWill::GPU_CUDA>(m_tensors))
+            {
+                std::cout << iterOperator->first << "sanity check failed!" << std::endl;
+                return false;
+            }
+        }
+
+        break;
+    default:
+        return false;
     }
 
     return true;

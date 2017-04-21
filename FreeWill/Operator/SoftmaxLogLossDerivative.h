@@ -7,7 +7,7 @@
 namespace FreeWill
 {
 
-    template<DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
     class SoftmaxLogLossDerivative : public Operator<DeviceUsed>
     {
     protected:
@@ -43,7 +43,7 @@ namespace FreeWill
             unsigned int batchSize = _output->shape()[1];
             unsigned int vectorSize = _output->shape()[0];
 
-            if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
             {
                 for(unsigned int b = 0;b<batchSize;++b)
                 {
@@ -56,7 +56,7 @@ namespace FreeWill
                     (*_inputGrad)[b*vectorSize + (*_label)[b]] -= 1.0;
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 softmaxLogLossDerivativeCUDAKernel<DataType>(_inputGrad->gpuDataHandle(), _output->gpuDataHandle(), _label->gpuDataHandle(), vectorSize, batchSize);
             }

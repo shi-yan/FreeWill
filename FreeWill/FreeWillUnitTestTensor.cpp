@@ -11,12 +11,12 @@ void FreeWillUnitTest::initTestCase()
 {
     srand(/*time(NULL)*/0);
 
-    FreeWill::Context<FreeWill::GPU>::getSingleton().open();
+    FreeWill::Context<FreeWill::GPU_CUDA>::getSingleton().open();
 }
 
 void FreeWillUnitTest::cleanupTestCase()
 {
-    FreeWill::Context<FreeWill::GPU>::getSingleton().close();
+    FreeWill::Context<FreeWill::GPU_CUDA>::getSingleton().close();
 }
 
 void FreeWillUnitTest::blobTest()
@@ -170,8 +170,8 @@ void FreeWillUnitTest::operatorTest()
     
 
     FreeWill::ElementwiseAdd< FreeWill::CPU_NAIVE, float> elementAdd;
-    elementAdd.setInputParameter("Operand", &tensorA);
-    elementAdd.setInputParameter("Operand", &tensorB);
+    elementAdd.setInputParameter("OperandA", &tensorA);
+    elementAdd.setInputParameter("OperandB", &tensorB);
     elementAdd.setOutputParameter("Result", &result);
 
     elementAdd.init();
@@ -200,8 +200,8 @@ void FreeWillUnitTest::operatorTestGPU()
     result.init();
 
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> elementAdd;
-    elementAdd.setInputParameter("Operand", &tensorA);
-    elementAdd.setInputParameter("Operand", &tensorB);
+    elementAdd.setInputParameter("OperandA", &tensorA);
+    elementAdd.setInputParameter("OperandB", &tensorB);
     elementAdd.setOutputParameter("Result", &result);
 
     unsigned int size = tensorA.shape().size();
@@ -217,7 +217,6 @@ void FreeWillUnitTest::operatorTestGPU()
 
     for(unsigned int i = 0;i< size;++i)
     {
-//        printf("%d, %f,%f,%f\n", i, tensorA[i], tensorB[i], result[i]);
         QVERIFY(result[i] == (tensorA[i] + tensorB[i]));
     }
 }

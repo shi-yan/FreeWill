@@ -9,22 +9,22 @@
 
 void FreeWillUnitTest::convolutionTest()
 {
-    FreeWill::Tensor<FreeWill::CPU, float> input({3,5,5,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({3,5,5,1});
     input.init();
     
     
-    FreeWill::Tensor<FreeWill::CPU, float> featureMaps({3,3,3,2});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> featureMaps({3,3,3,2});
     featureMaps.init();
     
 
-    FreeWill::Tensor<FreeWill::CPU, float> output({2,3,3,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({2,3,3,1});
     output.init();
 
-    FreeWill::Tensor<FreeWill::CPU, float> bias({2});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> bias({2});
     bias.init();
 
 
-    FreeWill::Convolution<FreeWill::CPU, float> convolution(2,2,1,1);
+    FreeWill::Convolution<FreeWill::CPU_NAIVE, float> convolution(2,2,1,1);
     convolution.setInputParameter("Input", &input);
     convolution.setInputParameter("FeatureMap", &featureMaps);
     convolution.setInputParameter("Bias", &bias);
@@ -327,31 +327,31 @@ void FreeWillUnitTest::convolutionTestGPU()
 
 void FreeWillUnitTest::convolutionDerivativeTest()
 {
-    FreeWill::Tensor<FreeWill::CPU, double> prevActivaion({3,5,5,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> prevActivaion({3,5,5,1});
     prevActivaion.init();
     
     
-    FreeWill::Tensor<FreeWill::CPU, double> featureMaps({3,3,3,2});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> featureMaps({3,3,3,2});
     featureMaps.init();
     
 
-    FreeWill::Tensor<FreeWill::CPU, double> outputGrad({2,3,3,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> outputGrad({2,3,3,1});
     outputGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU, double> inputGrad({3,5,5,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> inputGrad({3,5,5,1});
     inputGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU, double> featureMapGrad({3,3,3,2});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> featureMapGrad({3,3,3,2});
     featureMapGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU, double> fakeFeatureMapGrad({3,3,3,2});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> fakeFeatureMapGrad({3,3,3,2});
     fakeFeatureMapGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU, double> biasGrad({2});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> biasGrad({2});
     biasGrad.init();
 
 
-    FreeWill::ConvolutionDerivative<FreeWill::CPU, double> convolutionDerivative(2,2,1,1);
+    FreeWill::ConvolutionDerivative<FreeWill::CPU_NAIVE, double> convolutionDerivative(2,2,1,1);
     convolutionDerivative.setInputParameter("PrevActivation", &prevActivaion);
     convolutionDerivative.setInputParameter("FeatureMap", &featureMaps);
     convolutionDerivative.setInputParameter("OutputGrad", &outputGrad);
@@ -382,13 +382,13 @@ void FreeWillUnitTest::convolutionDerivativeTest()
 
     double biasArray[] = {1,0};
 
-    FreeWill::Tensor<FreeWill::CPU, double> input({3,5,5,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> input({3,5,5,1});
     input.init();
 
-    FreeWill::Tensor<FreeWill::CPU, double> bias({2});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> bias({2});
     bias.init();
 
-    FreeWill::Tensor<FreeWill::CPU, double> output({2,3,3,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> output({2,3,3,1});
     output.init();
     
     unsigned int inputSize = input.shape().size();
@@ -409,7 +409,7 @@ void FreeWillUnitTest::convolutionDerivativeTest()
         bias[i] = biasArray[i];
     }
 
-    FreeWill::Convolution<FreeWill::CPU, double> convolution(2,2,1,1);
+    FreeWill::Convolution<FreeWill::CPU_NAIVE, double> convolution(2,2,1,1);
     convolution.setInputParameter("Input", &input);
     convolution.setInputParameter("FeatureMap", &featureMaps);
     convolution.setInputParameter("Bias", &bias);
@@ -418,27 +418,27 @@ void FreeWillUnitTest::convolutionDerivativeTest()
   
     QVERIFY(convolution.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU, double> sigmoid;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, double> sigmoid;
     sigmoid.setInputParameter("Input", &output);
     sigmoid.setOutputParameter("Output", &output);
 
     QVERIFY(sigmoid.init());
 
-    FreeWill::Tensor<FreeWill::CPU, double> flatOutput({output.shape().size(), 1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> flatOutput({output.shape().size(), 1});
     flatOutput.init();
 
     
 
     unsigned int outputSize = output.shape().size();
     
-    FreeWill::Tensor<FreeWill::CPU, double> label({outputSize, 1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> label({outputSize, 1});
     label.init();
     label.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU, double> cost({1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> cost({1});
     cost.init();
 
-    FreeWill::CrossEntropyLoss<FreeWill::CPU, double> crossEntropyLoss;
+    FreeWill::CrossEntropyLoss<FreeWill::CPU_NAIVE, double> crossEntropyLoss;
     crossEntropyLoss.setInputParameter("Input", &flatOutput);
     crossEntropyLoss.setInputParameter("Label", &label);
     crossEntropyLoss.setOutputParameter("Cost", &cost);
@@ -519,10 +519,10 @@ void FreeWillUnitTest::convolutionDerivativeTest()
 
     crossEntropyLoss.evaluate();
 
-    FreeWill::Tensor<FreeWill::CPU, double> flatOuputGrad({outputSize,1});
+    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> flatOuputGrad({outputSize,1});
     flatOuputGrad.init();
 
-    FreeWill::SigmoidCrossEntropyLossDerivative<FreeWill::CPU, double> sigmoidCrossEntropyLossDerivative;
+    FreeWill::SigmoidCrossEntropyLossDerivative<FreeWill::CPU_NAIVE, double> sigmoidCrossEntropyLossDerivative;
     sigmoidCrossEntropyLossDerivative.setInputParameter("Input", &flatOutput);
     sigmoidCrossEntropyLossDerivative.setInputParameter("Label", &label);
     sigmoidCrossEntropyLossDerivative.setOutputParameter("Output", &flatOuputGrad);

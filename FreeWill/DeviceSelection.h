@@ -12,9 +12,7 @@ namespace FreeWill
 {
 	typedef enum 
 	{
-        CPU            = 0x1,
 		CPU_NAIVE      = 0x1,
-		GPU            = 0x4,
 		GPU_CUDA       = 0x4
 	} DeviceType;
 }
@@ -40,11 +38,6 @@ namespace FreeWill
     {cudaError_t result = cudaGetLastError(); \
     if (result != cudaSuccess) \
         {printf("CUDA Launch Kernel error: %s:%d Error[%s]\n", __FILE__, __LINE__, cudaGetErrorString(result));}}
-
-#define FAIL_IF(EXP) \
-    do { if (EXP) { \
-             printf ("Operator integrity check failed: #EXP, %s:%d\n", __FILE__, __LINE__); return false;}} \
-    while (0)
 
 #define ENUM_CASE(option, message) \
     case option: qDebug() << message << #option << option; break;

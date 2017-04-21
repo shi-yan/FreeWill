@@ -3,6 +3,8 @@
 
 #include <initializer_list>
 #include <algorithm>
+#include <string>
+#include <sstream>
 
 namespace FreeWill
 {
@@ -10,39 +12,35 @@ namespace FreeWill
     {
     private:
         unsigned int *m_dim;
-        unsigned int m_size;
+        unsigned int m_count;
 
     public:
-        Shape(unsigned int size)
+        Shape(unsigned int dimension = 0)
             :m_dim(nullptr),
-            m_size(0)
+            m_count(dimension)
         {
-            m_size = size;
-            m_dim = new unsigned int[m_size];
-        }
-
-        Shape()
-            :m_dim(nullptr),
-             m_size(0)
-        {
+            if (m_count)
+            {
+                m_dim = new unsigned int[m_count];
+            }
         }
 
         Shape(const Shape &shape)
             :m_dim(nullptr),
-            m_size(0)
+            m_count(0)
         {
             *this = shape;
         }
 
-        Shape(const unsigned int *in, unsigned int size)
+        Shape(const unsigned int *in, unsigned int count)
             :m_dim(nullptr),
-            m_size(0)
+            m_count(0)
         {
             delete [] m_dim;
-            m_dim = new unsigned int [size];
-            m_size = size;
-            //#pragma unroll
-            for(unsigned int i = 0; i < size; ++i)
+            m_dim = new unsigned int [count];
+            m_count = count;
+
+            for(unsigned int i = 0; i < count; ++i)
             {
                 m_dim[i] = in[i];
             }
@@ -50,7 +48,7 @@ namespace FreeWill
 
         Shape(const std::initializer_list<unsigned int> &li)
             :m_dim(nullptr),
-             m_size(0)
+             m_count(0)
         {
             *this = li;
         }
@@ -58,8 +56,8 @@ namespace FreeWill
         unsigned int size() const 
         {
             unsigned int size = 1;
-            //#pragma unroll
-            for(unsigned int i = 0; i < m_size; ++i)
+
+            for(unsigned int i = 0; i < m_count; ++i)
             {
                 size *= m_dim[i];
             }
@@ -68,16 +66,16 @@ namespace FreeWill
 
         unsigned int dimension() const
         {
-            return m_size;
+            return m_count;
         }
 
         void operator=(const Shape &shape)
         {
             delete [] m_dim;
-            m_dim = new unsigned int[shape.m_size];
-            m_size = shape.m_size;
-            //#pragma unroll
-            for(unsigned int i = 0; i < m_size; ++i)
+            m_dim = new unsigned int[shape.m_count];
+            m_count = shape.m_count;
+
+            for(unsigned int i = 0; i < m_count; ++i)
             {
                 m_dim[i] = shape.m_dim[i];
             }
@@ -87,18 +85,17 @@ namespace FreeWill
         {
             delete [] m_dim;
             m_dim = new unsigned int[li.size()];
-            m_size = li.size();
-            std::copy(li.begin(), li.begin() + m_size, m_dim); 
+            m_count = li.size();
+            std::copy(li.begin(), li.begin() + m_count, m_dim);
         }
 
         bool operator==(const Shape &shape) const 
         {
-            if (m_size != shape.m_size)
+            if (m_count != shape.m_count)
             {
                 return false;
             }
-            //#pragma unroll
-            for(unsigned int i = 0; i < m_size; ++i)
+            for(unsigned int i = 0; i < m_count; ++i)
             {
                 if (m_dim[i] != shape.m_dim[i])
                 {
@@ -126,9 +123,31 @@ namespace FreeWill
         ~Shape()
         {
             delete [] m_dim;
-            m_size = 0;
+            m_count = 0;
         }
+
+        friend
+        Shape operator+(const Shape &in, unsigned int batchSize);
+
+        std::string toString()
+        {
+            std::stringstream stream;
+            stream << dimension();
+            stream << " {";
+
+            for (unsigned int i =0;i<m_count;++i)
+            {
+                stream << m_dim[i] << ((i==m_count-1)?"}":", ");
+            }
+
+            return stream.str();
+        }
+
+        friend std::ostream& operator<< (std::ostream& stream, Shape const &shape);
     };
+
+    Shape operator+(const Shape &in, unsigned int batchSize);
+    std::ostream& operator<< (std::ostream& stream, Shape const &shape);
 }
 
 #endif

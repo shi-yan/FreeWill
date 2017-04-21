@@ -134,7 +134,7 @@ namespace FreeWill
                     return false;
                 }
             } 
-            else if constexpr ((DeviceUsed & GPU) != 0) 
+            else if constexpr ((DeviceUsed & GPU_CUDA) != 0)
             {
                 RUN_CUDA(cudaMalloc(&m_gpuDataHandle, sizeInByte));
                 m_dataHandle = (unsigned char *) malloc(sizeInByte);
@@ -186,7 +186,7 @@ namespace FreeWill
             {
                 std::copy(m_dataHandle, m_dataHandle + m_sizeInByte, copy.m_dataHandle);
             }
-            else if constexpr ((DeviceUsed & GPU) != 0)
+            else if constexpr ((DeviceUsed & GPU_CUDA) != 0)
             {
                 std::copy(m_dataHandle, m_dataHandle + m_sizeInByte, copy.m_dataHandle);
                 RUN_CUDA(cudaMemcpy(copy.m_gpuDataHandle, m_gpuDataHandle, m_sizeInByte, cudaMemcpyDeviceToDevice));
@@ -208,7 +208,7 @@ namespace FreeWill
                     m_dataHandle = blob.m_dataHandle;
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) !=0)
+            else if constexpr ((DeviceUsed & (GPU_CUDA)) !=0)
             {
                 if (blob.m_gpuDataHandle)
                 {

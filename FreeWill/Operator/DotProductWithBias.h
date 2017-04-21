@@ -11,7 +11,7 @@
 
 namespace FreeWill
 {
-    template<DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
     class DotProductWithBias : public Operator<DeviceUsed>
     {
     protected:
@@ -91,7 +91,7 @@ namespace FreeWill
                     }
                 }        
             }
-            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 DataType alpha = 1.0;
                 DataType beta = 0.0;

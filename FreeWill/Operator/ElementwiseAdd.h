@@ -9,13 +9,16 @@
 
 namespace FreeWill
 {
-    template<DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
     class ElementwiseAdd : public Operator<DeviceUsed>
     {
+    protected:
         DataType m_rate;
+        using Operator<DeviceUsed>::input;
+        using Operator<DeviceUsed>::output;
    public:
         ElementwiseAdd(DataType rate = 1.0f)
-            :Operator<DeviceUsed>({"Operand"}, {"Result"}),
+            :Operator<DeviceUsed>({"OperandA", "OperandB"}, {"Result"}),
             m_rate(rate)
         {
         }
@@ -27,15 +30,15 @@ namespace FreeWill
 
         virtual bool init() override
         {
-            FAIL_IF (Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors.size() < 1);
+            FAIL_IF (input("OperandA") == nullptr);
 
-            FAIL_IF (Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors.size() != 1);
+            FAIL_IF (input("OperandB") == nullptr);
 
-            for(unsigned int i = 0; i< Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors.size(); ++i)
-            {
-               FAIL_IF (Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[i]->shape().size()
-                       != Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors[0]->shape().size());
-            }
+            FAIL_IF (output("Result") == nullptr);
+
+            FAIL_IF (input("OperandA")->shape().size() != output("Result")->shape().size());
+
+            FAIL_IF (input("OperandB")->shape().size() != output("Result")->shape().size());
 
             return true;
         }
@@ -43,20 +46,20 @@ namespace FreeWill
         virtual void evaluate() override
         {
 
-            Tensor<DeviceUsed, DataType> *result = Operator<DeviceUsed>::m_outputParameters["Result"].m_tensors[0]->template toType<DataType>();
-            Tensor<DeviceUsed, DataType> *operandA = Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[0]->template toType<DataType>();
-            Tensor<DeviceUsed, DataType> *operandB = Operator<DeviceUsed>::m_inputParameters["Operand"].m_tensors[1]->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *result = output("Result")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *operandA = input("OperandA")->template toType<DataType>();
+            Tensor<DeviceUsed, DataType> *operandB = input("OperandB")->template toType<DataType>();
 
             unsigned int size = result->shape().size();
 
-            if constexpr (DeviceUsed == CPU_NAIVE)
+            if constexpr ((DeviceUsed & (CPU_NAIVE)) !=0)
             {
                 for(unsigned int e = 0; e<size; ++e)
                 {
                     (*result)[e] = (*operandA)[e] + (*operandB)[e]*m_rate;
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) !=0)
+            else if constexpr ((DeviceUsed & (GPU_CUDA)) !=0)
             {
                 elementwiseAddCUDAKernel<DataType>(operandA->gpuDataHandle(), operandB->gpuDataHandle(), m_rate, result->gpuDataHandle(), size);
 

@@ -136,26 +136,26 @@ void FreeWillUnitTest::xorTest()
 
     float learningRate = 0.02;
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> mergeWithFirstLayerWeight(-learningRate);
-    mergeWithFirstLayerWeight.setInputParameter("Operand", &firstLayerWeight);
-    mergeWithFirstLayerWeight.setInputParameter("Operand", &firstLayerWeightDerivative);
+    mergeWithFirstLayerWeight.setInputParameter("OperandA", &firstLayerWeight);
+    mergeWithFirstLayerWeight.setInputParameter("OperandB", &firstLayerWeightDerivative);
     mergeWithFirstLayerWeight.setOutputParameter("Result", &firstLayerWeight);
     QVERIFY(mergeWithFirstLayerWeight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> mergeWithFirstLayerBias(-learningRate);
-    mergeWithFirstLayerBias.setInputParameter("Operand", &firstLayerBias);
-    mergeWithFirstLayerBias.setInputParameter("Operand", &firstLayerBiasDerivative);
+    mergeWithFirstLayerBias.setInputParameter("OperandA", &firstLayerBias);
+    mergeWithFirstLayerBias.setInputParameter("OperandB", &firstLayerBiasDerivative);
     mergeWithFirstLayerBias.setOutputParameter("Result", &firstLayerBias);
     QVERIFY(mergeWithFirstLayerBias.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> mergeWithSecondLayerWeight(-learningRate);
-    mergeWithSecondLayerWeight.setInputParameter("Operand", &secondLayerWeight);
-    mergeWithSecondLayerWeight.setInputParameter("Operand", &secondLayerWeightDerivative);
+    mergeWithSecondLayerWeight.setInputParameter("OperandA", &secondLayerWeight);
+    mergeWithSecondLayerWeight.setInputParameter("OperandB", &secondLayerWeightDerivative);
     mergeWithSecondLayerWeight.setOutputParameter("Result", &secondLayerWeight);
     QVERIFY(mergeWithSecondLayerWeight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> mergeWithSecondLayerBias(-learningRate);
-    mergeWithSecondLayerBias.setInputParameter("Operand", &secondLayerBias);
-    mergeWithSecondLayerBias.setInputParameter("Operand", &secondLayerBiasDerivative);
+    mergeWithSecondLayerBias.setInputParameter("OperandA", &secondLayerBias);
+    mergeWithSecondLayerBias.setInputParameter("OperandB", &secondLayerBiasDerivative);
     mergeWithSecondLayerBias.setOutputParameter("Result", &secondLayerBias);
     QVERIFY(mergeWithSecondLayerBias.init());
 
@@ -346,26 +346,26 @@ void FreeWillUnitTest::xorTestGPU()
 
     float learningRate = 0.02;
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> mergeWithFirstLayerWeight(-learningRate);
-    mergeWithFirstLayerWeight.setInputParameter("Operand", &firstLayerWeight);
-    mergeWithFirstLayerWeight.setInputParameter("Operand", &firstLayerWeightDerivative);
+    mergeWithFirstLayerWeight.setInputParameter("OperandA", &firstLayerWeight);
+    mergeWithFirstLayerWeight.setInputParameter("OperandB", &firstLayerWeightDerivative);
     mergeWithFirstLayerWeight.setOutputParameter("Result", &firstLayerWeight);
     QVERIFY(mergeWithFirstLayerWeight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> mergeWithFirstLayerBias(-learningRate);
-    mergeWithFirstLayerBias.setInputParameter("Operand", &firstLayerBias);
-    mergeWithFirstLayerBias.setInputParameter("Operand", &firstLayerBiasDerivative);
+    mergeWithFirstLayerBias.setInputParameter("OperandA", &firstLayerBias);
+    mergeWithFirstLayerBias.setInputParameter("OperandB", &firstLayerBiasDerivative);
     mergeWithFirstLayerBias.setOutputParameter("Result", &firstLayerBias);
     QVERIFY(mergeWithFirstLayerBias.init());
 
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> mergeWithSecondLayerWeight(-learningRate);
-    mergeWithSecondLayerWeight.setInputParameter("Operand", &secondLayerWeight);
-    mergeWithSecondLayerWeight.setInputParameter("Operand", &secondLayerWeightDerivative);
+    mergeWithSecondLayerWeight.setInputParameter("OperandA", &secondLayerWeight);
+    mergeWithSecondLayerWeight.setInputParameter("OperandB", &secondLayerWeightDerivative);
     mergeWithSecondLayerWeight.setOutputParameter("Result", &secondLayerWeight);
     QVERIFY(mergeWithSecondLayerWeight.init());
 
     FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> mergeWithSecondLayerBias(-learningRate);
-    mergeWithSecondLayerBias.setInputParameter("Operand", &secondLayerBias);
-    mergeWithSecondLayerBias.setInputParameter("Operand", &secondLayerBiasDerivative);
+    mergeWithSecondLayerBias.setInputParameter("OperandA", &secondLayerBias);
+    mergeWithSecondLayerBias.setInputParameter("OperandB", &secondLayerBiasDerivative);
     mergeWithSecondLayerBias.setOutputParameter("Result", &secondLayerBias);
     QVERIFY(mergeWithSecondLayerBias.init());
 

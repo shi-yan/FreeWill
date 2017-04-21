@@ -10,6 +10,7 @@
 #include <any>
 #include "TensorDescriptor.h"
 #include "OperatorDescriptor.h"
+#include "Solver.h"
 
 
 namespace FreeWill
@@ -25,15 +26,15 @@ namespace FreeWill
         Model(const Model &) = delete;
         Model& operator=(const Model &) = delete;
 
-        std::map<std::string, TensorDescriptor*> m_tensors;
+        std::map<TensorDescriptorHandle, TensorDescriptor*> m_tensors;
         std::map<std::string, OperatorDescriptor*> m_operators;
 
 
     public:
         static Model* create();
         ~Model();
-        bool init();
-        TensorDescriptorHandle addTensor(const std::string &name, const Shape &shape, bool isBatchTensor = true, DataType dataType = FLOAT);
+        bool init(const Solver &solver);
+        TensorDescriptorHandle addTensor(const std::string &name, const Shape &shape, bool isBatchTensor = false, DataType dataType = FLOAT);
         int addOperator(const std::string &name,
                         const std::string &operatorName,
                         const std::map<std::string, TensorDescriptorHandle> &inputs,

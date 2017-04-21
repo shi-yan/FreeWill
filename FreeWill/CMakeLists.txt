@@ -47,6 +47,8 @@ include_directories(${Qt5Core_INCLUDE_DIRS})
 add_definitions(${Qt5Core_DEFINITIONS})
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
 
 find_package(Qt5Test REQUIRED)
 set_property(TARGET Qt5::Test PROPERTY INTERFACE_COMPILE_FEATURES "")
@@ -85,6 +87,7 @@ set(FreeWill_SOURCES
     FreeWillUnitTestModel.cpp
     Tensor/Tensor.h
     Tensor/ReferenceCountedBlob.h
+    Tensor/Shape.h
     Operator/Activation.h
     Operator/ActivationDerivative.h
     Operator/DotProductWithBias.h
@@ -107,7 +110,10 @@ set(FreeWill_SOURCES
     Model/TensorDescriptor.h
     Model/TensorDescriptor.cpp
     Model/OperatorDescriptor.h
-    Model/OperatorDescriptor.cpp)
+    Model/OperatorDescriptor.cpp
+    Model/Solver.h
+    Tensor/Shape.cpp
+    )
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
 target_link_libraries(FreeWillUnitTest Qt5::Core)

@@ -9,7 +9,7 @@
 
 namespace FreeWill
 {
-    template <ActivationMode ActivationModeUsed = SIGMOID, DeviceType DeviceUsed = CPU, typename DataType = float>
+    template <ActivationMode ActivationModeUsed = SIGMOID, DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
     class ActivationDerivative : public Operator<DeviceUsed>
     {
 
@@ -100,10 +100,15 @@ namespace FreeWill
                 }
                 else if constexpr (ActivationModeUsed == TANH)
                 {
+                    (void) _output;
+                    (void) _inputDelta;
+                    (void) _outputDelta;
                 }
                 else if constexpr (ActivationModeUsed == CLIPPED_RELU)
                 {
-           
+                    (void) _output;
+                    (void) _inputDelta;
+                    (void) _outputDelta;
                 }
             }
             else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)

@@ -14,6 +14,7 @@
 #include "Operator/MaxPooling.h"
 #include "Operator/MaxPoolingDerivative.h"
 #include "Model/Model.h"
+#include "Model/Solver.h"
 
 void FreeWillUnitTest::modelTest()
 {
@@ -57,13 +58,17 @@ void FreeWillUnitTest::modelTest()
                                                              {{"Input", secondLayerActivation},{"Label", label}},{{"Output", secondLayerDelta}},{{"Mode", FreeWill::SIGMOID}});
     model->addOperator("secondLayerDotProductWithBiasDerivative", FreeWill::DOT_PRODUCT_WITH_BIAS_DERIVATIVE,
                         {{"InputActivation", firstLayerActivation}, {"Weight", secondLayerWeight},{"OutputDelta", secondLayerDelta}},
-                        {{"WeightGrad", secondLayerWeightDerivative}, {"BiasGrad", secondLayerBiasDerivative}, {"InputDelta", secondLayerDelta}});
+                        {{"WeightGrad", secondLayerWeightDerivative}, {"BiasGrad", secondLayerBiasDerivative}, {"InputDelta", firstLayerDelta}});
     model->addOperator("firstLayerSigmoidDerivative", FreeWill::ACTIVATION_DERIVATIVE,
                                                              {{"Output", firstLayerActivation}, {"OutputDelta", firstLayerDelta}},{{"InputDelta", firstLayerDelta}},{{"Mode",FreeWill::SIGMOID}});
     model->addOperator("firstLayerDotProductWithBiasDerivative", FreeWill::DOT_PRODUCT_WITH_BIAS_DERIVATIVE,
                         {{"InputActivation", input}, {"OutputDelta", firstLayerDelta}, {"Weight", firstLayerWeight}},
                         {{"WeightGrad", firstLayerWeightDerivative}, {"BiasGrad", firstLayerBiasDerivative},{"InputDelta", inputNeuronDelta}});
 
-    model->init();
+    FreeWill::Solver solver;
+    solver.m_deviceUsed = FreeWill::CPU_NAIVE;
+    solver.m_batchSize = 4;
+
+    QVERIFY(model->init(solver));
 
 }

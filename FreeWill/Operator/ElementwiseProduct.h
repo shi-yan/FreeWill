@@ -6,7 +6,7 @@
 namespace FreeWill
 {
 
-    template<DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
     class ElementwiseProduct : public Operator<DeviceUsed>
     {
     protected:

@@ -79,9 +79,12 @@ namespace FreeWill
        {
             return dynamic_cast< Tensor<DeviceUsed, DataType> *>(this);
        }
+
+       virtual const std::string &name() const = 0;
+
     };
     
-    template<DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
     class Tensor : public TensorBase<DeviceUsed>
     {
     private:
@@ -122,7 +125,7 @@ namespace FreeWill
                 result = m_data.alloc(size * sizeof(DataType));
             }
 
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 updateGPUTensorDescriptor();
             }
@@ -140,7 +143,7 @@ namespace FreeWill
             unsigned int size = m_shape.size();
             std::copy(initList.begin(), initList.begin() + (initList.size()>size?size:initList.size()), (DataType*) m_data.dataHandle());
 
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 m_data.copyFromHostToDevice();
                 updateGPUTensorDescriptor();
@@ -164,7 +167,7 @@ namespace FreeWill
                 //bits[n] = ((double) rand() / (double) RAND_MAX - 0.5) * 0.1;
             } 
  
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 m_data.copyFromHostToDevice();
             }
@@ -214,10 +217,15 @@ namespace FreeWill
             return (DataType*) TensorBase<DeviceUsed>::cpuDataHandle();
         }
 
+        const std::string &name() const override
+        {
+            return m_name;
+        }
+
     private:
         void updateGPUTensorDescriptor()
         {
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 cudnnDataType_t dataType = CUDNN_DATA_FLOAT;
                 if constexpr (std::is_same<DataType,float>::value)

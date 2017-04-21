@@ -6,7 +6,7 @@
 
 namespace FreeWill
 {
-    template<DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
     class DotProductWithBiasDerivative : public Operator<DeviceUsed>
     {
     protected:
@@ -39,7 +39,11 @@ namespace FreeWill
                     input("Weight")->shape()[0] != output("WeightGrad")->shape()[0] ||
                     input("Weight")->shape()[1] != output("WeightGrad")->shape()[1]);
 
-            FAIL_IF(output("InputDelta")->shape().dimension()!=2 || input("InputActivation")->shape() != output("InputDelta")->shape());
+            /*qDebug() << output("InputDelta")->shape().dimension()
+                     << input("InputActivation")->shape()[0] <<input("InputActivation")->shape()[1]
+                     << output("InputDelta")->shape()[0] << output("InputDelta")->shape()[1];*/
+
+            FAIL_IF(output("InputDelta")->shape().dimension() != 2 || input("InputActivation")->shape() != output("InputDelta")->shape());
 
             FAIL_IF(input("OutputDelta")->shape().dimension() != 2 || input("OutputDelta")->shape()[0] != input("Weight")->shape()[0]);
          
@@ -71,7 +75,7 @@ namespace FreeWill
            Tensor<DeviceUsed, DataType> *weight = input("Weight")->template toType<DataType>();
            Tensor<DeviceUsed, DataType> *biasGrad = output("BiasGrad")->template toType<DataType>();
 
-           if constexpr ((DeviceUsed & (CPU | CPU_NAIVE)) != 0)
+           if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
            {
                 for(unsigned int b = 0;b<batchSize;++b)
                 {
@@ -109,7 +113,7 @@ namespace FreeWill
                     }
                 }
            }
-           else if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+           else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
            {
                DataType alpha = 1.0;
                DataType beta = 0.0;

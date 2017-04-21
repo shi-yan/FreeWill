@@ -20,7 +20,7 @@ namespace FreeWill
         CLIPPED_RELU
     } ActivationMode;
 
-    template<ActivationMode ActivationModeUsed = SIGMOID, DeviceType DeviceUsed = CPU, typename DataType = float>
+    template<ActivationMode ActivationModeUsed = SIGMOID, DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
     class Activation : public Operator<DeviceUsed>
     {
 
@@ -98,9 +98,13 @@ namespace FreeWill
                 }
                 else if constexpr (ActivationModeUsed == TANH)
                 {
+                    (void) _input;
+                    (void) _output;
                 }
                 else if constexpr (ActivationModeUsed == CLIPPED_RELU)
                 {
+                    (void) _input;
+                    (void) _output;
                 }
             }
             else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
@@ -128,14 +132,13 @@ namespace FreeWill
         {
             Operator<DeviceUsed>::clear();
 
-            if constexpr ((DeviceUsed & (GPU | GPU_CUDA)) != 0)
+            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
             {
                 RUN_CUDNN(cudnnDestroyActivationDescriptor(m_cudnnActivationDescriptor));
                 m_cudnnActivationDescriptor = 0;
             }        
             
         }
-     };
-
+    };
 }
 #endif
