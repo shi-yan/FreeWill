@@ -1,6 +1,8 @@
 #include "Model.h"
 #include <cmath>
 #include "../Operator/Operator.h"
+#include <fstream>
+#include <sstream>
 
 FreeWill::Model* FreeWill::Model::create()
 {
@@ -124,3 +126,82 @@ bool FreeWill::Model::init(const Solver &solver)
     return true;
 }
 
+bool FreeWill::Model::defineForwardPath(const std::vector<std::string> &forwardOperators)
+{
+    m_forwardPath.clear();
+
+    for(unsigned int i = 0; i<forwardOperators.size();++i)
+    {
+        if (m_operators.find(forwardOperators[i]) != m_operators.end())
+        {
+            m_forwardPath.push_back(forwardOperators[i]);
+        }
+        else
+        {
+            m_forwardPath.clear();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void FreeWill::Model::generateSVGDiagram(const std::string &filename)
+{
+    std::stringstream tempStream;
+
+    unsigned int width = 0;
+    unsigned int height = 0;
+
+    for(unsigned int i = 0;i<m_forwardPath.size();++i)
+    {
+        unsigned int operatorWidth = 0;
+        unsigned int operatorHeight = 0;
+
+        m_operators[m_forwardPath[i]]->evaluateSVGDiagramSize(operatorWidth, operatorHeight);
+
+        width += operatorWidth;
+
+        if (height < operatorHeight)
+        {
+            height = operatorHeight;
+        }
+
+    }
+
+    unsigned int offset = 0;
+
+    for(unsigned int i = 0;i<m_forwardPath.size();++i)
+    {
+        unsigned int operatorWidth = 0;
+        unsigned int operatorHeight = 0;
+
+        std::stringstream ss;
+        m_operators[m_forwardPath[i]]->generateSVGDiagram(ss, operatorWidth, operatorHeight);
+
+        tempStream << "<g transform=\"translate(" << offset << "," << 0.5f * (height - operatorHeight) << ")\">";
+        tempStream << ss.str();
+        tempStream << "</g>";
+
+        offset += operatorWidth;
+
+        if (height < operatorHeight)
+        {
+            height = operatorHeight;
+        }
+    }
+
+
+
+    std::ofstream outputStream;
+
+    outputStream.open(filename);
+
+    outputStream << "<svg width=\"" << width << "\" height=\"" << height << "\" viewBox=\"0 0 "<< width <<" "<< height << "\" xmlns=\"http://www.w3.org/2000/svg\">";
+
+    outputStream << tempStream.str();
+
+    outputStream << "</svg>";
+
+    outputStream.close();
+}

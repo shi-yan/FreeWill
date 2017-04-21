@@ -71,4 +71,7 @@ void FreeWillUnitTest::modelTest()
 
     QVERIFY(model->init(solver));
 
+    model->defineForwardPath({"firstLayerFullyConnected", "firstLayerSigmoid", "secondLayerFullyConnected", "secondLayerSigmoid", "crossEntropyLoss"});
+    model->generateSVGDiagram("testout.svg");
+
 }

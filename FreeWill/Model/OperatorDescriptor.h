@@ -17,6 +17,7 @@
 #include "../Operator/SoftmaxLogLossDerivative.h"
 #include "TensorDescriptor.h"
 #include <any>
+#include <fstream>
 
 namespace FreeWill
 {
@@ -26,6 +27,18 @@ namespace FreeWill
     class OperatorDescriptor
     {
         friend class Model;
+
+        constexpr static const float topBottomMargin = 20;
+        constexpr static const float centerSpace = 40;
+        constexpr static const float anchorSpace = 5;
+        constexpr static const float anchorHeight = 15;
+        constexpr static const float anchorWidth = 80;
+        constexpr static const float leftRightMargin = 5;
+        constexpr static const float topSpace = 32;
+        constexpr static const float bottomSpace = 32;
+        constexpr static const float leftSpace = 5;
+        constexpr static const float rightSpace = 5;
+
     private:
         std::string m_name;
         DataType m_dataType;
@@ -41,6 +54,9 @@ namespace FreeWill
         ~OperatorDescriptor();
 
         std::map<DeviceType, std::vector<std::variant<Operator<GPU_CUDA>*, Operator<CPU_NAIVE>*>>> m_operators;
+
+        void generateSVGDiagram(std::ostream &outputStream, unsigned int &width, unsigned int &height);
+        void evaluateSVGDiagramSize(unsigned int &width, unsigned int &height);
 
         template<DeviceType DeviceUsed>
         bool setInput(Operator<DeviceUsed> *operatorBase, const std::string &inputName, std::map<std::string, FreeWill::TensorDescriptor*> &tensors)

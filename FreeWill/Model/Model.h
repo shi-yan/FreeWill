@@ -17,10 +17,6 @@ namespace FreeWill
 {
     class Model
     {
-
-
-
-
     private:
         Model();
         Model(const Model &) = delete;
@@ -28,6 +24,8 @@ namespace FreeWill
 
         std::map<std::string, TensorDescriptor*> m_tensors;
         std::map<std::string, OperatorDescriptor*> m_operators;
+
+        std::vector<std::string> m_forwardPath;
 
 
     public:
@@ -45,6 +43,12 @@ namespace FreeWill
                         const std::map<std::string, TensorDescriptorHandle> &inputs,
                         const std::map<std::string, TensorDescriptorHandle> &outputs,
                         const std::map<std::string, std::any> &properties = {}, DataType DataType = FLOAT);
+
+        void generateSVGDiagram(const std::string &filename);
+
+        bool defineForwardPath(const std::vector<std::string> &forwardOperators);
+
+
     };
 }
 
