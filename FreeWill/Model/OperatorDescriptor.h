@@ -50,7 +50,18 @@ namespace FreeWill
                 return false;
             }
 
-            operatorBase->setInputParameter(inputName, tensors[m_inputs[inputName]]->getTensorForDevice<DeviceUsed>());
+            TensorBase<DeviceUsed> *tensorBase = tensors[m_inputs[inputName].first]->getTensorForDevice<DeviceUsed>();
+
+            if (m_inputs[inputName].second != Shape())
+            {
+                if (! tensorBase->reshape(m_inputs[inputName].second))
+                {
+                    std::cerr << "Reshape failed for input: " << inputName << " tensor: " << tensorBase->name() << " from: " << tensorBase->shape() << " to: " << m_inputs[inputName].second << std::endl;
+                    return false;
+                }
+            }
+
+            operatorBase->setInputParameter(inputName, tensorBase);
 
             return true;
         }
@@ -63,15 +74,18 @@ namespace FreeWill
                 return false;
             }
 
-            if (tensors[m_outputs[outputName]]->getTensorForDevice<DeviceUsed>()->shape().dimension() == 2)
-            {
-                //qDebug() << outputName.c_str() <<tensors[m_outputs[outputName]]->getTensorForDevice<DeviceUsed>()->name().c_str() << tensors[m_outputs[outputName]]->getTensorForDevice<DeviceUsed>()->shape().dimension();
-                //qDebug() << outputName.c_str() <<  tensors[m_outputs[outputName]]->getTensorForDevice<DeviceUsed>()->shape()[0];
-                //qDebug() << outputName.c_str() <<  tensors[m_outputs[outputName]]->getTensorForDevice<DeviceUsed>()->shape()[1];
+            TensorBase<DeviceUsed> *tensorBase = tensors[m_outputs[outputName].first]->getTensorForDevice<DeviceUsed>();
 
+            if (m_outputs[outputName].second != Shape())
+            {
+                if (! tensorBase->reshape(m_outputs[outputName].second))
+                {
+                    std::cerr << "Reshape failed for output: " << outputName << " tensor: " << tensorBase->name() << " from: " << tensorBase->shape() << " to: " << m_outputs[outputName].second << std::endl;
+                    return false;
+                }
             }
 
-            operatorBase->setOutputParameter(outputName, tensors[m_outputs[outputName]]->getTensorForDevice<DeviceUsed>());
+            operatorBase->setOutputParameter(outputName, tensorBase);
 
             return true;
         }

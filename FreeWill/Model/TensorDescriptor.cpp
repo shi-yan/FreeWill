@@ -66,3 +66,11 @@ FreeWill::TensorDescriptor::~TensorDescriptor()
 
     }
 }
+
+
+FreeWill::TensorDescriptorHandle operator^(FreeWill::TensorDescriptorHandle &handle, const FreeWill::Shape &newShape)
+{
+    FreeWill::TensorDescriptorHandle newHandle = handle;
+    newHandle.second = newShape;
+    return newHandle;
+}

@@ -12,12 +12,12 @@ FreeWill::TensorDescriptorHandle FreeWill::Model::addTensor(const std::string &n
 {
     if (m_tensors.find(name) != m_tensors.end())
     {
-        return std::string();
+        return {std::string(), Shape()};
     }
    
     m_tensors[name] = new FreeWill::TensorDescriptor(name, shape, isBatchTensor, dataType);
     
-   return name;
+   return {name, Shape()};
 }
 
 

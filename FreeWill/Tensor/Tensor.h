@@ -81,6 +81,7 @@ namespace FreeWill
        }
 
        virtual const std::string &name() const = 0;
+       virtual bool reshape(const Shape &newShape) = 0;
 
     };
     
@@ -188,12 +189,17 @@ namespace FreeWill
             return *(bits + i);
         }
 
-        void reshape(const Shape &newShape)
+        bool reshape(const Shape &newShape)
         {
             if (newShape.size() == m_shape.size())
             {
                 m_shape = newShape;
                 updateGPUTensorDescriptor();
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 

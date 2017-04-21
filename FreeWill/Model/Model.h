@@ -26,7 +26,7 @@ namespace FreeWill
         Model(const Model &) = delete;
         Model& operator=(const Model &) = delete;
 
-        std::map<TensorDescriptorHandle, TensorDescriptor*> m_tensors;
+        std::map<std::string, TensorDescriptor*> m_tensors;
         std::map<std::string, OperatorDescriptor*> m_operators;
 
 

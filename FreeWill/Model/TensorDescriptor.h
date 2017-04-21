@@ -17,7 +17,7 @@ namespace FreeWill
         UNSIGNED_INT
     } DataType;
 
-    typedef std::string TensorDescriptorHandle;
+    typedef std::pair<std::string, Shape> TensorDescriptorHandle;
 
     class Model;
 
@@ -72,4 +72,7 @@ namespace FreeWill
         }
     };
 }
+
+FreeWill::TensorDescriptorHandle operator^(FreeWill::TensorDescriptorHandle &handle, const FreeWill::Shape &newShape);
+
 #endif
