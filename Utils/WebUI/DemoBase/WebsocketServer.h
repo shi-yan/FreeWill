@@ -6,7 +6,7 @@
 #include <QTimer>
 #include "Session.h"
 
-enum MESSAGE
+enum class Message : uint32_t
 {
     UPDATE_AVAILABLE = 6543,
     QUERY_DATA,

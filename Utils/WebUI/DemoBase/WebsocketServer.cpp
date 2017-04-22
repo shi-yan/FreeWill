@@ -4,6 +4,7 @@
 #include <random>
 #include <endian.h>
 #include <QDataStream>
+#include <type_traits>
 
 WebsocketServer::WebsocketServer():
     m_testTimer(NULL)
@@ -55,7 +56,7 @@ void WebsocketServer::onTimeout()
 
 void WebsocketServer::notifyUpdate(unsigned int _tail)
 {
-    quint32 message = UPDATE_AVAILABLE;
+    quint32 message = static_cast<uint32_t>(Message::UPDATE_AVAILABLE);
     quint32 tail = _tail;
 
     QByteArray ba;
@@ -76,7 +77,7 @@ void WebsocketServer::onBinaryMessageReceived(const QByteArray &message)
     ds >> messageName;
     qDebug() << "requesting data" << messageName << message.size();
 
-    if (messageName == QUERY_DATA)
+    if (messageName == static_cast<uint32_t>(Message::QUERY_DATA))
     {
 
 
@@ -93,7 +94,7 @@ void WebsocketServer::onBinaryMessageReceived(const QByteArray &message)
 
         m_session->read(buffer, from, size);
 
-        messageName = DATA;
+        messageName = static_cast<uint32_t>(Message::DATA);
         QByteArray ba;
         ba.append((char*) &messageName, 4);
         ba.append((char*) &size, 4);
@@ -132,7 +133,7 @@ void WebsocketServer::onUpdateCost(float cost)
 
 void WebsocketServer::onUpdateProgress(float epoch, float overall)
 {
-    quint32 message = UPDATE_PROGRESS;
+    quint32 message = static_cast<uint32_t>(Message::UPDATE_PROGRESS);
     
     QByteArray ba;
     ba.append((char*) &message, 4);

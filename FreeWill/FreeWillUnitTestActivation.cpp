@@ -15,7 +15,7 @@ void FreeWillUnitTest::operatorSigmoidTestCPUAndGPU()
     FreeWill::Tensor< FreeWill::DeviceType::CPU_NAIVE, float> outputCPU({64,32,32});
     outputCPU.init();
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoidCPU;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoidCPU;
     sigmoidCPU.setInputParameter("Input", &inputCPU);
     sigmoidCPU.setOutputParameter("Output", &outputCPU);
 
@@ -36,7 +36,7 @@ void FreeWillUnitTest::operatorSigmoidTestCPUAndGPU()
 
     inputGPU.copyFromHostToDevice();
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> sigmoidGPU;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> sigmoidGPU;
     sigmoidGPU.setInputParameter("Input", &inputGPU);
     sigmoidGPU.setOutputParameter("Output", &outputGPU);
 
@@ -60,7 +60,7 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> output({1});
     output.init();
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, double> sigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, double> sigmoid;
     sigmoid.setInputParameter("Input", &input);
     sigmoid.setOutputParameter("Output", &output);
     QVERIFY(sigmoid.init());
@@ -99,7 +99,7 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTest()
     ones.init();
     ones[0] = 1; 
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, double> sigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, double> sigmoidDerivative;
     sigmoidDerivative.setInputParameter("Output", &output);
     sigmoidDerivative.setInputParameter("OutputDelta", &ones);
     sigmoidDerivative.setOutputParameter("InputDelta", &input);
@@ -121,7 +121,7 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTestGPU()
 
     input.copyFromHostToDevice();
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, double> sigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::GPU_CUDA, double> sigmoid;
     sigmoid.setInputParameter("Input", &input);
     sigmoid.setOutputParameter("Output", &output);
     QVERIFY(sigmoid.init());
@@ -167,7 +167,7 @@ void FreeWillUnitTest::operatorSigmoidDerivativeTestGPU()
     double fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon);
     
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, double> sigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::GPU_CUDA, double> sigmoidDerivative;
     input[0] = 0;
     input.copyFromHostToDevice();
 
@@ -199,7 +199,7 @@ void FreeWillUnitTest::operatorReLUDerivativeTest()
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> output({1});
     output.init();
 
-    FreeWill::Activation<FreeWill::RELU, FreeWill::DeviceType::CPU_NAIVE, double> relu;
+    FreeWill::Activation<FreeWill::ActivationMode::RELU, FreeWill::DeviceType::CPU_NAIVE, double> relu;
     relu.setInputParameter("Input", &input);
     relu.setOutputParameter("Output", &output);
     QVERIFY(relu.init());
@@ -239,7 +239,7 @@ void FreeWillUnitTest::operatorReLUDerivativeTest()
     ones[0] = 1; 
 
     //printf("input: %f output %f deriv %f\n", input[0], output[0], 4.0);
-    FreeWill::ActivationDerivative<FreeWill::RELU, FreeWill::DeviceType::CPU_NAIVE, double> reluDerivative;
+    FreeWill::ActivationDerivative<FreeWill::ActivationMode::RELU, FreeWill::DeviceType::CPU_NAIVE, double> reluDerivative;
     reluDerivative.setInputParameter("Output", &output);
     reluDerivative.setInputParameter("OutputDelta", &ones);
     reluDerivative.setOutputParameter("InputDelta", &input);
@@ -262,7 +262,7 @@ void FreeWillUnitTest::operatorReLUDerivativeTestGPU()
 
     input.copyFromHostToDevice();
 
-    FreeWill::Activation<FreeWill::RELU, FreeWill::DeviceType::GPU_CUDA, double> relu;
+    FreeWill::Activation<FreeWill::ActivationMode::RELU, FreeWill::DeviceType::GPU_CUDA, double> relu;
     relu.setInputParameter("Input", &input);
     relu.setOutputParameter("Output", &output);
     QVERIFY(relu.init());
@@ -308,7 +308,7 @@ void FreeWillUnitTest::operatorReLUDerivativeTestGPU()
     double fakeDerivative = (output_larger[0] - output_smaller[0]) / (2.0 * epsilon);
     
 
-    FreeWill::ActivationDerivative<FreeWill::RELU, FreeWill::DeviceType::GPU_CUDA, double> reluDerivative;
+    FreeWill::ActivationDerivative<FreeWill::ActivationMode::RELU, FreeWill::DeviceType::GPU_CUDA, double> reluDerivative;
     input[0] = 0;
     input.copyFromHostToDevice();
 

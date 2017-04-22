@@ -9,7 +9,7 @@
 
 namespace FreeWill
 {
-    template <ActivationMode ActivationModeUsed = SIGMOID, DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
+    template <ActivationMode ActivationModeUsed = ActivationMode::SIGMOID, DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
     class ActivationDerivative : public Operator<DeviceUsed>
     {
 
@@ -48,22 +48,22 @@ namespace FreeWill
                     RUN_CUDNN(cudnnCreateActivationDescriptor(&m_cudnnActivationDescriptor));
                 }
 
-                if constexpr (ActivationModeUsed == SIGMOID)
+                if constexpr (ActivationModeUsed == ActivationMode::SIGMOID)
                 {
                     RUN_CUDNN(cudnnSetActivationDescriptor(m_cudnnActivationDescriptor, CUDNN_ACTIVATION_SIGMOID, CUDNN_PROPAGATE_NAN, 20.0));
                 
                 }
-                else if constexpr (ActivationModeUsed == RELU)
+                else if constexpr (ActivationModeUsed == ActivationMode::RELU)
                 {
                     RUN_CUDNN(cudnnSetActivationDescriptor(m_cudnnActivationDescriptor, CUDNN_ACTIVATION_RELU, CUDNN_PROPAGATE_NAN, 20.0));
                 
                 }
-                else if constexpr (ActivationModeUsed == TANH)
+                else if constexpr (ActivationModeUsed == ActivationMode::TANH)
                 {
                     RUN_CUDNN(cudnnSetActivationDescriptor(m_cudnnActivationDescriptor, CUDNN_ACTIVATION_TANH, CUDNN_PROPAGATE_NAN, 20.0));
                
                 }
-                else if constexpr (ActivationModeUsed == CLIPPED_RELU)
+                else if constexpr (ActivationModeUsed == ActivationMode::CLIPPED_RELU)
                 {
                     RUN_CUDNN(cudnnSetActivationDescriptor(m_cudnnActivationDescriptor, CUDNN_ACTIVATION_CLIPPED_RELU, CUDNN_PROPAGATE_NAN, 20.0));
    
@@ -84,27 +84,27 @@ namespace FreeWill
 
             if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
-                if constexpr (ActivationModeUsed == SIGMOID)
+                if constexpr (ActivationModeUsed == ActivationMode::SIGMOID)
                 {
                     for (unsigned int i =0; i<size; ++i)
                     {
                         (*_inputDelta)[i] = (*_output)[i] * (1.0 - (*_output)[i]) * (*_outputDelta)[i];
                     }
                 }
-                else if constexpr (ActivationModeUsed == RELU) 
+                else if constexpr (ActivationModeUsed == ActivationMode::RELU)
                 {
                     for(unsigned int i =0;i<size; ++i)
                     {
                         (*_inputDelta)[i] = ((*_output)[i] > 0.0 ? 1.0 : 0.0) * (*_outputDelta)[i];
                     }
                 }
-                else if constexpr (ActivationModeUsed == TANH)
+                else if constexpr (ActivationModeUsed == ActivationMode::TANH)
                 {
                     (void) _output;
                     (void) _inputDelta;
                     (void) _outputDelta;
                 }
-                else if constexpr (ActivationModeUsed == CLIPPED_RELU)
+                else if constexpr (ActivationModeUsed == ActivationMode::CLIPPED_RELU)
                 {
                     (void) _output;
                     (void) _inputDelta;

@@ -418,7 +418,7 @@ void FreeWillUnitTest::convolutionDerivativeTest()
   
     QVERIFY(convolution.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, double> sigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, double> sigmoid;
     sigmoid.setInputParameter("Input", &output);
     sigmoid.setOutputParameter("Output", &output);
 

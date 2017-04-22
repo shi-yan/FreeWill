@@ -71,7 +71,7 @@ void FreeWillUnitTest::xorTest()
     
     QVERIFY(firstLayerActivation.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> firstLayerSigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> firstLayerSigmoid;
     firstLayerSigmoid.setInputParameter("Input", &firstLayerActivation);
     firstLayerSigmoid.setOutputParameter("Output", &firstLayerActivation);
     
@@ -85,7 +85,7 @@ void FreeWillUnitTest::xorTest()
 
     QVERIFY(secondLayerFullyConnected.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> secondLayerSigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> secondLayerSigmoid;
     secondLayerSigmoid.setInputParameter("Input", &secondLayerActivation);
     secondLayerSigmoid.setOutputParameter("Output", &secondLayerActivation);
 
@@ -116,7 +116,7 @@ void FreeWillUnitTest::xorTest()
 
     QVERIFY(secondLayerDotProductWithBiasDerivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> firstLayerSigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> firstLayerSigmoidDerivative;
     firstLayerSigmoidDerivative.setInputParameter("Output", &firstLayerActivation);
     firstLayerSigmoidDerivative.setInputParameter("OutputDelta", &firstLayerNeuronDerivative);
     firstLayerSigmoidDerivative.setOutputParameter("InputDelta", &firstLayerNeuronDerivative);
@@ -281,7 +281,7 @@ void FreeWillUnitTest::xorTestGPU()
     
     QVERIFY(firstLayerActivation.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> firstLayerSigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> firstLayerSigmoid;
     firstLayerSigmoid.setInputParameter("Input", &firstLayerActivation);
     firstLayerSigmoid.setOutputParameter("Output", &firstLayerActivation);
     
@@ -295,7 +295,7 @@ void FreeWillUnitTest::xorTestGPU()
 
     QVERIFY(secondLayerFullyConnected.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> secondLayerSigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> secondLayerSigmoid;
     secondLayerSigmoid.setInputParameter("Input", &secondLayerActivation);
     secondLayerSigmoid.setOutputParameter("Output", &secondLayerActivation);
 
@@ -326,7 +326,7 @@ void FreeWillUnitTest::xorTestGPU()
 
     QVERIFY(secondLayerDotProductWithBiasDerivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> firstLayerSigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> firstLayerSigmoidDerivative;
     firstLayerSigmoidDerivative.setInputParameter("Output", &firstLayerActivation);
     firstLayerSigmoidDerivative.setInputParameter("OutputDelta", &firstLayerNeuronDerivative);
     firstLayerSigmoidDerivative.setOutputParameter("InputDelta", &firstLayerNeuronDerivative);

@@ -38,17 +38,17 @@ namespace FreeWill
         static Model* create();
         ~Model();
         bool init(const Solver &solver);
-        TensorDescriptorHandle addTensor(const std::string &name, const Shape &shape, bool isBatchTensor = false, bool isRandomlyInitialized = true, DataType dataType = FLOAT);
+        TensorDescriptorHandle addTensor(const std::string &name, const Shape &shape, bool isBatchTensor = false, bool isRandomlyInitialized = true, DataType dataType = DataType::FLOAT);
         OperatorDescriptorHandle addOperator(const std::string &name,
                         const std::string &operatorName,
                         const std::map<std::string, TensorDescriptorHandle> &inputs,
                         const std::map<std::string, TensorDescriptorHandle> &outputs,
-                        const std::map<std::string, std::any> &properties = {}, DataType dataType = FLOAT);
+                        const std::map<std::string, std::any> &properties = {}, DataType dataType = DataType::FLOAT);
         OperatorDescriptorHandle addOperator(const std::string &name,
                         FreeWill::OperatorName operatorName,
                         const std::map<std::string, TensorDescriptorHandle> &inputs,
                         const std::map<std::string, TensorDescriptorHandle> &outputs,
-                        const std::map<std::string, std::any> &properties = {}, DataType DataType = FLOAT);
+                        const std::map<std::string, std::any> &properties = {}, DataType DataType = DataType::FLOAT);
 
         void generateSVGDiagram(const std::string &filename);
 

@@ -29,7 +29,7 @@ namespace FreeWill
     template <DeviceType DeviceUsed>
     class OperatorFactory;
 
-    typedef enum
+    enum class OperatorName : uint32_t
     {
         ACTIVATION,
         ACTIVATION_DERIVATIVE,
@@ -44,20 +44,20 @@ namespace FreeWill
         SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE,
         SOFTMAX_LOG_LOSS,
         SOFTMAX_LOG_LOSS_DERIVATIVE
-    } OperatorName;
+    };
 
-    static std::map<std::string, OperatorName> operatorNameTable {{"Activation", ACTIVATION},
-                {"ActivationDerivative", ACTIVATION_DERIVATIVE},
-                {"Convolution", CONVOLUTION},
-                {"ConvolutionDerivative", CONVOLUTION_DERIVATIVE},
-                {"CrossEntropyLoss", CROSS_ENTROPY_LOSS},
-                {"DotProductWithBias", DOT_PRODUCT_WITH_BIAS},
-                {"ElementAdd", ELEMENTWISE_ADD},
-                {"MaxPooling", MAX_POOLING},
-                {"MaxPoolingDerivative", MAX_POOLING_DERIVATIVE},
-                {"SigmoidCrossEntropyLossDerivative", SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE},
-                {"SoftmaxLogLoss", SOFTMAX_LOG_LOSS},
-                {"SoftmaxLogLossDerivative", SOFTMAX_LOG_LOSS_DERIVATIVE}};
+    static std::map<std::string, OperatorName> operatorNameTable {{"Activation", OperatorName::ACTIVATION},
+                {"ActivationDerivative", OperatorName::ACTIVATION_DERIVATIVE},
+                {"Convolution", OperatorName::CONVOLUTION},
+                {"ConvolutionDerivative", OperatorName::CONVOLUTION_DERIVATIVE},
+                {"CrossEntropyLoss", OperatorName::CROSS_ENTROPY_LOSS},
+                {"DotProductWithBias", OperatorName::DOT_PRODUCT_WITH_BIAS},
+                {"ElementAdd", OperatorName::ELEMENTWISE_ADD},
+                {"MaxPooling", OperatorName::MAX_POOLING},
+                {"MaxPoolingDerivative", OperatorName::MAX_POOLING_DERIVATIVE},
+                {"SigmoidCrossEntropyLossDerivative", OperatorName::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE},
+                {"SoftmaxLogLoss", OperatorName::SOFTMAX_LOG_LOSS},
+                {"SoftmaxLogLossDerivative", OperatorName::SOFTMAX_LOG_LOSS_DERIVATIVE}};
 
     template <DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
     class Operator

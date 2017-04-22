@@ -39,35 +39,35 @@ void FreeWillUnitTest::modelTest()
     FreeWill::TensorDescriptorHandle inputNeuronDelta = model->addTensor("inputNeuronDelta", {2}, true, false);
 
 
-    FreeWill::OperatorDescriptorHandle firstLayerFullyConnected = model->addOperator("firstLayerFullyConnected", FreeWill::DOT_PRODUCT_WITH_BIAS,
+    FreeWill::OperatorDescriptorHandle firstLayerFullyConnected = model->addOperator("firstLayerFullyConnected", FreeWill::OperatorName::DOT_PRODUCT_WITH_BIAS,
                         {{"Input", input}, {"Weight", firstLayerWeight}, {"Bias", firstLayerBias}},
                         {{"Output", firstLayerActivation}});
-    FreeWill::OperatorDescriptorHandle firstLayerSigmoid = model->addOperator("firstLayerSigmoid", FreeWill::ACTIVATION,
+    FreeWill::OperatorDescriptorHandle firstLayerSigmoid = model->addOperator("firstLayerSigmoid", FreeWill::OperatorName::ACTIVATION,
                         {{"Input", firstLayerActivation}},
                         {{"Output", firstLayerActivation}},
-                        {{"Mode", FreeWill::SIGMOID}});
-    FreeWill::OperatorDescriptorHandle secondLayerFullyConnected = model->addOperator("secondLayerFullyConnected", FreeWill::DOT_PRODUCT_WITH_BIAS,
+                        {{"Mode", FreeWill::ActivationMode::SIGMOID}});
+    FreeWill::OperatorDescriptorHandle secondLayerFullyConnected = model->addOperator("secondLayerFullyConnected", FreeWill::OperatorName::DOT_PRODUCT_WITH_BIAS,
                         {{"Input", firstLayerActivation}, {"Weight", secondLayerWeight}, {"Bias", secondLayerBias}},
                         {{"Output", secondLayerActivation}});
-    FreeWill::OperatorDescriptorHandle secondLayerSigmoid = model->addOperator("secondLayerSigmoid", FreeWill::ACTIVATION,
+    FreeWill::OperatorDescriptorHandle secondLayerSigmoid = model->addOperator("secondLayerSigmoid", FreeWill::OperatorName::ACTIVATION,
                         {{"Input", secondLayerActivation}},
                         {{"Output", secondLayerActivation}},
-                        {{"Mode", FreeWill::SIGMOID}});
-    FreeWill::OperatorDescriptorHandle crossEntropyLoss = model->addOperator("crossEntropyLoss", FreeWill::CROSS_ENTROPY_LOSS,
+                        {{"Mode", FreeWill::ActivationMode::SIGMOID}});
+    FreeWill::OperatorDescriptorHandle crossEntropyLoss = model->addOperator("crossEntropyLoss", FreeWill::OperatorName::CROSS_ENTROPY_LOSS,
                         {{"Input", secondLayerActivation}, {"Label", label}},
                         {{"Cost", cost}});
-    FreeWill::OperatorDescriptorHandle sigmoidCrossEntropyLossDerivative = model->addOperator("sigmoidCrossEntropyLossDerivative", FreeWill::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE,
+    FreeWill::OperatorDescriptorHandle sigmoidCrossEntropyLossDerivative = model->addOperator("sigmoidCrossEntropyLossDerivative", FreeWill::OperatorName::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE,
                         {{"Input", secondLayerActivation},{"Label", label}},
                         {{"Output", secondLayerDelta}},
-                        {{"Mode", FreeWill::SIGMOID}});
-    FreeWill::OperatorDescriptorHandle secondLayerDotProductWithBiasDerivative = model->addOperator("secondLayerDotProductWithBiasDerivative", FreeWill::DOT_PRODUCT_WITH_BIAS_DERIVATIVE,
+                        {{"Mode", FreeWill::ActivationMode::SIGMOID}});
+    FreeWill::OperatorDescriptorHandle secondLayerDotProductWithBiasDerivative = model->addOperator("secondLayerDotProductWithBiasDerivative", FreeWill::OperatorName::DOT_PRODUCT_WITH_BIAS_DERIVATIVE,
                         {{"InputActivation", firstLayerActivation}, {"Weight", secondLayerWeight},{"OutputDelta", secondLayerDelta}},
                         {{"WeightGrad", secondLayerWeightDerivative}, {"BiasGrad", secondLayerBiasDerivative}, {"InputDelta", firstLayerDelta}});
-    FreeWill::OperatorDescriptorHandle firstLayerSigmoidDerivative = model->addOperator("firstLayerSigmoidDerivative", FreeWill::ACTIVATION_DERIVATIVE,
+    FreeWill::OperatorDescriptorHandle firstLayerSigmoidDerivative = model->addOperator("firstLayerSigmoidDerivative", FreeWill::OperatorName::ACTIVATION_DERIVATIVE,
                         {{"Output", firstLayerActivation}, {"OutputDelta", firstLayerDelta}},
                         {{"InputDelta", firstLayerDelta}},
-                        {{"Mode",FreeWill::SIGMOID}});
-    FreeWill::OperatorDescriptorHandle firstLayerDotProductWithBiasDerivative = model->addOperator("firstLayerDotProductWithBiasDerivative", FreeWill::DOT_PRODUCT_WITH_BIAS_DERIVATIVE,
+                        {{"Mode",FreeWill::ActivationMode::SIGMOID}});
+    FreeWill::OperatorDescriptorHandle firstLayerDotProductWithBiasDerivative = model->addOperator("firstLayerDotProductWithBiasDerivative", FreeWill::OperatorName::DOT_PRODUCT_WITH_BIAS_DERIVATIVE,
                         {{"InputActivation", input}, {"OutputDelta", firstLayerDelta}, {"Weight", firstLayerWeight}},
                         {{"WeightGrad", firstLayerWeightDerivative}, {"BiasGrad", firstLayerBiasDerivative},{"InputDelta", inputNeuronDelta}});
 

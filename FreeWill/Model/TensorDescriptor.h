@@ -5,16 +5,17 @@
 #include "../Tensor/Shape.h"
 #include <map>
 #include <variant>
+#include <cstdint>
 
 namespace FreeWill
 {
 
-    typedef enum
+    enum class DataType : uint32_t
     {
         FLOAT,
         DOUBLE,
         UNSIGNED_INT
-    } DataType;
+    };
 
     typedef std::pair<std::string, Shape> TensorDescriptorHandle;
 
@@ -33,7 +34,7 @@ namespace FreeWill
 
         std::map<DeviceType, std::vector<std::variant<TensorBase<DeviceType::GPU_CUDA>*, TensorBase<DeviceType::CPU_NAIVE>*>>> m_tensors;
 
-        TensorDescriptor(const std::string &name, const Shape &shape, bool isBatchTensor = false, bool isRandomlyInitialized = true, DataType dataType = FLOAT);
+        TensorDescriptor(const std::string &name, const Shape &shape, bool isBatchTensor = false, bool isRandomlyInitialized = true, DataType dataType = DataType::FLOAT);
         ~TensorDescriptor();
 
         void operator=(const TensorDescriptor &in);
@@ -45,7 +46,7 @@ namespace FreeWill
             FreeWill::TensorBase<DeviceUsed> *tensor = nullptr;
             switch (m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 tensor = new FreeWill::Tensor<DeviceUsed, float>(m_isBatchTensor?(m_shape + (m_batchSize = batchSize)):m_shape, m_name);
                 tensor->template toType<float>()->init();
                 if (m_isRandomlyInitialized)
@@ -53,7 +54,7 @@ namespace FreeWill
                     tensor->template toType<float>()->randomize();
                 }
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 tensor = new FreeWill::Tensor<DeviceUsed, double>(m_isBatchTensor?(m_shape + (m_batchSize = batchSize)):m_shape, m_name);
                 tensor->template toType<double>()->init();
                 if (m_isRandomlyInitialized)
@@ -61,7 +62,7 @@ namespace FreeWill
                     tensor->template toType<double>()->randomize();
                 }
                 break;
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 tensor = new FreeWill::Tensor<DeviceUsed, unsigned int>(m_isBatchTensor?(m_shape + (m_batchSize = batchSize)):m_shape, m_name);
                 tensor->template toType<unsigned int>()->init();
                 if (m_isRandomlyInitialized)

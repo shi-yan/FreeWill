@@ -56,7 +56,7 @@ namespace FreeWill
         OperatorDescriptor(const std::string &name, OperatorName operatorName,
                            const std::map<std::string, FreeWill::TensorDescriptorHandle> &inputs,
                            const std::map<std::string, FreeWill::TensorDescriptorHandle> &outputs,
-                           const std::map<std::string, std::any> &parameters, DataType dataType = FLOAT);
+                           const std::map<std::string, std::any> &parameters, DataType dataType = DataType::FLOAT);
         ~OperatorDescriptor();
 
         void generateSVGDiagram(std::ostream &outputStream, unsigned int &width, unsigned int &height);
@@ -122,69 +122,69 @@ namespace FreeWill
             FreeWill::ActivationMode mode = std::any_cast<FreeWill::ActivationMode>(m_parameters["Mode"]);
             switch(mode)
             {
-            case SIGMOID:
+            case ActivationMode::SIGMOID:
                 switch(m_dataType)
                 {
-                case FLOAT:
-                    operatorBase = new Activation<SIGMOID, DeviceUsed, float>();
+                case DataType::FLOAT:
+                    operatorBase = new Activation<ActivationMode::SIGMOID, DeviceUsed, float>();
                     break;
-                case DOUBLE:
-                    operatorBase = new Activation<SIGMOID, DeviceUsed, double>();
+                case DataType::DOUBLE:
+                    operatorBase = new Activation<ActivationMode::SIGMOID, DeviceUsed, double>();
                     break;
                 /*case UNSIGNED_INT:
                     operatorBase = new Activation<SIGMOID, DeviceUsed, unsigned int>();
                     break;*/
-                case UNSIGNED_INT:
+                case DataType::UNSIGNED_INT:
                     return nullptr;
                 }
                 break;
-            case RELU:
+            case ActivationMode::RELU:
                 switch(m_dataType)
                 {
-                case FLOAT:
-                    operatorBase = new Activation<RELU, DeviceUsed, float>();
+                case DataType::FLOAT:
+                    operatorBase = new Activation<ActivationMode::RELU, DeviceUsed, float>();
                     break;
-                case DOUBLE:
-                    operatorBase = new Activation<RELU, DeviceUsed, double>();
+                case DataType::DOUBLE:
+                    operatorBase = new Activation<ActivationMode::RELU, DeviceUsed, double>();
                     break;
                 /*case UNSIGNED_INT:
                     operatorBase = new Activation<RELU, DeviceUsed, unsigned int>();
                     break;*/
-                case UNSIGNED_INT:
+                case DataType::UNSIGNED_INT:
                     return nullptr;
 
                 }
                 break;
-            case TANH:
+            case ActivationMode::TANH:
                 switch(m_dataType)
                 {
-                case FLOAT:
-                    operatorBase = new Activation<TANH, DeviceUsed, float>();
+                case DataType::FLOAT:
+                    operatorBase = new Activation<ActivationMode::TANH, DeviceUsed, float>();
                     break;
-                case DOUBLE:
-                    operatorBase = new Activation<TANH, DeviceUsed, double>();
+                case DataType::DOUBLE:
+                    operatorBase = new Activation<ActivationMode::TANH, DeviceUsed, double>();
                     break;
                 /*case UNSIGNED_INT:
                     operatorBase = new Activation<TANH, DeviceUsed, unsigned int>();
                     break;*/
-                case UNSIGNED_INT:
+                case DataType::UNSIGNED_INT:
                     return nullptr;
 
                 }
                 break;
-            case CLIPPED_RELU:
+            case ActivationMode::CLIPPED_RELU:
                 switch(m_dataType)
                 {
-                case FLOAT:
-                    operatorBase = new Activation<CLIPPED_RELU, DeviceUsed, float>();
+                case DataType::FLOAT:
+                    operatorBase = new Activation<ActivationMode::CLIPPED_RELU, DeviceUsed, float>();
                     break;
-                case DOUBLE:
-                    operatorBase = new Activation<CLIPPED_RELU, DeviceUsed, double>();
+                case DataType::DOUBLE:
+                    operatorBase = new Activation<ActivationMode::CLIPPED_RELU, DeviceUsed, double>();
                     break;
                 /*case UNSIGNED_INT:
                     operatorBase = new Activation<CLIPPED_RELU, DeviceUsed, unsigned int>();
                     break;*/
-                case UNSIGNED_INT:
+                case DataType::UNSIGNED_INT:
                     return nullptr;
 
                 }
@@ -212,67 +212,67 @@ namespace FreeWill
             FreeWill::ActivationMode mode = std::any_cast<FreeWill::ActivationMode>(m_parameters["Mode"]);
             switch(mode)
             {
-            case SIGMOID:
+            case ActivationMode::SIGMOID:
                 switch(m_dataType)
                 {
-                case FLOAT:
-                    operatorBase = new ActivationDerivative<SIGMOID, DeviceUsed, float>();
+                case DataType::FLOAT:
+                    operatorBase = new ActivationDerivative<ActivationMode::SIGMOID, DeviceUsed, float>();
                     break;
-                case DOUBLE:
-                    operatorBase = new ActivationDerivative<SIGMOID, DeviceUsed, double>();
+                case DataType::DOUBLE:
+                    operatorBase = new ActivationDerivative<ActivationMode::SIGMOID, DeviceUsed, double>();
                     break;
                 /*case UNSIGNED_INT:
                     operatorBase = new ActivationDerivative<SIGMOID, DeviceUsed, unsigned int>();
                     break;*/
-                case UNSIGNED_INT:
+                case DataType::UNSIGNED_INT:
                     return nullptr;
                 }
                 break;
-            case RELU:
+            case ActivationMode::RELU:
                 switch(m_dataType)
                 {
-                case FLOAT:
-                    operatorBase = new ActivationDerivative<RELU, DeviceUsed, float>();
+                case DataType::FLOAT:
+                    operatorBase = new ActivationDerivative<ActivationMode::RELU, DeviceUsed, float>();
                     break;
-                case DOUBLE:
-                    operatorBase = new ActivationDerivative<RELU, DeviceUsed, double>();
+                case DataType::DOUBLE:
+                    operatorBase = new ActivationDerivative<ActivationMode::RELU, DeviceUsed, double>();
                     break;
                 /*case UNSIGNED_INT:
                     operatorBase = new ActivationDerivative<RELU, DeviceUsed, unsigned int>();
                     break;*/
-                case UNSIGNED_INT:
+                case DataType::UNSIGNED_INT:
                     return nullptr;
                 }
                 break;
-            case TANH:
+            case ActivationMode::TANH:
                 switch(m_dataType)
                 {
-                case FLOAT:
-                    operatorBase = new ActivationDerivative<TANH, DeviceUsed, float>();
+                case DataType::FLOAT:
+                    operatorBase = new ActivationDerivative<ActivationMode::TANH, DeviceUsed, float>();
                     break;
-                case DOUBLE:
-                    operatorBase = new ActivationDerivative<TANH, DeviceUsed, double>();
+                case DataType::DOUBLE:
+                    operatorBase = new ActivationDerivative<ActivationMode::TANH, DeviceUsed, double>();
                     break;
                 /*case UNSIGNED_INT:
                     operatorBase = new ActivationDerivative<TANH, DeviceUsed, unsigned int>();
                     break;*/
-                case UNSIGNED_INT:
+                case DataType::UNSIGNED_INT:
                     return nullptr;
                 }
                 break;
-            case CLIPPED_RELU:
+            case ActivationMode::CLIPPED_RELU:
                 switch(m_dataType)
                 {
-                case FLOAT:
-                    operatorBase = new ActivationDerivative<CLIPPED_RELU, DeviceUsed, float>();
+                case DataType::FLOAT:
+                    operatorBase = new ActivationDerivative<ActivationMode::CLIPPED_RELU, DeviceUsed, float>();
                     break;
-                case DOUBLE:
-                    operatorBase = new ActivationDerivative<CLIPPED_RELU, DeviceUsed, double>();
+                case DataType::DOUBLE:
+                    operatorBase = new ActivationDerivative<ActivationMode::CLIPPED_RELU, DeviceUsed, double>();
                     break;
                 /*case UNSIGNED_INT:
                     operatorBase = new ActivationDerivative<CLIPPED_RELU, DeviceUsed, unsigned int>();
                     break;*/
-                case UNSIGNED_INT:
+                case DataType::UNSIGNED_INT:
                     return nullptr;
                 }
                 break;
@@ -295,18 +295,18 @@ namespace FreeWill
 
             switch(m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 operatorBase = new Convolution<DeviceUsed, float>();
 
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 operatorBase = new Convolution<DeviceUsed, double>();
 
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new Convolution<DeviceUsed, unsigned int>();
                 break;*/
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 return nullptr;
 
             }
@@ -331,16 +331,16 @@ namespace FreeWill
 
             switch(m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 operatorBase = new ConvolutionDerivative<DeviceUsed, float>();
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 operatorBase = new ConvolutionDerivative<DeviceUsed, double>();
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new ConvolutionDerivative<DeviceUsed, unsigned int>();
                 break;*/
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 return nullptr;
 
             }
@@ -366,16 +366,16 @@ namespace FreeWill
 
             switch(m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 operatorBase = new CrossEntropyLoss<DeviceUsed, float>();
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 operatorBase = new CrossEntropyLoss<DeviceUsed, double>();
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new CrossEntropyLoss<DeviceUsed, unsigned int>();
                 break;*/
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 return nullptr;
             }
 
@@ -399,17 +399,17 @@ namespace FreeWill
 
             switch(m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 operatorBase = new DotProductWithBias<DeviceUsed, float>();
 
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 operatorBase = new DotProductWithBias<DeviceUsed, double>();
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new DotProductWithBias<DeviceUsed, unsigned int>();
                 break;*/
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 return nullptr;
             }
 
@@ -433,17 +433,17 @@ namespace FreeWill
 
             switch(m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 operatorBase = new DotProductWithBiasDerivative<DeviceUsed, float>();
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 operatorBase = new DotProductWithBiasDerivative<DeviceUsed, double>();
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new DotProductWithBiasDerivative<DeviceUsed, unsigned int>();
 
                 break;*/
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 return nullptr;
             }
 
@@ -475,16 +475,16 @@ namespace FreeWill
 
             switch(m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 operatorBase = new ElementwiseAdd<DeviceUsed, float>(rate);
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 operatorBase = new ElementwiseAdd<DeviceUsed, double>(rate);
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new ElementwiseAdd<DeviceUsed, unsigned int>();
                 break;*/
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 return nullptr;
             }
 
@@ -506,16 +506,16 @@ namespace FreeWill
 
             switch(m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 operatorBase = new MaxPooling<DeviceUsed, float>();
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 operatorBase = new MaxPooling<DeviceUsed, double>();
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new MaxPooling<DeviceUsed, unsigned int>();
                 break;*/
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 return nullptr;
             }
 
@@ -539,16 +539,16 @@ namespace FreeWill
 
             switch(m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 operatorBase = new MaxPoolingDerivative<DeviceUsed, float>();
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 operatorBase = new MaxPoolingDerivative<DeviceUsed, double>();
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new MaxPoolingDerivative<DeviceUsed, unsigned int>();
                 break;*/
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 return nullptr;
             }
 
@@ -574,17 +574,17 @@ namespace FreeWill
 
             switch(m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 operatorBase = new SigmoidCrossEntropyLossDerivative<DeviceUsed, float>();
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 operatorBase = new SigmoidCrossEntropyLossDerivative<DeviceUsed, double>();
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new SigmoidCrossEntropyLossDerivative<DeviceUsed, unsigned int>();
 
                 break;*/
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 return nullptr;
             }
 
@@ -607,16 +607,16 @@ namespace FreeWill
 
             switch (m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 operatorBase = new SoftmaxLogLoss<DeviceUsed, float>();
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 operatorBase = new SoftmaxLogLoss<DeviceUsed, double>();
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new SoftmaxLogLoss<DeviceUsed, unsigned int>();
                 break;*/
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 return nullptr;
             }
 
@@ -639,16 +639,16 @@ namespace FreeWill
 
             switch(m_dataType)
             {
-            case FLOAT:
+            case DataType::FLOAT:
                 operatorBase = new SoftmaxLogLossDerivative<DeviceUsed, float>();
                 break;
-            case DOUBLE:
+            case DataType::DOUBLE:
                 operatorBase = new SoftmaxLogLossDerivative<DeviceUsed, double>();
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new SoftmaxLogLossDerivative<DeviceUsed, unsigned int>();
                 break;*/
-            case UNSIGNED_INT:
+            case DataType::UNSIGNED_INT:
                 return nullptr;
             }
 
@@ -684,32 +684,32 @@ namespace FreeWill
                 Operator<DeviceUsed> *operatorBase = std::get<Operator<DeviceUsed>*>(*iter);
                 switch(m_operatorName)
                 {
-                case FreeWill::ACTIVATION:
-                case FreeWill::ACTIVATION_DERIVATIVE:
-                case FreeWill::CONVOLUTION:
-                case FreeWill::CONVOLUTION_DERIVATIVE:
-                case FreeWill::CROSS_ENTROPY_LOSS:
-                case FreeWill::DOT_PRODUCT_WITH_BIAS:
-                case FreeWill::DOT_PRODUCT_WITH_BIAS_DERIVATIVE:
-                case FreeWill::MAX_POOLING:
-                case FreeWill::MAX_POOLING_DERIVATIVE:
-                case FreeWill::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE:
-                case FreeWill::SOFTMAX_LOG_LOSS:
-                case FreeWill::SOFTMAX_LOG_LOSS_DERIVATIVE:
+                case FreeWill::OperatorName::ACTIVATION:
+                case FreeWill::OperatorName::ACTIVATION_DERIVATIVE:
+                case FreeWill::OperatorName::CONVOLUTION:
+                case FreeWill::OperatorName::CONVOLUTION_DERIVATIVE:
+                case FreeWill::OperatorName::CROSS_ENTROPY_LOSS:
+                case FreeWill::OperatorName::DOT_PRODUCT_WITH_BIAS:
+                case FreeWill::OperatorName::DOT_PRODUCT_WITH_BIAS_DERIVATIVE:
+                case FreeWill::OperatorName::MAX_POOLING:
+                case FreeWill::OperatorName::MAX_POOLING_DERIVATIVE:
+                case FreeWill::OperatorName::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE:
+                case FreeWill::OperatorName::SOFTMAX_LOG_LOSS:
+                case FreeWill::OperatorName::SOFTMAX_LOG_LOSS_DERIVATIVE:
                     break;
-                case FreeWill::ELEMENTWISE_ADD:
+                case FreeWill::OperatorName::ELEMENTWISE_ADD:
                     if (newParameters.find("Rate") != newParameters.end())
                     {
                         float rate = std::any_cast<float>(newParameters.at("Rate"));
                         switch(m_dataType)
                         {
-                        case FLOAT:
+                        case DataType::FLOAT:
                             dynamic_cast<ElementwiseAdd<DeviceUsed, float>*>(operatorBase)->setRate(rate);
                             break;
-                        case DOUBLE:
+                        case DataType::DOUBLE:
                             dynamic_cast<ElementwiseAdd<DeviceUsed, double>*>(operatorBase)->setRate(rate);
                             break;
-                        case UNSIGNED_INT:
+                        case DataType::UNSIGNED_INT:
                             break;
                         }
                     }
@@ -727,43 +727,43 @@ namespace FreeWill
 
             switch(m_operatorName)
             {
-            case ACTIVATION:
+            case OperatorName::ACTIVATION:
                 operatorBase = initActivation<DeviceUsed>(tensors);
             break;
-            case ACTIVATION_DERIVATIVE:
+            case OperatorName::ACTIVATION_DERIVATIVE:
                 operatorBase = initActivationDerivative<DeviceUsed>(tensors);
             break;
-            case CONVOLUTION:
+            case OperatorName::CONVOLUTION:
                 operatorBase = initConvolution<DeviceUsed>(tensors);
             break;
-            case CONVOLUTION_DERIVATIVE:
+            case OperatorName::CONVOLUTION_DERIVATIVE:
                 operatorBase = initConvolutionDerivative<DeviceUsed>(tensors);
             break;
-            case CROSS_ENTROPY_LOSS:
+            case OperatorName::CROSS_ENTROPY_LOSS:
                 operatorBase = initCrossEntropyLoss<DeviceUsed>(tensors);
             break;
-            case DOT_PRODUCT_WITH_BIAS:
+            case OperatorName::DOT_PRODUCT_WITH_BIAS:
                 operatorBase = initDotProductWithBias<DeviceUsed>(tensors);
             break;
-            case DOT_PRODUCT_WITH_BIAS_DERIVATIVE:
+            case OperatorName::DOT_PRODUCT_WITH_BIAS_DERIVATIVE:
                 operatorBase = initDotProductWithBiasDerivative<DeviceUsed>(tensors);
             break;
-            case ELEMENTWISE_ADD:
+            case OperatorName::ELEMENTWISE_ADD:
                 operatorBase = initElementwiseAdd<DeviceUsed>(tensors);
             break;
-            case MAX_POOLING:
+            case OperatorName::MAX_POOLING:
                 operatorBase = initMaxPooling<DeviceUsed>(tensors);
             break;
-            case MAX_POOLING_DERIVATIVE:
+            case OperatorName::MAX_POOLING_DERIVATIVE:
                 operatorBase = initMaxPoolingDerivative<DeviceUsed>(tensors);
             break;
-            case SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE:
+            case OperatorName::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE:
                 operatorBase = initSigmoidCrossEntropyLossDerivative<DeviceUsed>(tensors);
             break;
-            case SOFTMAX_LOG_LOSS:
+            case OperatorName::SOFTMAX_LOG_LOSS:
                 operatorBase = initSoftmaxLogLoss<DeviceUsed>(tensors);
             break;
-            case SOFTMAX_LOG_LOSS_DERIVATIVE:
+            case OperatorName::SOFTMAX_LOG_LOSS_DERIVATIVE:
                 operatorBase = initSoftmaxLogLossDerivative<DeviceUsed>(tensors);
             break;
             }

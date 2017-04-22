@@ -314,7 +314,7 @@ void MNIST::trainConvolutionalModel()
     convolution.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convolution.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> convSigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> convSigmoid;
     convSigmoid.setInputParameter("Input", &convOutput);
     convSigmoid.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convSigmoid.init());
@@ -335,7 +335,7 @@ void MNIST::trainConvolutionalModel()
     fullyConnected1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(fullyConnected1.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoid1;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoid1;
     sigmoid1.setInputParameter("Input", &fullyConnected1Output);
     sigmoid1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(sigmoid1.init());
@@ -384,7 +384,7 @@ void MNIST::trainConvolutionalModel()
 
     VERIFY_INIT(dotProductWithBias2Derivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoidDerivative;
     sigmoidDerivative.setInputParameter("Output", &fullyConnected1Output);
     sigmoidDerivative.setInputParameter("OutputDelta", &fullyConnected1OutputGrad);
     sigmoidDerivative.setOutputParameter("InputDelta", &fullyConnected1OutputGrad);
@@ -430,7 +430,7 @@ void MNIST::trainConvolutionalModel()
     maxPoolingDerivative.setOutputParameter("InputGrad", &convOutputGrad);
     VERIFY_INIT(maxPoolingDerivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> convSigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> convSigmoidDerivative;
     convSigmoidDerivative.setInputParameter("Output", &convOutput);
     convSigmoidDerivative.setInputParameter("OutputDelta", &convOutputGrad);
     convSigmoidDerivative.setOutputParameter("InputDelta", &convOutputGrad);
@@ -689,7 +689,7 @@ void MNIST::trainFullyConnectedModel()
     fullyConnected1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(fullyConnected1.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoid1;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoid1;
     sigmoid1.setInputParameter("Input", &fullyConnected1Output);
     sigmoid1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(sigmoid1.init());
@@ -738,7 +738,7 @@ void MNIST::trainFullyConnectedModel()
 
     VERIFY_INIT(dotProductWithBias2Derivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoidDerivative;
     sigmoidDerivative.setInputParameter("Output", &fullyConnected1Output);
     sigmoidDerivative.setInputParameter("OutputDelta", &fullyConnected1OutputGrad);
     sigmoidDerivative.setOutputParameter("InputDelta", &fullyConnected1OutputGrad);
@@ -981,7 +981,7 @@ void MNIST::trainConvolutionalModelGPU()
     convolution.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convolution.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> convSigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> convSigmoid;
     convSigmoid.setInputParameter("Input", &convOutput);
     convSigmoid.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convSigmoid.init());
@@ -1001,7 +1001,7 @@ void MNIST::trainConvolutionalModelGPU()
     fullyConnected1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(fullyConnected1.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> sigmoid1;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> sigmoid1;
     sigmoid1.setInputParameter("Input", &fullyConnected1Output);
     sigmoid1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(sigmoid1.init());
@@ -1051,7 +1051,7 @@ void MNIST::trainConvolutionalModelGPU()
 
     VERIFY_INIT(dotProductWithBias2Derivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> sigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> sigmoidDerivative;
     sigmoidDerivative.setInputParameter("Output", &fullyConnected1Output);
     sigmoidDerivative.setInputParameter("OutputDelta", &fullyConnected1OutputGrad);
     sigmoidDerivative.setOutputParameter("InputDelta", &fullyConnected1OutputGrad);
@@ -1100,7 +1100,7 @@ void MNIST::trainConvolutionalModelGPU()
     maxPoolingDerivative.setOutputParameter("InputGrad", &convOutputGrad);
     VERIFY_INIT(maxPoolingDerivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> convSigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> convSigmoidDerivative;
     convSigmoidDerivative.setInputParameter("Output", &convOutput);
     convSigmoidDerivative.setInputParameter("OutputDelta", &convOutputGrad);
     convSigmoidDerivative.setOutputParameter("InputDelta", &convOutputGrad);

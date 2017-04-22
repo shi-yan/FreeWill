@@ -118,7 +118,7 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTest()
     cost.init();
     cost.randomize();
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, double> sigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, double> sigmoid;
     sigmoid.setInputParameter("Input", &input);
     sigmoid.setOutputParameter("Output", &output);
     
@@ -215,7 +215,7 @@ void FreeWillUnitTest::operatorSigmoidCrossEntropyDerivativeTestGPU()
     cost.randomize();
     cost.copyFromHostToDevice();
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, double> sigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::GPU_CUDA, double> sigmoid;
     sigmoid.setInputParameter("Input", &input);
     sigmoid.setOutputParameter("Output", &output);
     
@@ -414,7 +414,7 @@ void FreeWillUnitTest::operatorDotProductWithBiasDerivativeTest()
 
     QVERIFY(dotProductWithBias.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, double> sigmoid;
+    FreeWill::Activation<FreeWill::ActivationMode::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, double> sigmoid;
     sigmoid.setInputParameter("Input", &output);
     sigmoid.setOutputParameter("Output", &output);
 

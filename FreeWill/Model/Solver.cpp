@@ -16,7 +16,7 @@ bool FreeWill::Solver::init(FreeWill::Model *model)
 
         operatorNameStream<<"Update_"<<operandA.first<<"_with_"<<operandB.first;
 
-        addUpdateOperator(operatorNameStream.str(), FreeWill::ELEMENTWISE_ADD,
+        addUpdateOperator(operatorNameStream.str(), FreeWill::OperatorName::ELEMENTWISE_ADD,
                             {{"OperandA", operandA}, {"OperandB", operandB}},
                             {{"Result", operandA}},{}, dataType);
     }
