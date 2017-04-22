@@ -43,6 +43,7 @@ namespace FreeWill
            RUN_CUDNN(cudnnCreateTensorDescriptor(&m_gpuTensorDescriptor));
        }
 
+    public:
        void *gpuDataHandle()
        {
             return m_data.m_gpuDataHandle;
@@ -53,7 +54,6 @@ namespace FreeWill
             return m_data.m_dataHandle;
        }
 
-    public:
        const cudnnTensorDescriptor_t &gpuTensorDescriptor() const
        {
            return m_gpuTensorDescriptor;
@@ -83,9 +83,23 @@ namespace FreeWill
        virtual const std::string &name() const = 0;
        virtual bool reshape(const Shape &newShape) = 0;
 
+       unsigned int sizeInByte()
+       {
+           return m_data.sizeInByte();
+       }
+
+       void copyFromDeviceToHost()
+       {
+           m_data.copyFromDeviceToHost();
+       }
+
+       void copyFromHostToDevice()
+       {
+           m_data.copyFromHostToDevice();
+       }
     };
     
-    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
+    template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
     class Tensor : public TensorBase<DeviceUsed>
     {
     private:
@@ -126,7 +140,7 @@ namespace FreeWill
                 result = m_data.alloc(size * sizeof(DataType));
             }
 
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 updateGPUTensorDescriptor();
             }
@@ -144,7 +158,7 @@ namespace FreeWill
             unsigned int size = m_shape.size();
             std::copy(initList.begin(), initList.begin() + (initList.size()>size?size:initList.size()), (DataType*) m_data.dataHandle());
 
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 m_data.copyFromHostToDevice();
                 updateGPUTensorDescriptor();
@@ -168,7 +182,7 @@ namespace FreeWill
                 //bits[n] = ((double) rand() / (double) RAND_MAX - 0.5) * 0.1;
             } 
  
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 m_data.copyFromHostToDevice();
             }
@@ -203,16 +217,6 @@ namespace FreeWill
             }
         }
 
-        void copyFromDeviceToHost()
-        {
-            m_data.copyFromDeviceToHost();
-        }
-
-        void copyFromHostToDevice()
-        {
-            m_data.copyFromHostToDevice();
-        }
-        
         DataType *gpuDataHandle()
         {
             return (DataType*) TensorBase<DeviceUsed>::gpuDataHandle();
@@ -231,7 +235,7 @@ namespace FreeWill
     private:
         void updateGPUTensorDescriptor()
         {
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 cudnnDataType_t dataType = CUDNN_DATA_FLOAT;
                 if constexpr (std::is_same<DataType,float>::value)

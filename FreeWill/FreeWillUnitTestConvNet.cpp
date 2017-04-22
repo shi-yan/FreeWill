@@ -9,22 +9,22 @@
 
 void FreeWillUnitTest::convolutionTest()
 {
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> input({3,5,5,1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> input({3,5,5,1});
     input.init();
     
     
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> featureMaps({3,3,3,2});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> featureMaps({3,3,3,2});
     featureMaps.init();
     
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> output({2,3,3,1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> output({2,3,3,1});
     output.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> bias({2});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> bias({2});
     bias.init();
 
 
-    FreeWill::Convolution<FreeWill::CPU_NAIVE, float> convolution(2,2,1,1);
+    FreeWill::Convolution<FreeWill::DeviceType::CPU_NAIVE, float> convolution(2,2,1,1);
     convolution.setInputParameter("Input", &input);
     convolution.setInputParameter("FeatureMap", &featureMaps);
     convolution.setInputParameter("Bias", &bias);
@@ -203,22 +203,22 @@ void FreeWillUnitTest::convolutionTest()
 
 void FreeWillUnitTest::convolutionTestGPU()
 {
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> input({3,5,5,1});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> input({3,5,5,1});
     input.init();
 
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> featureMaps({3,3,3,2});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> featureMaps({3,3,3,2});
     featureMaps.init();
 
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> output({2,3,3,1});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> output({2,3,3,1});
     output.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> bias({2});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> bias({2});
     bias.init();
 
 
-    FreeWill::Convolution<FreeWill::GPU_CUDA, float> convolution(2,2,1,1);
+    FreeWill::Convolution<FreeWill::DeviceType::GPU_CUDA, float> convolution(2,2,1,1);
     convolution.setInputParameter("Input", &input);
     convolution.setInputParameter("FeatureMap", &featureMaps);
     convolution.setInputParameter("Bias", &bias);
@@ -327,31 +327,31 @@ void FreeWillUnitTest::convolutionTestGPU()
 
 void FreeWillUnitTest::convolutionDerivativeTest()
 {
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> prevActivaion({3,5,5,1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> prevActivaion({3,5,5,1});
     prevActivaion.init();
     
     
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> featureMaps({3,3,3,2});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> featureMaps({3,3,3,2});
     featureMaps.init();
     
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> outputGrad({2,3,3,1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> outputGrad({2,3,3,1});
     outputGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> inputGrad({3,5,5,1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> inputGrad({3,5,5,1});
     inputGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> featureMapGrad({3,3,3,2});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> featureMapGrad({3,3,3,2});
     featureMapGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> fakeFeatureMapGrad({3,3,3,2});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> fakeFeatureMapGrad({3,3,3,2});
     fakeFeatureMapGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> biasGrad({2});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> biasGrad({2});
     biasGrad.init();
 
 
-    FreeWill::ConvolutionDerivative<FreeWill::CPU_NAIVE, double> convolutionDerivative(2,2,1,1);
+    FreeWill::ConvolutionDerivative<FreeWill::DeviceType::CPU_NAIVE, double> convolutionDerivative(2,2,1,1);
     convolutionDerivative.setInputParameter("PrevActivation", &prevActivaion);
     convolutionDerivative.setInputParameter("FeatureMap", &featureMaps);
     convolutionDerivative.setInputParameter("OutputGrad", &outputGrad);
@@ -382,13 +382,13 @@ void FreeWillUnitTest::convolutionDerivativeTest()
 
     double biasArray[] = {1,0};
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> input({3,5,5,1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> input({3,5,5,1});
     input.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> bias({2});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> bias({2});
     bias.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> output({2,3,3,1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> output({2,3,3,1});
     output.init();
     
     unsigned int inputSize = input.shape().size();
@@ -409,7 +409,7 @@ void FreeWillUnitTest::convolutionDerivativeTest()
         bias[i] = biasArray[i];
     }
 
-    FreeWill::Convolution<FreeWill::CPU_NAIVE, double> convolution(2,2,1,1);
+    FreeWill::Convolution<FreeWill::DeviceType::CPU_NAIVE, double> convolution(2,2,1,1);
     convolution.setInputParameter("Input", &input);
     convolution.setInputParameter("FeatureMap", &featureMaps);
     convolution.setInputParameter("Bias", &bias);
@@ -418,27 +418,27 @@ void FreeWillUnitTest::convolutionDerivativeTest()
   
     QVERIFY(convolution.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, double> sigmoid;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, double> sigmoid;
     sigmoid.setInputParameter("Input", &output);
     sigmoid.setOutputParameter("Output", &output);
 
     QVERIFY(sigmoid.init());
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> flatOutput({output.shape().size(), 1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> flatOutput({output.shape().size(), 1});
     flatOutput.init();
 
     
 
     unsigned int outputSize = output.shape().size();
     
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> label({outputSize, 1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> label({outputSize, 1});
     label.init();
     label.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> cost({1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> cost({1});
     cost.init();
 
-    FreeWill::CrossEntropyLoss<FreeWill::CPU_NAIVE, double> crossEntropyLoss;
+    FreeWill::CrossEntropyLoss<FreeWill::DeviceType::CPU_NAIVE, double> crossEntropyLoss;
     crossEntropyLoss.setInputParameter("Input", &flatOutput);
     crossEntropyLoss.setInputParameter("Label", &label);
     crossEntropyLoss.setOutputParameter("Cost", &cost);
@@ -519,10 +519,10 @@ void FreeWillUnitTest::convolutionDerivativeTest()
 
     crossEntropyLoss.evaluate();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, double> flatOuputGrad({outputSize,1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> flatOuputGrad({outputSize,1});
     flatOuputGrad.init();
 
-    FreeWill::SigmoidCrossEntropyLossDerivative<FreeWill::CPU_NAIVE, double> sigmoidCrossEntropyLossDerivative;
+    FreeWill::SigmoidCrossEntropyLossDerivative<FreeWill::DeviceType::CPU_NAIVE, double> sigmoidCrossEntropyLossDerivative;
     sigmoidCrossEntropyLossDerivative.setInputParameter("Input", &flatOutput);
     sigmoidCrossEntropyLossDerivative.setInputParameter("Label", &label);
     sigmoidCrossEntropyLossDerivative.setOutputParameter("Output", &flatOuputGrad);
@@ -550,33 +550,33 @@ void FreeWillUnitTest::convolutionDerivativeTest()
 
 void FreeWillUnitTest::convolutionDerivativeTestGPU()
 {
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> prevActivaion({3,5,5,1});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> prevActivaion({3,5,5,1});
     prevActivaion.init();
     prevActivaion.randomize();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> featureMaps({3,3,3,2});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> featureMaps({3,3,3,2});
     featureMaps.init();
     featureMaps.randomize();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> outputGrad({2,3,3,1});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> outputGrad({2,3,3,1});
     outputGrad.init();
     outputGrad.randomize();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGrad({3,5,5,1});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> inputGrad({3,5,5,1});
     inputGrad.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> featureMapGrad({3,3,3,2});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> featureMapGrad({3,3,3,2});
     featureMapGrad.init();
     
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fakeFeatureMapGrad({3,3,3,2});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fakeFeatureMapGrad({3,3,3,2});
     fakeFeatureMapGrad.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> biasGrad({2});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> biasGrad({2});
     biasGrad.init();
 
 
-    FreeWill::ConvolutionDerivative<FreeWill::GPU_CUDA, float> convolutionDerivative(2,2,1,1);
+    FreeWill::ConvolutionDerivative<FreeWill::DeviceType::GPU_CUDA, float> convolutionDerivative(2,2,1,1);
     convolutionDerivative.setInputParameter("PrevActivation", &prevActivaion);
     convolutionDerivative.setInputParameter("FeatureMap", &featureMaps);
     convolutionDerivative.setInputParameter("OutputGrad", &outputGrad);
@@ -591,7 +591,7 @@ void FreeWillUnitTest::convolutionDerivativeTestGPU()
     featureMaps.copyFromHostToDevice();
     outputGrad.copyFromHostToDevice();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> prevActivaionCPU({3,5,5,1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> prevActivaionCPU({3,5,5,1});
     prevActivaionCPU.init();
 
     for (unsigned int i = 0;i<prevActivaion.shape().size();++i)
@@ -599,7 +599,7 @@ void FreeWillUnitTest::convolutionDerivativeTestGPU()
         prevActivaionCPU[i] = prevActivaion[i];
     }
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> featureMapsCPU({3,3,3,2});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> featureMapsCPU({3,3,3,2});
     featureMapsCPU.init();
 
     for (unsigned int i = 0; i<featureMapsCPU.shape().size();++i)
@@ -607,7 +607,7 @@ void FreeWillUnitTest::convolutionDerivativeTestGPU()
         featureMapsCPU[i] = featureMaps[i];
     }
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> outputGradCPU({2,3,3,1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> outputGradCPU({2,3,3,1});
     outputGradCPU.init();
 
     for (unsigned int i =0;i<outputGradCPU.shape().size() ;++i)
@@ -615,21 +615,21 @@ void FreeWillUnitTest::convolutionDerivativeTestGPU()
         outputGradCPU[i] = outputGrad[i];
     }
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputGradCPU({3,5,5,1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> inputGradCPU({3,5,5,1});
     inputGradCPU.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> featureMapGradCPU({3,3,3,2});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> featureMapGradCPU({3,3,3,2});
     featureMapGradCPU.init();
     
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fakeFeatureMapGradCPU({3,3,3,2});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fakeFeatureMapGradCPU({3,3,3,2});
     fakeFeatureMapGradCPU.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> biasGradCPU({2});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> biasGradCPU({2});
     biasGradCPU.init();
 
 
-    FreeWill::ConvolutionDerivative<FreeWill::CPU_NAIVE, float> convolutionDerivativeCPU(2,2,1,1);
+    FreeWill::ConvolutionDerivative<FreeWill::DeviceType::CPU_NAIVE, float> convolutionDerivativeCPU(2,2,1,1);
     convolutionDerivativeCPU.setInputParameter("PrevActivation", &prevActivaionCPU);
     convolutionDerivativeCPU.setInputParameter("FeatureMap", &featureMapsCPU);
     convolutionDerivativeCPU.setInputParameter("OutputGrad", &outputGradCPU);

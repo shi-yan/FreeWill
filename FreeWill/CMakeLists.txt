@@ -93,6 +93,7 @@ set(FreeWill_SOURCES
     Operator/DotProductWithBias.h
     Operator/SoftmaxLogLoss.h
     Operator/ElementwiseAdd.h
+    Operator/ElementwiseProduct.h
     Operator/Operator.h
     Operator/CrossEntropyLoss.h
     Operator/SigmoidCrossEntropyLossDerivative.h
@@ -106,13 +107,13 @@ set(FreeWill_SOURCES
     Context/Context.h
     Model/Model.h
     Model/Model.cpp
-    Model/Trainer.h
     Model/TensorDescriptor.h
     Model/TensorDescriptor.cpp
     Model/OperatorDescriptor.h
     Model/OperatorDescriptor.cpp
     Model/Solver.h
     Tensor/Shape.cpp
+    Model/Solver.cpp
     )
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})

@@ -9,7 +9,7 @@
 
 namespace FreeWill
 {
-    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
+    template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
     class ElementwiseAdd : public Operator<DeviceUsed>
     {
     protected:
@@ -52,14 +52,14 @@ namespace FreeWill
 
             unsigned int size = result->shape().size();
 
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) !=0)
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
                 for(unsigned int e = 0; e<size; ++e)
                 {
                     (*result)[e] = (*operandA)[e] + (*operandB)[e]*m_rate;
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU_CUDA)) !=0)
+            else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 elementwiseAddCUDAKernel<DataType>(operandA->gpuDataHandle(), operandB->gpuDataHandle(), m_rate, result->gpuDataHandle(), size);
 

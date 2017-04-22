@@ -10,14 +10,14 @@ FreeWill::Model* FreeWill::Model::create()
     return model;
 }
 
-FreeWill::TensorDescriptorHandle FreeWill::Model::addTensor(const std::string &name, const Shape &shape, bool isBatchTensor, DataType dataType)
+FreeWill::TensorDescriptorHandle FreeWill::Model::addTensor(const std::string &name, const Shape &shape, bool isBatchTensor, bool isRandomlyInitialized, DataType dataType)
 {
     if (m_tensors.find(name) != m_tensors.end())
     {
         return {std::string(), Shape()};
     }
    
-    m_tensors[name] = new FreeWill::TensorDescriptor(name, shape, isBatchTensor, dataType);
+    m_tensors[name] = new FreeWill::TensorDescriptor(name, shape, isBatchTensor, isRandomlyInitialized, dataType);
     
    return {name, Shape()};
 }
@@ -30,7 +30,7 @@ FreeWill::Model::Model()
 {
 }
 
-int FreeWill::Model::addOperator(const std::string &name,
+FreeWill::OperatorDescriptorHandle FreeWill::Model::addOperator(const std::string &name,
                                  const std::string &operatorNameString,
                                  const std::map<std::string, FreeWill::TensorDescriptorHandle> &inputs,
                                  const std::map<std::string, FreeWill::TensorDescriptorHandle> &outputs,
@@ -40,13 +40,15 @@ int FreeWill::Model::addOperator(const std::string &name,
     {
         FreeWill::OperatorName operatorName = operatorNameTable[operatorNameString];
 
-        addOperator(name, operatorName, inputs, outputs, properties, dataType);
+        return addOperator(name, operatorName, inputs, outputs, properties, dataType);
+
+        return name;
     }
 
-    return -1;
+    return std::string();
 }
 
-int FreeWill::Model::addOperator(const std::string &name,
+FreeWill::OperatorDescriptorHandle FreeWill::Model::addOperator(const std::string &name,
                                  FreeWill::OperatorName operatorName,
                                  const std::map<std::string, FreeWill::TensorDescriptorHandle> &inputs,
                                  const std::map<std::string, FreeWill::TensorDescriptorHandle> &outputs,
@@ -54,17 +56,15 @@ int FreeWill::Model::addOperator(const std::string &name,
 {
     if (m_operators.find(name) != m_operators.end())
     {
-        return -1;
+        return std::string();
     }
 
     OperatorDescriptor *opDescriptor = new OperatorDescriptor(name, operatorName, inputs, outputs, properties, dataType);
 
     m_operators[name] = opDescriptor;
 
-    return m_operators.size() - 1;
+    return name;
 }
-
-
 
 bool FreeWill::Model::init(const Solver &solver)
 {
@@ -77,12 +77,12 @@ bool FreeWill::Model::init(const Solver &solver)
 
     switch (solver.m_deviceUsed)
     {
-    case CPU_NAIVE:
+    case DeviceType::CPU_NAIVE:
         for(;iterTensor != m_tensors.end(); ++iterTensor)
         {
             std::cout << iterTensor->first << std::endl;
             TensorDescriptor *descriptor = iterTensor->second;
-            descriptor->allocateTensor<FreeWill::CPU_NAIVE>(solver);
+            descriptor->allocateTensor<FreeWill::DeviceType::CPU_NAIVE>(solver.m_batchSize);
         }
 
         for(;iterOperator != m_operators.end(); ++iterOperator)
@@ -90,20 +90,20 @@ bool FreeWill::Model::init(const Solver &solver)
             std::cout << iterOperator->first << std::endl;
             OperatorDescriptor *descriptor = iterOperator->second;
 
-            if (!descriptor->init<FreeWill::CPU_NAIVE>(m_tensors))
+            if (!descriptor->init<FreeWill::DeviceType::CPU_NAIVE>(m_tensors))
             {
                 return false;
             }
         }
 
         break;
-    case GPU_CUDA:
+    case DeviceType::GPU_CUDA:
 
         for(;iterTensor != m_tensors.end(); ++iterTensor)
         {
             std::cout << iterTensor->first << std::endl;
             TensorDescriptor *descriptor = iterTensor->second;
-            descriptor->allocateTensor<FreeWill::GPU_CUDA>(solver);
+            descriptor->allocateTensor<FreeWill::DeviceType::GPU_CUDA>(solver.m_batchSize);
         }
 
         for(;iterOperator != m_operators.end(); ++iterOperator)
@@ -111,7 +111,7 @@ bool FreeWill::Model::init(const Solver &solver)
             std::cout << iterOperator->first << std::endl;
             OperatorDescriptor *descriptor = iterOperator->second;
 
-            if (!descriptor->init<FreeWill::GPU_CUDA>(m_tensors))
+            if (!descriptor->init<FreeWill::DeviceType::GPU_CUDA>(m_tensors))
             {
                 std::cout << iterOperator->first << "sanity check failed!" << std::endl;
                 return false;
@@ -126,7 +126,7 @@ bool FreeWill::Model::init(const Solver &solver)
     return true;
 }
 
-bool FreeWill::Model::defineForwardPath(const std::vector<std::string> &forwardOperators)
+bool FreeWill::Model::defineForwardPath(const std::vector<FreeWill::OperatorDescriptorHandle> &forwardOperators)
 {
     m_forwardPath.clear();
 
@@ -145,6 +145,33 @@ bool FreeWill::Model::defineForwardPath(const std::vector<std::string> &forwardO
 
     return true;
 }
+
+bool FreeWill::Model::defineBackwardPath(const std::vector<FreeWill::OperatorDescriptorHandle> &backwardOperators)
+{
+    m_backwardPath.clear();
+
+    for(unsigned int i = 0; i<backwardOperators.size();++i)
+    {
+        if (m_operators.find(backwardOperators[i]) != m_operators.end())
+        {
+            m_backwardPath.push_back(backwardOperators[i]);
+        }
+        else
+        {
+            m_backwardPath.clear();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool FreeWill::Model::defineWeightUpdatePairs(const std::vector<std::pair<FreeWill::TensorDescriptorHandle, FreeWill::TensorDescriptorHandle>> &updatePairs)
+{
+    m_updatePairs = updatePairs;
+    return false;
+}
+
 
 void FreeWill::Model::generateSVGDiagram(const std::string &filename)
 {

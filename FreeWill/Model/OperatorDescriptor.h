@@ -24,9 +24,14 @@ namespace FreeWill
     //xxx should operator has datatype?
 
     class Model;
+    class Solver;
+
+    typedef std::string OperatorDescriptorHandle;
+
     class OperatorDescriptor
     {
         friend class Model;
+        friend class Solver;
 
         constexpr static const float topBottomMargin = 20;
         constexpr static const float centerSpace = 40;
@@ -46,14 +51,13 @@ namespace FreeWill
         std::map<std::string, FreeWill::TensorDescriptorHandle> m_inputs;
         std::map<std::string, FreeWill::TensorDescriptorHandle> m_outputs;
         std::map<std::string, std::any> m_parameters;
+        std::map<DeviceType, std::vector<std::variant<Operator<DeviceType::GPU_CUDA>*, Operator<DeviceType::CPU_NAIVE>*>>> m_operators;
 
         OperatorDescriptor(const std::string &name, OperatorName operatorName,
                            const std::map<std::string, FreeWill::TensorDescriptorHandle> &inputs,
                            const std::map<std::string, FreeWill::TensorDescriptorHandle> &outputs,
                            const std::map<std::string, std::any> &parameters, DataType dataType = FLOAT);
         ~OperatorDescriptor();
-
-        std::map<DeviceType, std::vector<std::variant<Operator<GPU_CUDA>*, Operator<CPU_NAIVE>*>>> m_operators;
 
         void generateSVGDiagram(std::ostream &outputStream, unsigned int &width, unsigned int &height);
         void evaluateSVGDiagramSize(unsigned int &width, unsigned int &height);
@@ -462,13 +466,20 @@ namespace FreeWill
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
+            float rate = 1.0;
+
+            if (m_parameters.find("Rate") == m_parameters.end())
+            {
+                rate = std::any_cast<float>(m_parameters["Rate"]);
+            }
+
             switch(m_dataType)
             {
             case FLOAT:
-                operatorBase = new ElementwiseAdd<DeviceUsed, float>();
+                operatorBase = new ElementwiseAdd<DeviceUsed, float>(rate);
                 break;
             case DOUBLE:
-                operatorBase = new ElementwiseAdd<DeviceUsed, double>();
+                operatorBase = new ElementwiseAdd<DeviceUsed, double>(rate);
                 break;
             /*case UNSIGNED_INT:
                 operatorBase = new ElementwiseAdd<DeviceUsed, unsigned int>();
@@ -652,7 +663,64 @@ namespace FreeWill
             return operatorBase;
         }
 
-        template<DeviceType DeviceUsed = CPU_NAIVE>
+        template<DeviceType DeviceUsed>
+        void evaluate()
+        {
+            auto iter = m_operators[DeviceUsed].begin();
+
+            for(;iter != m_operators[DeviceUsed].end(); ++iter)
+            {
+                std::get<Operator<DeviceUsed>*>(*iter)->evaluate();
+            }
+        }
+
+        template<DeviceType DeviceUsed>
+        void evaluateWithParameterUpdate(const std::map<std::string, std::any> &newParameters)
+        {
+            auto iter = m_operators[DeviceUsed].begin();
+
+            for(;iter != m_operators[DeviceUsed].end(); ++iter)
+            {
+                Operator<DeviceUsed> *operatorBase = std::get<Operator<DeviceUsed>*>(*iter);
+                switch(m_operatorName)
+                {
+                case FreeWill::ACTIVATION:
+                case FreeWill::ACTIVATION_DERIVATIVE:
+                case FreeWill::CONVOLUTION:
+                case FreeWill::CONVOLUTION_DERIVATIVE:
+                case FreeWill::CROSS_ENTROPY_LOSS:
+                case FreeWill::DOT_PRODUCT_WITH_BIAS:
+                case FreeWill::DOT_PRODUCT_WITH_BIAS_DERIVATIVE:
+                case FreeWill::MAX_POOLING:
+                case FreeWill::MAX_POOLING_DERIVATIVE:
+                case FreeWill::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE:
+                case FreeWill::SOFTMAX_LOG_LOSS:
+                case FreeWill::SOFTMAX_LOG_LOSS_DERIVATIVE:
+                    break;
+                case FreeWill::ELEMENTWISE_ADD:
+                    if (newParameters.find("Rate") != newParameters.end())
+                    {
+                        float rate = std::any_cast<float>(newParameters.at("Rate"));
+                        switch(m_dataType)
+                        {
+                        case FLOAT:
+                            dynamic_cast<ElementwiseAdd<DeviceUsed, float>*>(operatorBase)->setRate(rate);
+                            break;
+                        case DOUBLE:
+                            dynamic_cast<ElementwiseAdd<DeviceUsed, double>*>(operatorBase)->setRate(rate);
+                            break;
+                        case UNSIGNED_INT:
+                            break;
+                        }
+                    }
+                    break;
+                }
+
+                operatorBase->evaluate();
+            }
+        }
+
+        template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
         bool init(std::map<std::string, TensorDescriptor*> &tensors)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;

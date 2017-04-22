@@ -88,6 +88,8 @@ include_directories(../../Utils/WebUI/DemoBase)
 set(MNIST_SOURCES 
     MNIST.cpp
     ../../FreeWill/Tensor/Shape.cpp
+    ../../FreeWill/Model/Solver.cpp
+    ../../FreeWill/Model/OperatorDescriptor.cpp
     ../../Utils/WebUI/DemoBase/DemoBase.cpp
     ../../Utils/WebUI/DemoBase/DemoUI.cpp
     ../../Utils/WebUI/DemoBase/Session.cpp

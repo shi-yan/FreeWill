@@ -9,7 +9,7 @@
 namespace FreeWill
 {
 
-    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
+    template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
     class SoftmaxLogLoss : public Operator<DeviceUsed>
     {
     protected:
@@ -21,7 +21,7 @@ namespace FreeWill
     public:
         SoftmaxLogLoss() : Operator<DeviceUsed>({"Input", "Label"},{"Cost","Output"})
         {
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_inputGPUTensorDescriptor));
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_outputGPUTensorDescriptor));
@@ -30,7 +30,7 @@ namespace FreeWill
 
         virtual ~SoftmaxLogLoss() override
         {
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_inputGPUTensorDescriptor));
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_outputGPUTensorDescriptor));
@@ -55,7 +55,7 @@ namespace FreeWill
             FAIL_IF (batchSize != input("Label")->shape()[0] || batchSize != output("Cost")->shape()[0]);
 
 
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 cudnnDataType_t dataType = CUDNN_DATA_FLOAT;
                 if constexpr (std::is_same<DataType,float>::value)
@@ -115,7 +115,7 @@ namespace FreeWill
             unsigned int batchSize = _input->shape()[1];
             unsigned int vectorSize = _input->shape()[0];
 
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
                 for(unsigned int b = 0; b < batchSize; ++b)
                 {
@@ -163,7 +163,7 @@ namespace FreeWill
                 }
 
             }
-            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 DataType alpha = 1;
                 DataType beta = 0;

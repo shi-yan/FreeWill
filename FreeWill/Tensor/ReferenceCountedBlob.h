@@ -8,9 +8,18 @@
 #include <cstdio>
 
 #include <cuda_runtime.h>
+#include <cstdint>
+
+
 
 namespace FreeWill
 {
+    enum class DeviceType : uint32_t
+    {
+        CPU_NAIVE      = 0x1,
+        GPU_CUDA       = 0x4
+    };
+
     template <DeviceType DeviceUsed>
     class TensorBase;
 
@@ -47,7 +56,7 @@ namespace FreeWill
             if (m_referenceCounter->decrease() == 0)
             {
                 free(m_dataHandle);
-                if constexpr (DeviceUsed == GPU_CUDA)
+                if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
                 {
                     if (m_gpuDataHandle)
                     {
@@ -98,7 +107,7 @@ namespace FreeWill
         {
             std::memset(m_dataHandle, 0, m_sizeInByte);
 
-            if constexpr (DeviceUsed == GPU_CUDA) 
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDA(cudaMemset(m_gpuDataHandle, 0, m_sizeInByte));
             }
@@ -116,7 +125,7 @@ namespace FreeWill
 
         bool alloc(unsigned int sizeInByte)
         {
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
                 m_dataHandle = (unsigned char *) malloc(sizeInByte);
                 if (m_dataHandle) 
@@ -134,7 +143,7 @@ namespace FreeWill
                     return false;
                 }
             } 
-            else if constexpr ((DeviceUsed & GPU_CUDA) != 0)
+            else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDA(cudaMalloc(&m_gpuDataHandle, sizeInByte));
                 m_dataHandle = (unsigned char *) malloc(sizeInByte);
@@ -182,11 +191,11 @@ namespace FreeWill
             ReferenceCountedBlob<DeviceUsed> copy;
             copy.alloc(m_sizeInByte);
 
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
                 std::copy(m_dataHandle, m_dataHandle + m_sizeInByte, copy.m_dataHandle);
             }
-            else if constexpr ((DeviceUsed & GPU_CUDA) != 0)
+            else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 std::copy(m_dataHandle, m_dataHandle + m_sizeInByte, copy.m_dataHandle);
                 RUN_CUDA(cudaMemcpy(copy.m_gpuDataHandle, m_gpuDataHandle, m_sizeInByte, cudaMemcpyDeviceToDevice));
@@ -197,7 +206,7 @@ namespace FreeWill
 
         void operator=(const ReferenceCountedBlob<DeviceUsed> &blob)
         {
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
                 if (blob.m_dataHandle)
                 {
@@ -208,7 +217,7 @@ namespace FreeWill
                     m_dataHandle = blob.m_dataHandle;
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU_CUDA)) !=0)
+            else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 if (blob.m_gpuDataHandle)
                 {
@@ -224,11 +233,11 @@ namespace FreeWill
 
         bool operator==(const ReferenceCountedBlob<DeviceUsed> &blob) const 
         {
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
                 return m_dataHandle == blob.m_dataHandle;
             }
-            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 return m_gpuDataHandle == blob.m_gpuDataHandle;
             }
@@ -236,7 +245,7 @@ namespace FreeWill
 
         void copyFromHostToDevice()
         {
-            if constexpr ((DeviceUsed & (GPU_CUDA)) !=0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDA(cudaMemcpy(m_gpuDataHandle, m_dataHandle, m_sizeInByte, cudaMemcpyHostToDevice));
             }
@@ -244,7 +253,7 @@ namespace FreeWill
 
         void copyFromDeviceToHost()
         {
-            if constexpr ((DeviceUsed & (GPU_CUDA)) !=0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDA(cudaMemcpy(m_dataHandle, m_gpuDataHandle, m_sizeInByte, cudaMemcpyDeviceToHost));
             }

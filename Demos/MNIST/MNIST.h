@@ -37,10 +37,10 @@ public:
         void closeTestData();
         void closeTrainData();
         
-        template<FreeWill::DeviceType DeviceUsed = FreeWill::CPU_NAIVE>
+        template<FreeWill::DeviceType DeviceUsed = FreeWill::DeviceType::CPU_NAIVE>
         void loadOneTrainData(FreeWill::Tensor<DeviceUsed, float> &image, FreeWill::Tensor<DeviceUsed, unsigned int> &label,unsigned int batchSize);
 
-        template<FreeWill::DeviceType DeviceUsed = FreeWill::CPU_NAIVE>
+        template<FreeWill::DeviceType DeviceUsed = FreeWill::DeviceType::CPU_NAIVE>
         void loadOneTestData(FreeWill::Tensor<DeviceUsed, float> &image, FreeWill::Tensor<DeviceUsed, unsigned int> &label, unsigned int batchSize);
 
 

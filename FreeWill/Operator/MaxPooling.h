@@ -6,7 +6,7 @@
 
 namespace FreeWill
 {
-    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
+    template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
     class MaxPooling : public Operator<DeviceUsed>
     {
     protected:
@@ -25,7 +25,7 @@ namespace FreeWill
             m_inputTensorDescriptor(0),
             m_outputTensorDescriptor(0)
         {
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnCreatePoolingDescriptor( &m_poolingDescriptor ));
                 RUN_CUDNN(cudnnCreateTensorDescriptor (&m_inputTensorDescriptor));
@@ -35,7 +35,7 @@ namespace FreeWill
 
         ~MaxPooling()
         {
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnDestroyPoolingDescriptor(m_poolingDescriptor));
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_inputTensorDescriptor));
@@ -55,7 +55,7 @@ namespace FreeWill
             
             FAIL_IF (output("Output")->shape().dimension() != 4);
 
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
                 FAIL_IF(!output("SwitchX") || !output("SwitchY"));
 
@@ -72,7 +72,7 @@ namespace FreeWill
 
             FAIL_IF (input("Input")->shape()[3]!=output("Output")->shape()[3]);
 
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 cudnnDataType_t dataType = CUDNN_DATA_FLOAT;
                 if constexpr (std::is_same<DataType,float>::value)
@@ -130,7 +130,7 @@ namespace FreeWill
 
             unsigned int depthSize = _input->shape()[0];
 
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) !=0 )
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE )
             {
                 Tensor<DeviceUsed, unsigned int> *_switchX = output("SwitchX")->template toType<unsigned int>();
                 Tensor<DeviceUsed, unsigned int> *_switchY = output("SwitchY")->template toType<unsigned int>();
@@ -181,7 +181,7 @@ namespace FreeWill
                     }
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU_CUDA)) !=0)
+            else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 DataType alpha = 1.0;
                 DataType beta = 0.0;

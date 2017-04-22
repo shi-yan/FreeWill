@@ -59,7 +59,7 @@ namespace FreeWill
                 {"SoftmaxLogLoss", SOFTMAX_LOG_LOSS},
                 {"SoftmaxLogLossDerivative", SOFTMAX_LOG_LOSS_DERIVATIVE}};
 
-    template <DeviceType DeviceUsed = CPU_NAIVE>
+    template <DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
     class Operator
     {
     protected:
@@ -205,7 +205,7 @@ namespace FreeWill
     struct OperatorFactoryInitializer_ForceInit { };
 
 
-    template <DeviceType DeviceUsed = CPU_NAIVE>
+    template <DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
     class OperatorFactory
     {
         friend class Operator<DeviceUsed>;
@@ -236,7 +236,7 @@ namespace FreeWill
             int a;
             OperatorFactoryInitializer()
             {
-                OperatorFactory<CPU_NAIVE>::getSingleton();
+                OperatorFactory<DeviceType::CPU_NAIVE>::getSingleton();
                 char *realname;
                 int status = 0;
                 std::cout << "registered class:" << abi::__cxa_demangle(typeid(OperatorType).name(),0,0,&status) << std::endl;

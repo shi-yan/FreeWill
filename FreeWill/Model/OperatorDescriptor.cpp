@@ -19,7 +19,25 @@ FreeWill::OperatorDescriptor::OperatorDescriptor(const std::string &name,
 
 FreeWill::OperatorDescriptor::~OperatorDescriptor()
 {
+    m_inputs.clear();
+    m_outputs.clear();
+    m_parameters.clear();
 
+    for(auto iter = m_operators[FreeWill::DeviceType::CPU_NAIVE].begin(); iter != m_operators[FreeWill::DeviceType::CPU_NAIVE].end(); ++iter)
+    {
+        FreeWill::Operator<FreeWill::DeviceType::CPU_NAIVE> *operatorBase = std::get<FreeWill::Operator<FreeWill::DeviceType::CPU_NAIVE>*>(*iter);
+        delete operatorBase;
+    }
+
+    m_operators[FreeWill::DeviceType::CPU_NAIVE].clear();
+
+    for(auto iter = m_operators[FreeWill::DeviceType::GPU_CUDA].begin(); iter != m_operators[FreeWill::DeviceType::GPU_CUDA].end(); ++iter)
+    {
+        FreeWill::Operator<FreeWill::DeviceType::GPU_CUDA> *operatorBase = std::get<FreeWill::Operator<FreeWill::DeviceType::GPU_CUDA>*>(*iter);
+        delete operatorBase;
+    }
+
+    m_operators[FreeWill::DeviceType::GPU_CUDA].clear();
 }
 
 void FreeWill::OperatorDescriptor::evaluateSVGDiagramSize(unsigned int &width, unsigned int &height)

@@ -5,6 +5,7 @@ FreeWill::TensorDescriptor::TensorDescriptor(const TensorDescriptor &in)
       m_shape(in.m_shape),
       m_isBatchTensor(in.m_isBatchTensor),
       m_batchSize(in.m_batchSize),
+      m_isRandomlyInitialized(in.m_isRandomlyInitialized),
       m_dataType(in.m_dataType),
       m_tensors(in.m_tensors)
 {
@@ -16,15 +17,17 @@ void FreeWill::TensorDescriptor::operator =(const TensorDescriptor &in)
     m_shape = in.m_shape;
     m_isBatchTensor = in.m_isBatchTensor;
     m_batchSize = in.m_batchSize;
+    m_isRandomlyInitialized = in.m_isRandomlyInitialized;
     m_dataType = in.m_dataType;
     m_tensors = in.m_tensors;
 }
 
-FreeWill::TensorDescriptor::TensorDescriptor(const std::__cxx11::string &name, const Shape &shape, bool isBatchTensor, DataType dataType)
+FreeWill::TensorDescriptor::TensorDescriptor(const std::string &name, const Shape &shape, bool isBatchTensor, bool isRandomlyInitialized, DataType dataType)
     :m_name(name),
       m_shape(shape),
       m_isBatchTensor(isBatchTensor),
       m_batchSize(0),
+      m_isRandomlyInitialized(isRandomlyInitialized),
       m_dataType(dataType),
       m_tensors()
 {
@@ -33,29 +36,29 @@ FreeWill::TensorDescriptor::TensorDescriptor(const std::__cxx11::string &name, c
 
 FreeWill::TensorDescriptor::~TensorDescriptor()
 {
-    std::map<DeviceType, std::vector<std::variant<TensorBase<GPU_CUDA>* ,TensorBase<CPU_NAIVE>* >>>::iterator iter = m_tensors.begin();
+    std::map<DeviceType, std::vector<std::variant<TensorBase<DeviceType::GPU_CUDA>* ,TensorBase<DeviceType::CPU_NAIVE>* >>>::iterator iter = m_tensors.begin();
     for(;iter != m_tensors.end(); ++iter)
     {
         DeviceType deviceType = iter->first;
 
-        std::vector<std::variant<TensorBase<GPU_CUDA>* ,TensorBase<CPU_NAIVE>* >> &tensorList = iter->second;
+        std::vector<std::variant<TensorBase<DeviceType::GPU_CUDA>* ,TensorBase<DeviceType::CPU_NAIVE>* >> &tensorList = iter->second;
 
         switch(deviceType)
         {
-        case CPU_NAIVE:
+        case DeviceType::CPU_NAIVE:
         {
             for(auto iter = tensorList.begin(); iter != tensorList.end(); ++iter)
             {
-                TensorBase<CPU_NAIVE> *tensor = std::get<TensorBase<CPU_NAIVE>*>(*iter);
+                TensorBase<DeviceType::CPU_NAIVE> *tensor = std::get<TensorBase<DeviceType::CPU_NAIVE>*>(*iter);
                 delete tensor;
             }
         }
             break;
-        case GPU_CUDA:
+        case DeviceType::GPU_CUDA:
         {
             for(auto iter = tensorList.begin(); iter != tensorList.end(); ++iter)
             {
-                TensorBase<GPU_CUDA> *tensor = std::get<TensorBase<GPU_CUDA>*>(*iter);
+                TensorBase<DeviceType::GPU_CUDA> *tensor = std::get<TensorBase<DeviceType::GPU_CUDA>*>(*iter);
                 delete tensor;
             }
         }

@@ -7,7 +7,7 @@
 namespace FreeWill
 {
 
-    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
+    template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
     class ConvolutionDerivative : public Operator<DeviceUsed>
     {
     protected:
@@ -45,7 +45,7 @@ namespace FreeWill
             m_filterBackwardAlgorithm(),
             m_prevActivationDeltaAlgorithm()
         {
-            if ((DeviceUsed & (GPU_CUDA)) != 0)
+            if (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_prevActivationGPUTensorDescriptor));
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_outputDeltaGPUTensorDescriptor));
@@ -58,7 +58,7 @@ namespace FreeWill
 
         ~ConvolutionDerivative()
         {
-            if ((DeviceUsed & (GPU_CUDA)) != 0)
+            if (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_prevActivationGPUTensorDescriptor));
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_outputDeltaGPUTensorDescriptor));
@@ -152,7 +152,7 @@ namespace FreeWill
 
             FAIL_IF (input("FeatureMap")->shape() != output("FeatureMapGrad")->shape());
 
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 unsigned int channelCount = input("PrevActivation")->shape()[0];
                 unsigned int batchSize = input("PrevActivation")->shape()[3];
@@ -330,7 +330,7 @@ namespace FreeWill
             unsigned int newHeight = (originalHeight - featureMapLength + 2 * m_zeroPaddingY) / m_strideY + 1;
 
             unsigned int batchSize = _prevActivation->shape()[3];
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
                 for (unsigned int b = 0; b < batchSize; ++b)
                 {
@@ -412,7 +412,7 @@ namespace FreeWill
                 }
 */
             }
-            else if constexpr ((DeviceUsed & (GPU_CUDA)) !=0 )
+            else if constexpr (DeviceUsed == DeviceType::GPU_CUDA )
             {
                 DataType alpha = 1.0;
                 DataType beta = 0.0;

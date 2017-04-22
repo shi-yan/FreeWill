@@ -6,7 +6,7 @@
 
 namespace FreeWill
 {
-    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
+    template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
     class SigmoidCrossEntropyLossDerivative : public Operator<DeviceUsed>
     {
     protected:
@@ -54,7 +54,7 @@ namespace FreeWill
             //printf("batchSize %d vectorSize %d\n", batchSize, vectorSize);
             //printf("%d, %d, %d\n", _input->shape().size(), _output->shape().size(), _label->shape().size());
             
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
                 for(unsigned int e = 0;e<batchSize;++e)
                 {
@@ -66,7 +66,7 @@ namespace FreeWill
                     }
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 sigmoidCrossEntropyLossDerivativeCUDAKernel<DataType>(_input->gpuDataHandle(), _label->gpuDataHandle(), _output->gpuDataHandle(), vectorSize * batchSize);            
             }

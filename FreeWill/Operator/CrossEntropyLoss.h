@@ -8,7 +8,7 @@
 
 namespace FreeWill
 {
-    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
+    template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
     class CrossEntropyLoss : public Operator<DeviceUsed>
     {
     protected:
@@ -45,7 +45,7 @@ namespace FreeWill
             unsigned int batchSize = _cost->shape()[0];
             unsigned int vectorSize = _input->shape()[0];
 
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
                 for(unsigned int e = 0; e< batchSize; ++e)
                 {
@@ -59,7 +59,7 @@ namespace FreeWill
                     (*_cost)[e] *= -1.0;
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 if constexpr (std::is_same<float, DataType>::value)
                 {

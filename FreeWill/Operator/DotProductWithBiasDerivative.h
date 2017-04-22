@@ -6,7 +6,7 @@
 
 namespace FreeWill
 {
-    template<DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
+    template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
     class DotProductWithBiasDerivative : public Operator<DeviceUsed>
     {
     protected:
@@ -75,7 +75,7 @@ namespace FreeWill
            Tensor<DeviceUsed, DataType> *weight = input("Weight")->template toType<DataType>();
            Tensor<DeviceUsed, DataType> *biasGrad = output("BiasGrad")->template toType<DataType>();
 
-           if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
+           if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
            {
                 for(unsigned int b = 0;b<batchSize;++b)
                 {
@@ -113,7 +113,7 @@ namespace FreeWill
                     }
                 }
            }
-           else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+           else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
            {
                DataType alpha = 1.0;
                DataType beta = 0.0;

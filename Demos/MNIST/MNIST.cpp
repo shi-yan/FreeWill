@@ -162,17 +162,17 @@ static void closeFileDump()
     fclose(dumpfp);
 }
 
-static void writeFileDump(FreeWill::Tensor<FreeWill::CPU_NAIVE, float> &tensor)
+static void writeFileDump(FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> &tensor)
 {
     fwrite(tensor.cpuDataHandle(), sizeof(float), tensor.shape().size(), dumpfp);
 }
 
-static void readFileDump(FreeWill::Tensor<FreeWill::GPU_CUDA, float> &tensor)
+static void readFileDump(FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> &tensor)
 {
     fread(tensor.cpuDataHandle(), sizeof(float), tensor.shape().size(), dumpfp);
 }
 
-static void printTensor(FreeWill::Tensor<FreeWill::GPU_CUDA, float> &tensor)
+static void printTensor(FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> &tensor)
 {
     printf("front:\n");
 
@@ -206,7 +206,7 @@ static void printTensor(FreeWill::Tensor<FreeWill::GPU_CUDA, float> &tensor)
     printf("\n");
 }
 
-static void printTensor(FreeWill::Tensor<FreeWill::CPU_NAIVE, float> &tensor)
+static void printTensor(FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> &tensor)
 {
     printf("front:\n");
 
@@ -247,79 +247,79 @@ void MNIST::trainConvolutionalModel()
     const unsigned int featureMapSize = 20;
     const unsigned int batchSize = 10;
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> image({1,28,28,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> image({1,28,28,batchSize});
     image.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> label({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, unsigned int> label({batchSize});
     label.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> featureMap({1,5,5, featureMapSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> featureMap({1,5,5, featureMapSize});
     featureMap.init();
     featureMap.randomize();
     writeFileDump(featureMap);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> bias({featureMapSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> bias({featureMapSize});
     bias.init();
     bias.randomize();
     writeFileDump(bias);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convOutput({featureMapSize,24,24,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> convOutput({featureMapSize,24,24,batchSize});
     convOutput.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> poolingOutput({featureMapSize,12,12,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> poolingOutput({featureMapSize,12,12,batchSize});
     poolingOutput.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> poolingSwitchX({featureMapSize,12,12,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, unsigned int> poolingSwitchX({featureMapSize,12,12,batchSize});
     poolingSwitchX.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> poolingSwitchY({featureMapSize,12,12,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, unsigned int> poolingSwitchY({featureMapSize,12,12,batchSize});
     poolingSwitchY.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1Weight({100, featureMapSize*12*12});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1Weight({100, featureMapSize*12*12});
     fullyConnected1Weight.init();
     fullyConnected1Weight.randomize();
     writeFileDump(fullyConnected1Weight);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1Bias({100});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1Bias({100});
     fullyConnected1Bias.init();
     fullyConnected1Bias.randomize();
     writeFileDump(fullyConnected1Bias);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1Output({100, batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1Output({100, batchSize});
     fullyConnected1Output.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2Weight({10, 100});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2Weight({10, 100});
     fullyConnected2Weight.init();
     fullyConnected2Weight.randomize();
     writeFileDump(fullyConnected2Weight);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2Bias({10});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2Bias({10});
     fullyConnected2Bias.init();
     fullyConnected2Bias.randomize();
     writeFileDump(fullyConnected2Bias);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2Output({10, batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2Output({10, batchSize});
     fullyConnected2Output.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> softmaxOutput({10,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> softmaxOutput({10,batchSize});
     softmaxOutput.init();    
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> cost({batchSize});
     cost.init();
 
-    FreeWill::Convolution<FreeWill::CPU_NAIVE, float> convolution;
+    FreeWill::Convolution<FreeWill::DeviceType::CPU_NAIVE, float> convolution;
     convolution.setInputParameter("Input", &image);
     convolution.setInputParameter("FeatureMap", &featureMap);
     convolution.setInputParameter("Bias", &bias);
     convolution.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convolution.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> convSigmoid;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> convSigmoid;
     convSigmoid.setInputParameter("Input", &convOutput);
     convSigmoid.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convSigmoid.init());
     
-    FreeWill::MaxPooling<FreeWill::CPU_NAIVE, float> maxPooling;
+    FreeWill::MaxPooling<FreeWill::DeviceType::CPU_NAIVE, float> maxPooling;
     maxPooling.setInputParameter("Input", &convOutput);
     maxPooling.setOutputParameter("Output", &poolingOutput);
     maxPooling.setOutputParameter("SwitchX", &poolingSwitchX);
@@ -328,54 +328,54 @@ void MNIST::trainConvolutionalModel()
 
     poolingOutput.reshape({featureMapSize*12*12, batchSize});
 
-    FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> fullyConnected1;
+    FreeWill::DotProductWithBias<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1;
     fullyConnected1.setInputParameter("Input", &poolingOutput);
     fullyConnected1.setInputParameter("Weight", &fullyConnected1Weight);
     fullyConnected1.setInputParameter("Bias", &fullyConnected1Bias);
     fullyConnected1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(fullyConnected1.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> sigmoid1;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoid1;
     sigmoid1.setInputParameter("Input", &fullyConnected1Output);
     sigmoid1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(sigmoid1.init());
 
 
-    FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> fullyConnected2;
+    FreeWill::DotProductWithBias<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2;
     fullyConnected2.setInputParameter("Input", &fullyConnected1Output);
     fullyConnected2.setInputParameter("Weight", &fullyConnected2Weight);
     fullyConnected2.setInputParameter("Bias", &fullyConnected2Bias);
     fullyConnected2.setOutputParameter("Output", &fullyConnected2Output);
     VERIFY_INIT(fullyConnected2.init());
 
-    FreeWill::SoftmaxLogLoss<FreeWill::CPU_NAIVE, float> softmaxLogLoss;
+    FreeWill::SoftmaxLogLoss<FreeWill::DeviceType::CPU_NAIVE, float> softmaxLogLoss;
     softmaxLogLoss.setInputParameter("Input", &fullyConnected2Output);
     softmaxLogLoss.setInputParameter("Label", &label);
     softmaxLogLoss.setOutputParameter("Output", &softmaxOutput);
     softmaxLogLoss.setOutputParameter("Cost", &cost);
     VERIFY_INIT(softmaxLogLoss.init());
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> softmaxGrad({10,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> softmaxGrad({10,batchSize});
     softmaxGrad.init();
 
-    FreeWill::SoftmaxLogLossDerivative<FreeWill::CPU_NAIVE, float> softmaxLogLossDerivative;
+    FreeWill::SoftmaxLogLossDerivative<FreeWill::DeviceType::CPU_NAIVE, float> softmaxLogLossDerivative;
     softmaxLogLossDerivative.setInputParameter("Output", &softmaxOutput);
     softmaxLogLossDerivative.setInputParameter("Label", &label);
     softmaxLogLossDerivative.setOutputParameter("InputGrad", &softmaxGrad);
     VERIFY_INIT(softmaxLogLossDerivative.init());
 
-    FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBias2Derivative;
+    FreeWill::DotProductWithBiasDerivative<FreeWill::DeviceType::CPU_NAIVE, float> dotProductWithBias2Derivative;
     dotProductWithBias2Derivative.setInputParameter("InputActivation", &fullyConnected1Output);
     dotProductWithBias2Derivative.setInputParameter("OutputDelta", &softmaxGrad);
     dotProductWithBias2Derivative.setInputParameter("Weight", &fullyConnected2Weight);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1OutputGrad({100,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1OutputGrad({100,batchSize});
     fullyConnected1OutputGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2WeightGrad({10,100});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2WeightGrad({10,100});
     fullyConnected2WeightGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2BiasGrad({10});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2BiasGrad({10});
     fullyConnected2BiasGrad.init();
 
     dotProductWithBias2Derivative.setOutputParameter("InputDelta", &fullyConnected1OutputGrad);
@@ -384,25 +384,25 @@ void MNIST::trainConvolutionalModel()
 
     VERIFY_INIT(dotProductWithBias2Derivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> sigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoidDerivative;
     sigmoidDerivative.setInputParameter("Output", &fullyConnected1Output);
     sigmoidDerivative.setInputParameter("OutputDelta", &fullyConnected1OutputGrad);
     sigmoidDerivative.setOutputParameter("InputDelta", &fullyConnected1OutputGrad);
 
     VERIFY_INIT(sigmoidDerivative.init());
 
-    FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBias1Derivative;
+    FreeWill::DotProductWithBiasDerivative<FreeWill::DeviceType::CPU_NAIVE, float> dotProductWithBias1Derivative;
     dotProductWithBias1Derivative.setInputParameter("InputActivation", &poolingOutput);
     dotProductWithBias1Derivative.setInputParameter("OutputDelta", &fullyConnected1OutputGrad);
     dotProductWithBias1Derivative.setInputParameter("Weight", &fullyConnected1Weight);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> poolingOutputGrad({featureMapSize*12*12,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> poolingOutputGrad({featureMapSize*12*12,batchSize});
     poolingOutputGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1WeightGrad({100, featureMapSize*12*12});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1WeightGrad({100, featureMapSize*12*12});
     fullyConnected1WeightGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1BiasGrad({100});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1BiasGrad({100});
     fullyConnected1BiasGrad.init();
 
     dotProductWithBias1Derivative.setOutputParameter("InputDelta", &poolingOutputGrad);
@@ -413,35 +413,35 @@ void MNIST::trainConvolutionalModel()
 
     poolingOutputGrad.reshape({featureMapSize,12,12,batchSize});
 
-    FreeWill::MaxPoolingDerivative<FreeWill::CPU_NAIVE, float> maxPoolingDerivative;
+    FreeWill::MaxPoolingDerivative<FreeWill::DeviceType::CPU_NAIVE, float> maxPoolingDerivative;
     maxPoolingDerivative.setInputParameter("OutputGrad", &poolingOutputGrad);
     maxPoolingDerivative.setInputParameter("SwitchX", &poolingSwitchX);
     maxPoolingDerivative.setInputParameter("SwitchY", &poolingSwitchY);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convOutputGrad({featureMapSize,24,24,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> convOutputGrad({featureMapSize,24,24,batchSize});
     convOutputGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convBiasGrad({featureMapSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> convBiasGrad({featureMapSize});
     convBiasGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> convFeatureMapGrad({1,5,5,featureMapSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> convFeatureMapGrad({1,5,5,featureMapSize});
     convFeatureMapGrad.init();
 
     maxPoolingDerivative.setOutputParameter("InputGrad", &convOutputGrad);
     VERIFY_INIT(maxPoolingDerivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> convSigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> convSigmoidDerivative;
     convSigmoidDerivative.setInputParameter("Output", &convOutput);
     convSigmoidDerivative.setInputParameter("OutputDelta", &convOutputGrad);
     convSigmoidDerivative.setOutputParameter("InputDelta", &convOutputGrad);
     VERIFY_INIT(convSigmoidDerivative.init());
 
-    FreeWill::ConvolutionDerivative<FreeWill::CPU_NAIVE, float> convDerivative;
+    FreeWill::ConvolutionDerivative<FreeWill::DeviceType::CPU_NAIVE, float> convDerivative;
     convDerivative.setInputParameter("PrevActivation", &image);
     convDerivative.setInputParameter("FeatureMap", &featureMap);
     convDerivative.setInputParameter("OutputGrad", &convOutputGrad);
    
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> inputGrad({1,28,28,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> inputGrad({1,28,28,batchSize});
     inputGrad.init();
 
     convDerivative.setOutputParameter("FeatureMapGrad", &convFeatureMapGrad);
@@ -450,14 +450,14 @@ void MNIST::trainConvolutionalModel()
 
     VERIFY_INIT(convDerivative.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateConvWeight;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::CPU_NAIVE, float> updateConvWeight;
     updateConvWeight.setInputParameter("OperandA", &featureMap);
     updateConvWeight.setInputParameter("OperandB", &convFeatureMapGrad);
     updateConvWeight.setOutputParameter("Result", &featureMap);
 
     VERIFY_INIT(updateConvWeight.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateConvBias;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::CPU_NAIVE, float> updateConvBias;
 
     updateConvBias.setInputParameter("OperandA", &bias);
     updateConvBias.setInputParameter("OperandB", &convBiasGrad);
@@ -465,28 +465,28 @@ void MNIST::trainConvolutionalModel()
 
     VERIFY_INIT(updateConvBias.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected1Weight;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::CPU_NAIVE, float> updateFullyConnected1Weight;
     updateFullyConnected1Weight.setInputParameter("OperandA", &fullyConnected1Weight);
     updateFullyConnected1Weight.setInputParameter("OperandB", &fullyConnected1WeightGrad);
     updateFullyConnected1Weight.setOutputParameter("Result", &fullyConnected1Weight);
 
     VERIFY_INIT(updateFullyConnected1Weight.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected2Weight;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::CPU_NAIVE, float> updateFullyConnected2Weight;
     updateFullyConnected2Weight.setInputParameter("OperandA", &fullyConnected2Weight);
     updateFullyConnected2Weight.setInputParameter("OperandB", &fullyConnected2WeightGrad);
     updateFullyConnected2Weight.setOutputParameter("Result", &fullyConnected2Weight);
 
     VERIFY_INIT(updateFullyConnected2Weight.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected1Bias;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::CPU_NAIVE, float> updateFullyConnected1Bias;
     updateFullyConnected1Bias.setInputParameter("OperandA", &fullyConnected1Bias);
     updateFullyConnected1Bias.setInputParameter("OperandB", &fullyConnected1BiasGrad);
     updateFullyConnected1Bias.setOutputParameter("Result", &fullyConnected1Bias);
 
     VERIFY_INIT(updateFullyConnected1Bias.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected2Bias;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::CPU_NAIVE, float> updateFullyConnected2Bias;
     updateFullyConnected2Bias.setInputParameter("OperandA", &fullyConnected2Bias);
     updateFullyConnected2Bias.setInputParameter("OperandB", &fullyConnected2BiasGrad);
     updateFullyConnected2Bias.setOutputParameter("Result", &fullyConnected2Bias);
@@ -648,60 +648,60 @@ void MNIST::trainFullyConnectedModel()
 {
     unsigned int batchSize = 10;
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> image({28*28,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> image({28*28,batchSize});
     image.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, unsigned int> label({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, unsigned int> label({batchSize});
     label.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1Weight({100, 28*28});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1Weight({100, 28*28});
     fullyConnected1Weight.init();
     fullyConnected1Weight.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1Bias({100});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1Bias({100});
     fullyConnected1Bias.init();
     fullyConnected1Bias.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1Output({100, batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1Output({100, batchSize});
     fullyConnected1Output.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2Weight({10, 100});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2Weight({10, 100});
     fullyConnected2Weight.init();
     fullyConnected2Weight.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2Bias({10});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2Bias({10});
     fullyConnected2Bias.init();
     fullyConnected2Bias.randomize();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2Output({10, batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2Output({10, batchSize});
     fullyConnected2Output.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> softmaxOutput({10,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> softmaxOutput({10,batchSize});
     softmaxOutput.init();    
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> cost({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> cost({batchSize});
     cost.init();
 
-    FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> fullyConnected1;
+    FreeWill::DotProductWithBias<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1;
     fullyConnected1.setInputParameter("Input", &image);
     fullyConnected1.setInputParameter("Weight", &fullyConnected1Weight);
     fullyConnected1.setInputParameter("Bias", &fullyConnected1Bias);
     fullyConnected1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(fullyConnected1.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> sigmoid1;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoid1;
     sigmoid1.setInputParameter("Input", &fullyConnected1Output);
     sigmoid1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(sigmoid1.init());
 
-    FreeWill::DotProductWithBias<FreeWill::CPU_NAIVE, float> fullyConnected2;
+    FreeWill::DotProductWithBias<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2;
     fullyConnected2.setInputParameter("Input", &fullyConnected1Output);
     fullyConnected2.setInputParameter("Weight", &fullyConnected2Weight);
     fullyConnected2.setInputParameter("Bias", &fullyConnected2Bias);
     fullyConnected2.setOutputParameter("Output", &fullyConnected2Output);
     VERIFY_INIT(fullyConnected2.init());
 
-    FreeWill::SoftmaxLogLoss<FreeWill::CPU_NAIVE, float> softmaxLogLoss;
+    FreeWill::SoftmaxLogLoss<FreeWill::DeviceType::CPU_NAIVE, float> softmaxLogLoss;
     softmaxLogLoss.setInputParameter("Input", &fullyConnected2Output);
     softmaxLogLoss.setInputParameter("Label", &label);
     softmaxLogLoss.setOutputParameter("Output", &softmaxOutput);
@@ -709,27 +709,27 @@ void MNIST::trainFullyConnectedModel()
     VERIFY_INIT(softmaxLogLoss.init());
 
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> softmaxGrad({10,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> softmaxGrad({10,batchSize});
     softmaxGrad.init();
 
-    FreeWill::SoftmaxLogLossDerivative<FreeWill::CPU_NAIVE, float> softmaxLogLossDerivative;
+    FreeWill::SoftmaxLogLossDerivative<FreeWill::DeviceType::CPU_NAIVE, float> softmaxLogLossDerivative;
     softmaxLogLossDerivative.setInputParameter("Output", &softmaxOutput);
     softmaxLogLossDerivative.setInputParameter("Label", &label);
     softmaxLogLossDerivative.setOutputParameter("InputGrad", &softmaxGrad);
     VERIFY_INIT(softmaxLogLossDerivative.init());
 
-    FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBias2Derivative;
+    FreeWill::DotProductWithBiasDerivative<FreeWill::DeviceType::CPU_NAIVE, float> dotProductWithBias2Derivative;
     dotProductWithBias2Derivative.setInputParameter("InputActivation", &fullyConnected1Output);
     dotProductWithBias2Derivative.setInputParameter("OutputDelta", &softmaxGrad);
     dotProductWithBias2Derivative.setInputParameter("Weight", &fullyConnected2Weight);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1OutputGrad({100,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1OutputGrad({100,batchSize});
     fullyConnected1OutputGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2WeightGrad({10,100});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2WeightGrad({10,100});
     fullyConnected2WeightGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected2BiasGrad({10});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2BiasGrad({10});
     fullyConnected2BiasGrad.init();
 
     dotProductWithBias2Derivative.setOutputParameter("InputDelta", &fullyConnected1OutputGrad);
@@ -738,25 +738,25 @@ void MNIST::trainFullyConnectedModel()
 
     VERIFY_INIT(dotProductWithBias2Derivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::CPU_NAIVE, float> sigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::CPU_NAIVE, float> sigmoidDerivative;
     sigmoidDerivative.setInputParameter("Output", &fullyConnected1Output);
     sigmoidDerivative.setInputParameter("OutputDelta", &fullyConnected1OutputGrad);
     sigmoidDerivative.setOutputParameter("InputDelta", &fullyConnected1OutputGrad);
 
     VERIFY_INIT(sigmoidDerivative.init());
 
-    FreeWill::DotProductWithBiasDerivative<FreeWill::CPU_NAIVE, float> dotProductWithBias1Derivative;
+    FreeWill::DotProductWithBiasDerivative<FreeWill::DeviceType::CPU_NAIVE, float> dotProductWithBias1Derivative;
     dotProductWithBias1Derivative.setInputParameter("InputActivation", &image);
     dotProductWithBias1Derivative.setInputParameter("OutputDelta", &fullyConnected1OutputGrad);
     dotProductWithBias1Derivative.setInputParameter("Weight", &fullyConnected1Weight);
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1WeightGrad({100, 28*28});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1WeightGrad({100, 28*28});
     fullyConnected1WeightGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> imageGrad({28*28, batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> imageGrad({28*28, batchSize});
     imageGrad.init();
 
-    FreeWill::Tensor<FreeWill::CPU_NAIVE, float> fullyConnected1BiasGrad({100});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1BiasGrad({100});
     fullyConnected1BiasGrad.init();
 
     dotProductWithBias1Derivative.setOutputParameter("InputDelta", &imageGrad);
@@ -765,28 +765,28 @@ void MNIST::trainFullyConnectedModel()
 
     VERIFY_INIT(dotProductWithBias1Derivative.init());
    
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected1Weight;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::CPU_NAIVE, float> updateFullyConnected1Weight;
     updateFullyConnected1Weight.setInputParameter("OperandA", &fullyConnected1Weight);
     updateFullyConnected1Weight.setInputParameter("OperandB", &fullyConnected1WeightGrad);
     updateFullyConnected1Weight.setOutputParameter("Result", &fullyConnected1Weight);
 
     VERIFY_INIT(updateFullyConnected1Weight.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected1Bias;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::CPU_NAIVE, float> updateFullyConnected1Bias;
     updateFullyConnected1Bias.setInputParameter("OperandA", &fullyConnected1Bias);
     updateFullyConnected1Bias.setInputParameter("OperandB", &fullyConnected1BiasGrad);
     updateFullyConnected1Bias.setOutputParameter("Result", &fullyConnected1Bias);
 
     VERIFY_INIT(updateFullyConnected1Bias.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected2Weight;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::CPU_NAIVE, float> updateFullyConnected2Weight;
     updateFullyConnected2Weight.setInputParameter("OperandA", &fullyConnected2Weight);
     updateFullyConnected2Weight.setInputParameter("OperandB", &fullyConnected2WeightGrad);
     updateFullyConnected2Weight.setOutputParameter("Result", &fullyConnected2Weight);
 
     VERIFY_INIT(updateFullyConnected2Weight.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::CPU_NAIVE, float> updateFullyConnected2Bias;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::CPU_NAIVE, float> updateFullyConnected2Bias;
     updateFullyConnected2Bias.setInputParameter("OperandA", &fullyConnected2Bias);
     updateFullyConnected2Bias.setInputParameter("OperandB", &fullyConnected2BiasGrad);
     updateFullyConnected2Bias.setOutputParameter("Result", &fullyConnected2Bias);
@@ -925,68 +925,68 @@ void MNIST::trainConvolutionalModelGPU()
     const unsigned int featureMapSize = 20;
     const unsigned int batchSize = 10;
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> image({1,28,28,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> image({1,28,28,batchSize});
     image.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, unsigned int> label({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, unsigned int> label({batchSize});
     label.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> featureMap({1,5,5, featureMapSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> featureMap({1,5,5, featureMapSize});
     featureMap.init();
     featureMap.randomize();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> bias({featureMapSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> bias({featureMapSize});
     bias.init();
     bias.randomize();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> convOutput({featureMapSize,24,24,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> convOutput({featureMapSize,24,24,batchSize});
     convOutput.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> poolingOutput({featureMapSize,12,12,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> poolingOutput({featureMapSize,12,12,batchSize});
     poolingOutput.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected1Weight({100, featureMapSize*12*12});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected1Weight({100, featureMapSize*12*12});
     fullyConnected1Weight.init();
     fullyConnected1Weight.randomize();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected1Bias({100});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected1Bias({100});
     fullyConnected1Bias.init();
     fullyConnected1Bias.randomize();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected1Output({100, batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected1Output({100, batchSize});
     fullyConnected1Output.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected2Weight({10, 100});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected2Weight({10, 100});
     fullyConnected2Weight.init();
     fullyConnected2Weight.randomize();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected2Bias({10});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected2Bias({10});
     fullyConnected2Bias.init();
     fullyConnected2Bias.randomize();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected2Output({10, batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected2Output({10, batchSize});
     fullyConnected2Output.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> softmaxOutput({10,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> softmaxOutput({10,batchSize});
     softmaxOutput.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> cost({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> cost({batchSize});
     cost.init();
 
 
-    FreeWill::Convolution<FreeWill::GPU_CUDA, float> convolution;
+    FreeWill::Convolution<FreeWill::DeviceType::GPU_CUDA, float> convolution;
     convolution.setInputParameter("Input", &image);
     convolution.setInputParameter("FeatureMap", &featureMap);
     convolution.setInputParameter("Bias", &bias);
     convolution.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convolution.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::GPU_CUDA, float> convSigmoid;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> convSigmoid;
     convSigmoid.setInputParameter("Input", &convOutput);
     convSigmoid.setOutputParameter("Output", &convOutput);
     VERIFY_INIT(convSigmoid.init());
 
-    FreeWill::MaxPooling<FreeWill::GPU_CUDA, float> maxPooling;
+    FreeWill::MaxPooling<FreeWill::DeviceType::GPU_CUDA, float> maxPooling;
     maxPooling.setInputParameter("Input", &convOutput);
     maxPooling.setOutputParameter("Output", &poolingOutput);
     VERIFY_INIT(maxPooling.init());
@@ -994,27 +994,27 @@ void MNIST::trainConvolutionalModelGPU()
 
     poolingOutput.reshape({featureMapSize*12*12, batchSize});
 
-    FreeWill::DotProductWithBias<FreeWill::GPU_CUDA, float> fullyConnected1;
+    FreeWill::DotProductWithBias<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected1;
     fullyConnected1.setInputParameter("Input", &poolingOutput);
     fullyConnected1.setInputParameter("Weight", &fullyConnected1Weight);
     fullyConnected1.setInputParameter("Bias", &fullyConnected1Bias);
     fullyConnected1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(fullyConnected1.init());
 
-    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::GPU_CUDA, float> sigmoid1;
+    FreeWill::Activation<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> sigmoid1;
     sigmoid1.setInputParameter("Input", &fullyConnected1Output);
     sigmoid1.setOutputParameter("Output", &fullyConnected1Output);
     VERIFY_INIT(sigmoid1.init());
 
 
-    FreeWill::DotProductWithBias<FreeWill::GPU_CUDA, float> fullyConnected2;
+    FreeWill::DotProductWithBias<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected2;
     fullyConnected2.setInputParameter("Input", &fullyConnected1Output);
     fullyConnected2.setInputParameter("Weight", &fullyConnected2Weight);
     fullyConnected2.setInputParameter("Bias", &fullyConnected2Bias);
     fullyConnected2.setOutputParameter("Output", &fullyConnected2Output);
     VERIFY_INIT(fullyConnected2.init());
 
-    FreeWill::SoftmaxLogLoss<FreeWill::GPU_CUDA, float> softmaxLogLoss;
+    FreeWill::SoftmaxLogLoss<FreeWill::DeviceType::GPU_CUDA, float> softmaxLogLoss;
     softmaxLogLoss.setInputParameter("Input", &fullyConnected2Output);
     softmaxLogLoss.setInputParameter("Label", &label);
     softmaxLogLoss.setOutputParameter("Output", &softmaxOutput);
@@ -1022,27 +1022,27 @@ void MNIST::trainConvolutionalModelGPU()
     VERIFY_INIT(softmaxLogLoss.init());
 
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> softmaxGrad({10,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> softmaxGrad({10,batchSize});
     softmaxGrad.init();
 
-    FreeWill::SoftmaxLogLossDerivative<FreeWill::GPU_CUDA, float> softmaxLogLossDerivative;
+    FreeWill::SoftmaxLogLossDerivative<FreeWill::DeviceType::GPU_CUDA, float> softmaxLogLossDerivative;
     softmaxLogLossDerivative.setInputParameter("Output", &softmaxOutput);
     softmaxLogLossDerivative.setInputParameter("Label", &label);
     softmaxLogLossDerivative.setOutputParameter("InputGrad", &softmaxGrad);
     VERIFY_INIT(softmaxLogLossDerivative.init());
 
-    FreeWill::DotProductWithBiasDerivative<FreeWill::GPU_CUDA, float> dotProductWithBias2Derivative;
+    FreeWill::DotProductWithBiasDerivative<FreeWill::DeviceType::GPU_CUDA, float> dotProductWithBias2Derivative;
     dotProductWithBias2Derivative.setInputParameter("InputActivation", &fullyConnected1Output);
     dotProductWithBias2Derivative.setInputParameter("OutputDelta", &softmaxGrad);
     dotProductWithBias2Derivative.setInputParameter("Weight", &fullyConnected2Weight);
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected1OutputGrad({100,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected1OutputGrad({100,batchSize});
     fullyConnected1OutputGrad.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected2WeightGrad({10,100});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected2WeightGrad({10,100});
     fullyConnected2WeightGrad.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected2BiasGrad({10});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected2BiasGrad({10});
     fullyConnected2BiasGrad.init();
 
     dotProductWithBias2Derivative.setOutputParameter("InputDelta", &fullyConnected1OutputGrad);
@@ -1051,25 +1051,25 @@ void MNIST::trainConvolutionalModelGPU()
 
     VERIFY_INIT(dotProductWithBias2Derivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::GPU_CUDA, float> sigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> sigmoidDerivative;
     sigmoidDerivative.setInputParameter("Output", &fullyConnected1Output);
     sigmoidDerivative.setInputParameter("OutputDelta", &fullyConnected1OutputGrad);
     sigmoidDerivative.setOutputParameter("InputDelta", &fullyConnected1OutputGrad);
 
     VERIFY_INIT(sigmoidDerivative.init());
 
-    FreeWill::DotProductWithBiasDerivative<FreeWill::GPU_CUDA, float> dotProductWithBias1Derivative;
+    FreeWill::DotProductWithBiasDerivative<FreeWill::DeviceType::GPU_CUDA, float> dotProductWithBias1Derivative;
     dotProductWithBias1Derivative.setInputParameter("InputActivation", &poolingOutput);
     dotProductWithBias1Derivative.setInputParameter("OutputDelta", &fullyConnected1OutputGrad);
     dotProductWithBias1Derivative.setInputParameter("Weight", &fullyConnected1Weight);
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> poolingOutputGrad({featureMapSize*12*12,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> poolingOutputGrad({featureMapSize*12*12,batchSize});
     poolingOutputGrad.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected1WeightGrad({100, featureMapSize*12*12});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected1WeightGrad({100, featureMapSize*12*12});
     fullyConnected1WeightGrad.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> fullyConnected1BiasGrad({100});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> fullyConnected1BiasGrad({100});
     fullyConnected1BiasGrad.init();
 
     dotProductWithBias1Derivative.setOutputParameter("InputDelta", &poolingOutputGrad);
@@ -1081,37 +1081,37 @@ void MNIST::trainConvolutionalModelGPU()
 
     poolingOutputGrad.reshape({featureMapSize,12,12,batchSize});
 
-    FreeWill::MaxPoolingDerivative<FreeWill::GPU_CUDA, float> maxPoolingDerivative;
+    FreeWill::MaxPoolingDerivative<FreeWill::DeviceType::GPU_CUDA, float> maxPoolingDerivative;
     maxPoolingDerivative.setInputParameter("OutputGrad", &poolingOutputGrad);
     //maxPoolingDerivative.setInputParameter("SwitchX", &poolingSwitchX);
     //maxPoolingDerivative.setInputParameter("SwitchY", &poolingSwitchY);
     maxPoolingDerivative.setInputParameter("Input", &convOutput);
     maxPoolingDerivative.setInputParameter("Output", &poolingOutput);
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> convOutputGrad({featureMapSize,24,24,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> convOutputGrad({featureMapSize,24,24,batchSize});
     convOutputGrad.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> convBiasGrad({featureMapSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> convBiasGrad({featureMapSize});
     convBiasGrad.init();
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> convFeatureMapGrad({1,5,5,featureMapSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> convFeatureMapGrad({1,5,5,featureMapSize});
     convFeatureMapGrad.init();
 
     maxPoolingDerivative.setOutputParameter("InputGrad", &convOutputGrad);
     VERIFY_INIT(maxPoolingDerivative.init());
 
-    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::GPU_CUDA, float> convSigmoidDerivative;
+    FreeWill::ActivationDerivative<FreeWill::SIGMOID, FreeWill::DeviceType::GPU_CUDA, float> convSigmoidDerivative;
     convSigmoidDerivative.setInputParameter("Output", &convOutput);
     convSigmoidDerivative.setInputParameter("OutputDelta", &convOutputGrad);
     convSigmoidDerivative.setOutputParameter("InputDelta", &convOutputGrad);
     VERIFY_INIT(convSigmoidDerivative.init());
 
-    FreeWill::ConvolutionDerivative<FreeWill::GPU_CUDA, float> convDerivative;
+    FreeWill::ConvolutionDerivative<FreeWill::DeviceType::GPU_CUDA, float> convDerivative;
     convDerivative.setInputParameter("PrevActivation", &image);
     convDerivative.setInputParameter("FeatureMap", &featureMap);
     convDerivative.setInputParameter("OutputGrad", &convOutputGrad);
 
-    FreeWill::Tensor<FreeWill::GPU_CUDA, float> inputGrad({1,28,28,batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> inputGrad({1,28,28,batchSize});
     inputGrad.init();
 
     convDerivative.setOutputParameter("FeatureMapGrad", &convFeatureMapGrad);
@@ -1120,14 +1120,14 @@ void MNIST::trainConvolutionalModelGPU()
 
     VERIFY_INIT(convDerivative.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateConvWeight;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::GPU_CUDA, float> updateConvWeight;
     updateConvWeight.setInputParameter("OperandA", &featureMap);
     updateConvWeight.setInputParameter("OperandB", &convFeatureMapGrad);
     updateConvWeight.setOutputParameter("Result", &featureMap);
 
     VERIFY_INIT(updateConvWeight.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateConvBias;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::GPU_CUDA, float> updateConvBias;
 
     updateConvBias.setInputParameter("OperandA", &bias);
     updateConvBias.setInputParameter("OperandB", &convBiasGrad);
@@ -1135,28 +1135,28 @@ void MNIST::trainConvolutionalModelGPU()
 
     VERIFY_INIT(updateConvBias.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateFullyConnected1Weight;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::GPU_CUDA, float> updateFullyConnected1Weight;
     updateFullyConnected1Weight.setInputParameter("OperandA", &fullyConnected1Weight);
     updateFullyConnected1Weight.setInputParameter("OperandB", &fullyConnected1WeightGrad);
     updateFullyConnected1Weight.setOutputParameter("Result", &fullyConnected1Weight);
 
     VERIFY_INIT(updateFullyConnected1Weight.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateFullyConnected2Weight;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::GPU_CUDA, float> updateFullyConnected2Weight;
     updateFullyConnected2Weight.setInputParameter("OperandA", &fullyConnected2Weight);
     updateFullyConnected2Weight.setInputParameter("OperandB", &fullyConnected2WeightGrad);
     updateFullyConnected2Weight.setOutputParameter("Result", &fullyConnected2Weight);
 
     VERIFY_INIT(updateFullyConnected2Weight.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateFullyConnected1Bias;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::GPU_CUDA, float> updateFullyConnected1Bias;
     updateFullyConnected1Bias.setInputParameter("OperandA", &fullyConnected1Bias);
     updateFullyConnected1Bias.setInputParameter("OperandB", &fullyConnected1BiasGrad);
     updateFullyConnected1Bias.setOutputParameter("Result", &fullyConnected1Bias);
 
     VERIFY_INIT(updateFullyConnected1Bias.init());
 
-    FreeWill::ElementwiseAdd<FreeWill::GPU_CUDA, float> updateFullyConnected2Bias;
+    FreeWill::ElementwiseAdd<FreeWill::DeviceType::GPU_CUDA, float> updateFullyConnected2Bias;
     updateFullyConnected2Bias.setInputParameter("OperandA", &fullyConnected2Bias);
     updateFullyConnected2Bias.setInputParameter("OperandB", &fullyConnected2BiasGrad);
     updateFullyConnected2Bias.setOutputParameter("Result", &fullyConnected2Bias);
@@ -1331,11 +1331,11 @@ void MNIST::run()
 
     srand(/*time(NULL)*/0);
 
-    FreeWill::Context<FreeWill::GPU_CUDA>::getSingleton().open();
+    FreeWill::Context<FreeWill::DeviceType::GPU_CUDA>::getSingleton().open();
 
    trainConvolutionalModelGPU();
   //  trainConvolutionalModel();
-    FreeWill::Context<FreeWill::GPU_CUDA>::getSingleton().close();
+    FreeWill::Context<FreeWill::DeviceType::GPU_CUDA>::getSingleton().close();
   //
   //trainFullyConnectedModel();
 return;

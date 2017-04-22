@@ -9,10 +9,11 @@
 #include <cstdlib>
 #include <type_traits>
 #include <cstdio>
+#include "../Tensor/ReferenceCountedBlob.h"
 
 namespace FreeWill
 {
-    template<DeviceType DeviceUsed = CPU_NAIVE>
+    template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
     class Context
     {
     private:

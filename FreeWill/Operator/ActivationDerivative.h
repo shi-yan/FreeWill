@@ -9,7 +9,7 @@
 
 namespace FreeWill
 {
-    template <ActivationMode ActivationModeUsed = SIGMOID, DeviceType DeviceUsed = CPU_NAIVE, typename DataType = float>
+    template <ActivationMode ActivationModeUsed = SIGMOID, DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
     class ActivationDerivative : public Operator<DeviceUsed>
     {
 
@@ -40,7 +40,7 @@ namespace FreeWill
             FAIL_IF (input("OutputDelta")->shape() != input("Output")->shape());
             
 
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
 
                 if (!m_cudnnActivationDescriptor)
@@ -82,7 +82,7 @@ namespace FreeWill
             Tensor<DeviceUsed, DataType> *_inputDelta = output("InputDelta")->template toType<DataType>();
             Tensor<DeviceUsed, DataType> *_outputDelta = input("OutputDelta")->template toType<DataType>();
 
-            if constexpr ((DeviceUsed & (CPU_NAIVE)) != 0)
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
                 if constexpr (ActivationModeUsed == SIGMOID)
                 {
@@ -111,7 +111,7 @@ namespace FreeWill
                     (void) _outputDelta;
                 }
             }
-            else if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 DataType alpha = 1.0;
                 DataType beta = 0.0;
@@ -137,7 +137,7 @@ namespace FreeWill
         {
             Operator<DeviceUsed>::clear();
 
-            if constexpr ((DeviceUsed & (GPU_CUDA)) != 0)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnDestroyActivationDescriptor(m_cudnnActivationDescriptor));
                 m_cudnnActivationDescriptor = 0;
