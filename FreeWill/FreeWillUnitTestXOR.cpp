@@ -8,9 +8,14 @@
 #include "Operator/SigmoidCrossEntropyLossDerivative.h"
 #include "Operator/ElementwiseAdd.h"
 #include "Operator/ElementwiseProduct.h"
+#include "Tensor/RandomNumberGenerator.h"
 
 void FreeWillUnitTest::xorTest()
 {
+    //FreeWill::RandomNumberGenerator::getSingleton().beginRecording("recordRandom.bin");
+    FreeWill::RandomNumberGenerator::getSingleton().beginReplay("recordRandom.bin");
+
+
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> input({2,4});
     input.init();
 
@@ -26,7 +31,7 @@ void FreeWillUnitTest::xorTest()
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> secondLayerNeuronDerivative({1,4});
     secondLayerNeuronDerivative.init(); 
     
-    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> cost({4});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> cost({1, 4});
     cost.init();
 
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> label({1, 4});
@@ -159,6 +164,10 @@ void FreeWillUnitTest::xorTest()
     mergeWithSecondLayerBias.setOutputParameter("Result", &secondLayerBias);
     QVERIFY(mergeWithSecondLayerBias.init());
 
+    //FreeWill::RandomNumberGenerator::getSingleton().endRecording();
+    FreeWill::RandomNumberGenerator::getSingleton().endReplay();
+
+
     for (int e = 0;e<4;++e)
     {
         int a = e & 0x1;
@@ -190,7 +199,8 @@ void FreeWillUnitTest::xorTest()
         secondLayerDotProductWithBiasDerivative.evaluate();
         firstLayerSigmoidDerivative.evaluate();
         firstLayerDotProductWithBiasDerivative.evaluate();
-       
+        qDebug() << "cost:" << cost[0] <<", "<< cost[1]<<", " << cost[2]<<", " << cost[3];
+        break;
         if (i%500000 == 0 && i!=0)
         {
            learningRate*=0.5;

@@ -468,7 +468,7 @@ namespace FreeWill
 
             float rate = 1.0;
 
-            if (m_parameters.find("Rate") == m_parameters.end())
+            if (m_parameters.find("Rate") != m_parameters.end())
             {
                 rate = std::any_cast<float>(m_parameters["Rate"]);
             }

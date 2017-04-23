@@ -89,6 +89,8 @@ set(MNIST_SOURCES
     MNIST.cpp
     ../../FreeWill/Tensor/Shape.cpp
     ../../FreeWill/Model/Solver.cpp
+    ../../FreeWill/Model/Model.cpp
+    ../../FreeWill/Model/TensorDescriptor.cpp
     ../../FreeWill/Model/OperatorDescriptor.cpp
     ../../Utils/WebUI/DemoBase/DemoBase.cpp
     ../../Utils/WebUI/DemoBase/DemoUI.cpp

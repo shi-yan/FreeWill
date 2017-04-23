@@ -18,6 +18,8 @@
 
 void FreeWillUnitTest::modelTest()
 {
+
+    FreeWill::RandomNumberGenerator::getSingleton().beginReplay("recordRandom.bin");
     FreeWill::Model *model = FreeWill::Model::create();
 
     FreeWill::TensorDescriptorHandle input = model->addTensor("input", {2}, true, false);
@@ -30,12 +32,12 @@ void FreeWillUnitTest::modelTest()
 
     FreeWill::TensorDescriptorHandle firstLayerWeight = model->addTensor("firstLayerWeight", {2,2});
     FreeWill::TensorDescriptorHandle firstLayerBias = model->addTensor("firstLayerBias", {2});
-    FreeWill::TensorDescriptorHandle firstLayerWeightDerivative = model->addTensor("firstLayerWeightDerivative", {2,2});
-    FreeWill::TensorDescriptorHandle firstLayerBiasDerivative = model->addTensor("firstLayerBiasDerivative", {2});
+    FreeWill::TensorDescriptorHandle firstLayerWeightDerivative = model->addTensor("firstLayerWeightDerivative", {2,2}, false, false);
+    FreeWill::TensorDescriptorHandle firstLayerBiasDerivative = model->addTensor("firstLayerBiasDerivative", {2}, false, false);
     FreeWill::TensorDescriptorHandle secondLayerWeight = model->addTensor("secondLayerWeight",{1,2});
     FreeWill::TensorDescriptorHandle secondLayerBias = model->addTensor("secondLayerBias", {1});
-    FreeWill::TensorDescriptorHandle secondLayerWeightDerivative = model->addTensor("secondLayerWeightDerivative", {1,2});
-    FreeWill::TensorDescriptorHandle secondLayerBiasDerivative = model->addTensor("secondLayerBiasDerivative", {1});
+    FreeWill::TensorDescriptorHandle secondLayerWeightDerivative = model->addTensor("secondLayerWeightDerivative", {1,2}, false, false);
+    FreeWill::TensorDescriptorHandle secondLayerBiasDerivative = model->addTensor("secondLayerBiasDerivative", {1}, false, false);
     FreeWill::TensorDescriptorHandle inputNeuronDelta = model->addTensor("inputNeuronDelta", {2}, true, false);
 
 
@@ -58,8 +60,7 @@ void FreeWillUnitTest::modelTest()
                         {{"Cost", cost}});
     FreeWill::OperatorDescriptorHandle sigmoidCrossEntropyLossDerivative = model->addOperator("sigmoidCrossEntropyLossDerivative", FreeWill::OperatorName::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE,
                         {{"Input", secondLayerActivation},{"Label", label}},
-                        {{"Output", secondLayerDelta}},
-                        {{"Mode", FreeWill::ActivationMode::SIGMOID}});
+                        {{"Output", secondLayerDelta}});
     FreeWill::OperatorDescriptorHandle secondLayerDotProductWithBiasDerivative = model->addOperator("secondLayerDotProductWithBiasDerivative", FreeWill::OperatorName::DOT_PRODUCT_WITH_BIAS_DERIVATIVE,
                         {{"InputActivation", firstLayerActivation}, {"Weight", secondLayerWeight},{"OutputDelta", secondLayerDelta}},
                         {{"WeightGrad", secondLayerWeightDerivative}, {"BiasGrad", secondLayerBiasDerivative}, {"InputDelta", firstLayerDelta}});
@@ -71,12 +72,6 @@ void FreeWillUnitTest::modelTest()
                         {{"InputActivation", input}, {"OutputDelta", firstLayerDelta}, {"Weight", firstLayerWeight}},
                         {{"WeightGrad", firstLayerWeightDerivative}, {"BiasGrad", firstLayerBiasDerivative},{"InputDelta", inputNeuronDelta}});
 
-    FreeWill::Solver solver;
-    solver.m_deviceUsed = FreeWill::DeviceType::CPU_NAIVE;
-    solver.m_batchSize = 4;
-
-    QVERIFY(model->init(solver));
-
     model->defineForwardPath({firstLayerFullyConnected, firstLayerSigmoid, secondLayerFullyConnected, secondLayerSigmoid, crossEntropyLoss});
     model->defineBackwardPath({sigmoidCrossEntropyLossDerivative, secondLayerDotProductWithBiasDerivative, firstLayerSigmoidDerivative, firstLayerDotProductWithBiasDerivative});
     model->defineWeightUpdatePairs({{firstLayerWeight, firstLayerWeightDerivative},
@@ -84,10 +79,15 @@ void FreeWillUnitTest::modelTest()
                                     {secondLayerWeight, secondLayerWeightDerivative},
                                     {secondLayerBias, secondLayerBiasDerivative}});
 
+    FreeWill::Solver solver;
+    solver.m_deviceUsed = FreeWill::DeviceType::CPU_NAIVE;
+    solver.m_batchSize = 4;
+    solver.init(model);
 
-    model->generateSVGDiagram("testout.svg");
+    FreeWill::RandomNumberGenerator::getSingleton().endReplay();
 
-    float *inputData = model->beginData(input);
+    float *inputData = model->beginMutateData(input);
+    float *labelData = model->beginMutateData(label);
 
     for (int e = 0;e<4;++e)
     {
@@ -96,20 +96,77 @@ void FreeWillUnitTest::modelTest()
         int c = a^b;
         inputData[2*e + 0] = a;
         inputData[2*e + 1] = b;
-        inputData[e+0] = c;
+        labelData[e+0] = c;
     }
 
-    model->endData(input);
+    model->endMutateData(input);
+    model->endMutateData(label);
+
+
+    //inputData = model->readonlyAccess(input);
+    //std::cout << "input data:" << inputData[0] << "," << inputData[1] << "," << inputData[2] << "," << inputData[3];
+
+    //float *weight1 = model->beginMutateData(firstLayerWeight);
+
+    /*weight1[0] = 0.1;
+    weight1[1] = 0.2;
+    weight1[2] = 0.3;
+    weight1[3] = 0.4;
+*/
+    //model->endMutateData(firstLayerWeight);
+
+    //float *bias1 = model->beginMutateData(firstLayerBias);
+
+/*    bias1[0] = 0.5;
+    bias1[1] = 0.6;
+*/
+    //model->endMutateData(firstLayerBias);
+
+
+    const float *costData = model->readonlyAccess(cost);
     float learningRate = 0.02;
-    for(unsigned int i = 1; i< 250000; ++i)
+    for(unsigned int i = 1; i< 5000; ++i)
     {
+        //std::cout << "weight1, " << weight1[0] <<", " << weight1[1]<< ", " << weight1[2]<< ", " << weight1[3] << std::endl;
+
         solver.forward(model);
 
-        float *costData = model->beginData(cost);
-        std::cout << "cost:" << costData[0] << std::endl;
+        const float *resultLayer1 = model->readonlyAccess(firstLayerActivation);
 
+        std::cout << "first activation: " << resultLayer1[0] << ", " << resultLayer1[1]  << ", "<< resultLayer1[2]  << ", "<< resultLayer1[3]  << ", "<<
+                  resultLayer1[4]  << ", "<< resultLayer1[5] << ", "<< resultLayer1[6]  << ", "<< resultLayer1[7]<< std::endl;
+
+        const float *secondLayerActivationData = model->readonlyAccess(secondLayerActivation);
+
+        std::cout << "second activation: " << secondLayerActivationData[0] << ", " << secondLayerActivationData[1] << ", " << secondLayerActivationData[2] << ", " <<secondLayerActivationData[3] << std::endl;
+
+        const float *labelData = model->readonlyAccess(label);
+
+        std::cout << "label: " << labelData[0] << ", " << labelData[1] << ", " << labelData[2] << ", " << labelData[3] << std::endl;
+
+
+
+        std::cout << "cost: " << costData[0]<< ", "  << costData[1]<< ", "  << costData[2] << ", " << costData[3] << std::endl;
+
+
+        const float *weight1Derv = model->readonlyAccess(firstLayerWeightDerivative);
+        const float *weight2Derv = model->readonlyAccess(secondLayerWeightDerivative);
+
+        std::cout << "weight1derv, " << weight1Derv[0] << ", " << weight1Derv[1] << ", " << weight1Derv[2] << ", " << weight1Derv[3] << std::endl;
+        std::cout << "weight2derv, " << weight2Derv[0] << ", " << weight2Derv[1] << std::endl;
+
+        model->clearTensor(firstLayerWeightDerivative);
+        model->clearTensor(secondLayerWeightDerivative);
+        model->clearTensor(firstLayerBiasDerivative);
+        model->clearTensor(secondLayerBiasDerivative);
 
         solver.backward(model);
+
+        break;
+
+
+        std::cout << "weight1derv, " << weight1Derv[0] << ", " << weight1Derv[1] << ", " << weight1Derv[2] << ", " << weight1Derv[3] << std::endl;
+        std::cout << "weight2derv, " << weight2Derv[0] << ", " << weight2Derv[1] << std::endl;
 
         if (i%500000 == 0 && i!=0)
         {
@@ -117,6 +174,12 @@ void FreeWillUnitTest::modelTest()
         }
 
         solver.update(-learningRate);
+
+        //std::cout << "weight1, " << weight1[0] <<", " << weight1[1]<< ", " << weight1[2]<< ", " << weight1[3] << std::endl << std::endl;
+
+        //break;
+
+
     }
 
 }

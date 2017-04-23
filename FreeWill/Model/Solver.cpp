@@ -4,6 +4,11 @@
 
 bool FreeWill::Solver::init(FreeWill::Model *model)
 {
+    if (!model->init(*this))
+    {
+        return false;
+    }
+
     clearUpdateOperators();
     for(auto iter = model->m_updatePairs.begin(); iter != model->m_updatePairs.end(); ++iter)
     {
@@ -111,10 +116,10 @@ void FreeWill::Solver::update(double learningRate)
             switch(m_deviceUsed)
             {
             case FreeWill::DeviceType::CPU_NAIVE:
-                (*iter)->evaluateWithParameterUpdate<FreeWill::DeviceType::CPU_NAIVE>({{"Rate", learningRate}});
+                (*iter)->evaluateWithParameterUpdate<FreeWill::DeviceType::CPU_NAIVE>({{"Rate", (float)learningRate}});
                 break;
             case FreeWill::DeviceType::GPU_CUDA:
-                (*iter)->evaluateWithParameterUpdate<FreeWill::DeviceType::GPU_CUDA>({{"Rate", learningRate}});
+                (*iter)->evaluateWithParameterUpdate<FreeWill::DeviceType::GPU_CUDA>({{"Rate", (float)learningRate}});
                 break;
             }
         }

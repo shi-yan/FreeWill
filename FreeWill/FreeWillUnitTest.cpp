@@ -1256,7 +1256,7 @@ void FreeWillUnitTest::maxPoolingTestCPUAndGPU()
 
     for(unsigned int i = 0; i< inputGradGPU.shape().size();++i)
     {
-//        qDebug() << inputGradGPU[i] << inputGradCPU[i];
+        //qDebug() << inputGradGPU[i] << inputGradCPU[i];
         QVERIFY(std::abs(inputGradCPU[i] - inputGradGPU[i])<epsilon);
 
         //qDebug()<< FreeWill::Operator<FreeWill::CPU>::m_operatorFactoryInitializer.getA();

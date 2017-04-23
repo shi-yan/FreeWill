@@ -42,7 +42,7 @@ namespace FreeWill
 
             Tensor<DeviceUsed, DataType> *_cost = output("Cost")->template toType<DataType>();
 
-            unsigned int batchSize = _cost->shape()[0];
+            unsigned int batchSize = _cost->shape()[1];
             unsigned int vectorSize = _input->shape()[0];
 
             if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)

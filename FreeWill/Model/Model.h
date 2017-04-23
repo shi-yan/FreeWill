@@ -37,7 +37,7 @@ namespace FreeWill
     public:
         static Model* create();
         ~Model();
-        bool init(const Solver &solver);
+        bool init(Solver const &solver);
         TensorDescriptorHandle addTensor(const std::string &name, const Shape &shape, bool isBatchTensor = false, bool isRandomlyInitialized = true, DataType dataType = DataType::FLOAT);
         OperatorDescriptorHandle addOperator(const std::string &name,
                         const std::string &operatorName,
@@ -58,9 +58,18 @@ namespace FreeWill
 
         bool defineWeightUpdatePairs(const std::vector<std::pair<TensorDescriptorHandle, TensorDescriptorHandle>> &updatePairs);
 
+        template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
+        const DataType *readonlyAccess(const TensorDescriptorHandle &tensorDescriptorHandle)
+        {
+           TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
+
+           TensorBase<DeviceUsed>* tensorBase = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][0]);
+
+           return static_cast<const DataType*>(tensorBase->cpuDataHandle());
+        }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
-        DataType *beginData(const TensorDescriptorHandle &tensorDescriptorHandle)
+        DataType *beginMutateData(const TensorDescriptorHandle &tensorDescriptorHandle)
         {
            TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
 
@@ -70,7 +79,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
-        void endData(const TensorDescriptorHandle &tensorDescriptorHandle)
+        void endMutateData(const TensorDescriptorHandle &tensorDescriptorHandle)
         {
             TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
 
@@ -88,6 +97,23 @@ namespace FreeWill
                     std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][i])->copyFromHostToDevice();
                 }
             }
+        }
+
+        template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
+        void clearTensor(const TensorDescriptorHandle &tensorDescriptorHandle)
+        {
+            TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
+
+            for(unsigned int i = 1; i < tensorDescriptor->m_tensors[DeviceUsed].size(); ++i)
+            {
+                std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][i])->clear();
+
+                if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
+                {
+                    std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][i])->copyFromHostToDevice();
+                }
+            }
+
         }
 
 

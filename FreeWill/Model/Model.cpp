@@ -66,7 +66,7 @@ FreeWill::OperatorDescriptorHandle FreeWill::Model::addOperator(const std::strin
     return name;
 }
 
-bool FreeWill::Model::init(const Solver &solver)
+bool FreeWill::Model::init(Solver const &solver)
 {
     //allocating tensors
     std::map<std::string, TensorDescriptor*>::iterator iterTensor = m_tensors.begin();

@@ -114,6 +114,8 @@ set(FreeWill_SOURCES
     Model/Solver.h
     Tensor/Shape.cpp
     Model/Solver.cpp
+    Tensor/RandomNumberGenerator.h
+    Tensor/RandomNumberGenerator.cpp
     )
 
 add_executable(FreeWillUnitTest ${FreeWill_SOURCES})
