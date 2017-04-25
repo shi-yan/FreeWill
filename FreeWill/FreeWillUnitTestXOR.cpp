@@ -13,8 +13,7 @@
 void FreeWillUnitTest::xorTest()
 {
     //FreeWill::RandomNumberGenerator::getSingleton().beginRecording("recordRandom.bin");
-    FreeWill::RandomNumberGenerator::getSingleton().beginReplay("recordRandom.bin");
-
+    //FreeWill::RandomNumberGenerator::getSingleton().beginReplay("recordRandom.bin");
 
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> input({2,4});
     input.init();
@@ -165,7 +164,7 @@ void FreeWillUnitTest::xorTest()
     QVERIFY(mergeWithSecondLayerBias.init());
 
     //FreeWill::RandomNumberGenerator::getSingleton().endRecording();
-    FreeWill::RandomNumberGenerator::getSingleton().endReplay();
+    //FreeWill::RandomNumberGenerator::getSingleton().endReplay();
 
 
     for (int e = 0;e<4;++e)
@@ -183,8 +182,12 @@ void FreeWillUnitTest::xorTest()
     for(unsigned int i = 1; i< 250000; ++i)
     {
         firstLayerFullyConnected.evaluate();
+        //std::cout << "firstActivation: " << firstLayerActivation << std::endl;
+        //std::cout << "first weight: " << firstLayerWeight << std::endl;
+        //std::cout << "first bias: " << firstLayerBias << std::endl;
 
         firstLayerSigmoid.evaluate();
+        //std::cout << "firstActivation: " << firstLayerActivation << std::endl;
 
         secondLayerFullyConnected.evaluate();
         secondLayerSigmoid.evaluate();
@@ -199,8 +202,10 @@ void FreeWillUnitTest::xorTest()
         secondLayerDotProductWithBiasDerivative.evaluate();
         firstLayerSigmoidDerivative.evaluate();
         firstLayerDotProductWithBiasDerivative.evaluate();
-        qDebug() << "cost:" << cost[0] <<", "<< cost[1]<<", " << cost[2]<<", " << cost[3];
-        break;
+        //std::cout << "firstActivation: " << firstLayerActivation << std::endl;
+        //std::cout << "secondActivation: " << secondLayerActivation << std::endl;
+        //std::cout << "cost: " << cost[0] <<", "<< cost[1]<<", " << cost[2]<<", " << cost[3];
+
         if (i%500000 == 0 && i!=0)
         {
            learningRate*=0.5;
@@ -216,7 +221,7 @@ void FreeWillUnitTest::xorTest()
         mergeWithSecondLayerBias.evaluate();
     }
 
-    qDebug() << "cost:" << cost[0];
+    std::cout << "cost:" << cost << std::endl;
 
     firstLayerFullyConnected.evaluate();
     firstLayerSigmoid.evaluate();
@@ -225,7 +230,7 @@ void FreeWillUnitTest::xorTest()
 
     for (int i = 0; i<4; ++i)
     {
-        qDebug() << "test" << i << ": a" << input[i*2] << "b" << input[i*2+1] << "c" << label[i] << "nn result:" << secondLayerActivation[i];
+        std::cout << "test" << i << ": a" << input[i*2] << "b" << input[i*2+1] << "c" << label[i] << "nn result:" << secondLayerActivation[i] << std::endl;
     }
 }
 
@@ -433,7 +438,7 @@ void FreeWillUnitTest::xorTestGPU()
     }
 
     cost.copyFromDeviceToHost();
-    qDebug() << "cost:" << cost[0];
+    std::cout << "cost:" << cost << std::endl;
 
     firstLayerFullyConnected.evaluate();
     firstLayerSigmoid.evaluate();
@@ -443,7 +448,7 @@ void FreeWillUnitTest::xorTestGPU()
  
     for (int i =0;i<4;++i)
     {
-        qDebug() << "test" << i << ": a" << input[i*2] << "b" << input[i*2+1] << "c" << label[i] << "nn result:" << secondLayerActivation[i];
+        std::cout << "test" << i << ": a" << input[i*2] << "b" << input[i*2+1] << "c" << label[i] << "nn result:" << secondLayerActivation[i] << std::endl;
     }
     
 }

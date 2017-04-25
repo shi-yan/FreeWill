@@ -11,6 +11,7 @@
 #include "TensorDescriptor.h"
 #include "OperatorDescriptor.h"
 #include "Solver.h"
+#include <sstream>
 
 
 namespace FreeWill
@@ -104,7 +105,7 @@ namespace FreeWill
         {
             TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
 
-            for(unsigned int i = 1; i < tensorDescriptor->m_tensors[DeviceUsed].size(); ++i)
+            for(unsigned int i = 0; i < tensorDescriptor->m_tensors[DeviceUsed].size(); ++i)
             {
                 std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][i])->clear();
 
@@ -114,6 +115,21 @@ namespace FreeWill
                 }
             }
 
+        }
+
+        template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
+        std::string debugOutputTensor(const TensorDescriptorHandle &TensorDescriptorHandle)
+        {
+            TensorDescriptor* tensorDescriptor = m_tensors[TensorDescriptorHandle.first];
+
+            std::stringstream ss;
+
+            for(unsigned int i = 0; i < tensorDescriptor->m_tensors[DeviceUsed].size(); ++i)
+            {
+                ss << (*std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][i])->template toType<DataType>()) << std::endl;
+            }
+
+            return ss.str();
         }
 
 

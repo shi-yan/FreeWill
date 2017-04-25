@@ -19,7 +19,7 @@
 void FreeWillUnitTest::modelTest()
 {
 
-    FreeWill::RandomNumberGenerator::getSingleton().beginReplay("recordRandom.bin");
+    //FreeWill::RandomNumberGenerator::getSingleton().beginReplay("recordRandom.bin");
     FreeWill::Model *model = FreeWill::Model::create();
 
     FreeWill::TensorDescriptorHandle input = model->addTensor("input", {2}, true, false);
@@ -84,7 +84,7 @@ void FreeWillUnitTest::modelTest()
     solver.m_batchSize = 4;
     solver.init(model);
 
-    FreeWill::RandomNumberGenerator::getSingleton().endReplay();
+    //FreeWill::RandomNumberGenerator::getSingleton().endReplay();
 
     float *inputData = model->beginMutateData(input);
     float *labelData = model->beginMutateData(label);
@@ -102,58 +102,11 @@ void FreeWillUnitTest::modelTest()
     model->endMutateData(input);
     model->endMutateData(label);
 
-
-    //inputData = model->readonlyAccess(input);
-    //std::cout << "input data:" << inputData[0] << "," << inputData[1] << "," << inputData[2] << "," << inputData[3];
-
-    //float *weight1 = model->beginMutateData(firstLayerWeight);
-
-    /*weight1[0] = 0.1;
-    weight1[1] = 0.2;
-    weight1[2] = 0.3;
-    weight1[3] = 0.4;
-*/
-    //model->endMutateData(firstLayerWeight);
-
-    //float *bias1 = model->beginMutateData(firstLayerBias);
-
-/*    bias1[0] = 0.5;
-    bias1[1] = 0.6;
-*/
-    //model->endMutateData(firstLayerBias);
-
-
-    const float *costData = model->readonlyAccess(cost);
     float learningRate = 0.02;
-    for(unsigned int i = 1; i< 5000; ++i)
+    for(unsigned int i = 1; i< 250000; ++i)
     {
-        //std::cout << "weight1, " << weight1[0] <<", " << weight1[1]<< ", " << weight1[2]<< ", " << weight1[3] << std::endl;
-
         solver.forward(model);
 
-        const float *resultLayer1 = model->readonlyAccess(firstLayerActivation);
-
-        std::cout << "first activation: " << resultLayer1[0] << ", " << resultLayer1[1]  << ", "<< resultLayer1[2]  << ", "<< resultLayer1[3]  << ", "<<
-                  resultLayer1[4]  << ", "<< resultLayer1[5] << ", "<< resultLayer1[6]  << ", "<< resultLayer1[7]<< std::endl;
-
-        const float *secondLayerActivationData = model->readonlyAccess(secondLayerActivation);
-
-        std::cout << "second activation: " << secondLayerActivationData[0] << ", " << secondLayerActivationData[1] << ", " << secondLayerActivationData[2] << ", " <<secondLayerActivationData[3] << std::endl;
-
-        const float *labelData = model->readonlyAccess(label);
-
-        std::cout << "label: " << labelData[0] << ", " << labelData[1] << ", " << labelData[2] << ", " << labelData[3] << std::endl;
-
-
-
-        std::cout << "cost: " << costData[0]<< ", "  << costData[1]<< ", "  << costData[2] << ", " << costData[3] << std::endl;
-
-
-        const float *weight1Derv = model->readonlyAccess(firstLayerWeightDerivative);
-        const float *weight2Derv = model->readonlyAccess(secondLayerWeightDerivative);
-
-        std::cout << "weight1derv, " << weight1Derv[0] << ", " << weight1Derv[1] << ", " << weight1Derv[2] << ", " << weight1Derv[3] << std::endl;
-        std::cout << "weight2derv, " << weight2Derv[0] << ", " << weight2Derv[1] << std::endl;
 
         model->clearTensor(firstLayerWeightDerivative);
         model->clearTensor(secondLayerWeightDerivative);
@@ -162,24 +115,24 @@ void FreeWillUnitTest::modelTest()
 
         solver.backward(model);
 
-        break;
-
-
-        std::cout << "weight1derv, " << weight1Derv[0] << ", " << weight1Derv[1] << ", " << weight1Derv[2] << ", " << weight1Derv[3] << std::endl;
-        std::cout << "weight2derv, " << weight2Derv[0] << ", " << weight2Derv[1] << std::endl;
-
         if (i%500000 == 0 && i!=0)
         {
            learningRate*=0.5;
         }
 
         solver.update(-learningRate);
-
-        //std::cout << "weight1, " << weight1[0] <<", " << weight1[1]<< ", " << weight1[2]<< ", " << weight1[3] << std::endl << std::endl;
-
-        //break;
-
-
     }
 
+    std::cout << "cost:" << model->debugOutputTensor(cost) << std::endl;
+
+    solver.forward(model);
+
+    const float *inputDataRO = model->beginMutateData(input);
+    const float *labelDataRO = model->beginMutateData(label);
+    const float *resultDataRO = model->beginMutateData(secondLayerActivation);
+
+    for (int i =0;i<4;++i)
+    {
+        std::cout << "test" << i << ": a" << inputDataRO[i*2] << "b" << inputDataRO[i*2+1] << "c" << labelDataRO[i] << "nn result:" << resultDataRO[i] << std::endl;
+    }
 }

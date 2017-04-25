@@ -177,7 +177,7 @@ namespace FreeWill
            for (unsigned int n = 0; n < size; ++n) 
            {
                 bits[n] = RandomNumberGenerator::getSingleton().getRandom<DataType>();
-            } 
+           }
  
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
@@ -280,7 +280,26 @@ namespace FreeWill
                 delete [] strideA;
             }
         }
+
+        template<DeviceType DeviceUsed_, typename DataType_>
+        friend std::ostream& operator<< (std::ostream& stream, Tensor<DeviceUsed_, DataType_> &tensor);
     };
+
+    template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
+    std::ostream& operator<< (std::ostream& stream, Tensor<DeviceUsed, DataType> &tensor)
+    {
+        const DataType *bits = (const DataType *) tensor.m_data.dataHandle();
+        unsigned int size = tensor.m_shape.size();
+
+        stream << size;
+        stream << " {";
+
+        for (unsigned int n = 0; n < size; ++n)
+        {
+            stream << bits[n] << ((n == size-1) ? "}":", ");
+        }
+        return stream;
+    }
 
 }
 

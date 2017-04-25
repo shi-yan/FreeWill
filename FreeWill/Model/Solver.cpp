@@ -75,6 +75,7 @@ void FreeWill::Solver::forward(FreeWill::Model *model)
         for(; iter != model->m_forwardPath.end();++iter)
         {
             model->m_operators[(*iter)]->evaluate<FreeWill::DeviceType::CPU_NAIVE>();
+            //break;
         }
         break;
     case FreeWill::DeviceType::GPU_CUDA:
