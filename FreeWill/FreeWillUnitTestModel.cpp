@@ -127,9 +127,9 @@ void FreeWillUnitTest::modelXORTest()
 
     solver.forward(model);
 
-    const float *inputDataRO = model->beginMutateData(input);
-    const float *labelDataRO = model->beginMutateData(label);
-    const float *resultDataRO = model->beginMutateData(secondLayerActivation);
+    const float *inputDataRO = model->readonlyAccess(input);
+    const float *labelDataRO = model->readonlyAccess(label);
+    const float *resultDataRO = model->readonlyAccess(secondLayerActivation);
 
     for (int i =0;i<4;++i)
     {

@@ -40,13 +40,18 @@ public:
         template<FreeWill::DeviceType DeviceUsed = FreeWill::DeviceType::CPU_NAIVE>
         void loadOneTrainData(FreeWill::Tensor<DeviceUsed, float> &image, FreeWill::Tensor<DeviceUsed, unsigned int> &label,unsigned int batchSize);
 
+        void loadOneTrainData(float *image, unsigned int *label, unsigned int batchSize);
+
         template<FreeWill::DeviceType DeviceUsed = FreeWill::DeviceType::CPU_NAIVE>
         void loadOneTestData(FreeWill::Tensor<DeviceUsed, float> &image, FreeWill::Tensor<DeviceUsed, unsigned int> &label, unsigned int batchSize);
 
+        void loadOneTestData(float *image, unsigned int *label, unsigned int batchSize);
 
         void trainFullyConnectedModel();
         void trainConvolutionalModel();
         void trainConvolutionalModelGPU();
+        void trainFullyConnectedModelWithModelClass();
+        void trainFullyConnectedModelGPU();
 
         void run() override;
 };

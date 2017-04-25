@@ -232,3 +232,5 @@ void FreeWill::Model::generateSVGDiagram(const std::string &filename)
 
     outputStream.close();
 }
+
+FreeWill::Model::~Model(){}
