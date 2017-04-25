@@ -435,7 +435,7 @@ void FreeWillUnitTest::convolutionDerivativeTest()
     label.init();
     label.randomize();
 
-    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> cost({1});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, double> cost({1,1});
     cost.init();
 
     FreeWill::CrossEntropyLoss<FreeWill::DeviceType::CPU_NAIVE, double> crossEntropyLoss;

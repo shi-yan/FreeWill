@@ -16,7 +16,7 @@
 #include "Model/Model.h"
 #include "Model/Solver.h"
 
-void FreeWillUnitTest::modelTest()
+void FreeWillUnitTest::modelXORTest()
 {
 
     //FreeWill::RandomNumberGenerator::getSingleton().beginReplay("recordRandom.bin");
@@ -133,6 +133,6 @@ void FreeWillUnitTest::modelTest()
 
     for (int i =0;i<4;++i)
     {
-        std::cout << "test" << i << ": a" << inputDataRO[i*2] << "b" << inputDataRO[i*2+1] << "c" << labelDataRO[i] << "nn result:" << resultDataRO[i] << std::endl;
+        std::cout << "test " << i << ": a " << inputDataRO[i*2] << " b " << inputDataRO[i*2+1] << " c " << labelDataRO[i] << " nn result: " << resultDataRO[i] << std::endl;
     }
 }

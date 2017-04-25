@@ -35,5 +35,5 @@ private slots:
     void maxPoolingTestCPUAndGPU();
     void xorTest();
     void xorTestGPU();
-    void modelTest();
+    void modelXORTest();
 };

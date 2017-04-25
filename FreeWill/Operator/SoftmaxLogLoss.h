@@ -48,11 +48,13 @@ namespace FreeWill
 
             FAIL_IF (input("Input")->shape().dimension() != 2);
 
-            FAIL_IF (input("Label")->shape().dimension() != 1 || output("Cost")->shape().dimension() != 1);
+            FAIL_IF (input("Label")->shape().dimension() != 2 || output("Cost")->shape().dimension() != 2);
+
+            FAIL_IF (1 != input("Label")->shape()[0] || 1 != output("Cost")->shape()[0]);
 
             unsigned int batchSize = input("Input")->shape()[1];
 
-            FAIL_IF (batchSize != input("Label")->shape()[0] || batchSize != output("Cost")->shape()[0]);
+            FAIL_IF (batchSize != input("Label")->shape()[1] || batchSize != output("Cost")->shape()[1]);
 
 
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)

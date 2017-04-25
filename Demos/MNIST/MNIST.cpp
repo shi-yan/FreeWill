@@ -242,7 +242,7 @@ static void printTensor(FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float>
 
 void MNIST::trainConvolutionalModel()
 {
-    openFileDump("wb");
+    //openFileDump("wb");
 
     const unsigned int featureMapSize = 20;
     const unsigned int batchSize = 10;
@@ -250,18 +250,18 @@ void MNIST::trainConvolutionalModel()
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> image({1,28,28,batchSize});
     image.init();
 
-    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, unsigned int> label({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, unsigned int> label({1, batchSize});
     label.init();
 
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> featureMap({1,5,5, featureMapSize});
     featureMap.init();
     featureMap.randomize();
-    writeFileDump(featureMap);
+    //writeFileDump(featureMap);
 
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> bias({featureMapSize});
     bias.init();
     bias.randomize();
-    writeFileDump(bias);
+    //writeFileDump(bias);
 
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> convOutput({featureMapSize,24,24,batchSize});
     convOutput.init();
@@ -278,12 +278,12 @@ void MNIST::trainConvolutionalModel()
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1Weight({100, featureMapSize*12*12});
     fullyConnected1Weight.init();
     fullyConnected1Weight.randomize();
-    writeFileDump(fullyConnected1Weight);
+    //writeFileDump(fullyConnected1Weight);
 
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1Bias({100});
     fullyConnected1Bias.init();
     fullyConnected1Bias.randomize();
-    writeFileDump(fullyConnected1Bias);
+    //writeFileDump(fullyConnected1Bias);
 
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1Output({100, batchSize});
     fullyConnected1Output.init();
@@ -291,12 +291,12 @@ void MNIST::trainConvolutionalModel()
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2Weight({10, 100});
     fullyConnected2Weight.init();
     fullyConnected2Weight.randomize();
-    writeFileDump(fullyConnected2Weight);
+    //writeFileDump(fullyConnected2Weight);
 
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2Bias({10});
     fullyConnected2Bias.init();
     fullyConnected2Bias.randomize();
-    writeFileDump(fullyConnected2Bias);
+    //writeFileDump(fullyConnected2Bias);
 
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected2Output({10, batchSize});
     fullyConnected2Output.init();
@@ -304,7 +304,7 @@ void MNIST::trainConvolutionalModel()
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> softmaxOutput({10,batchSize});
     softmaxOutput.init();    
 
-    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> cost({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> cost({1, batchSize});
     cost.init();
 
     FreeWill::Convolution<FreeWill::DeviceType::CPU_NAIVE, float> convolution;
@@ -494,7 +494,7 @@ void MNIST::trainConvolutionalModel()
     VERIFY_INIT(updateFullyConnected2Bias.init());
 
 
-    closeFileDump();
+    //closeFileDump();
 
     float learningRate = 0.01;
     float overallCost = 0.0;
@@ -651,7 +651,7 @@ void MNIST::trainFullyConnectedModel()
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> image({28*28,batchSize});
     image.init();
 
-    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, unsigned int> label({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, unsigned int> label({1, batchSize});
     label.init();
 
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1Weight({100, 28*28});
@@ -679,7 +679,7 @@ void MNIST::trainFullyConnectedModel()
     FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> softmaxOutput({10,batchSize});
     softmaxOutput.init();    
 
-    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> cost({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::CPU_NAIVE, float> cost({1, batchSize});
     cost.init();
 
     FreeWill::DotProductWithBias<FreeWill::DeviceType::CPU_NAIVE, float> fullyConnected1;
@@ -816,13 +816,21 @@ void MNIST::trainFullyConnectedModel()
             {
                 overallCost += cost[c];
             }
+
+            qDebug() << e << i<< "cost" << overallCost / (float) batchSize << learningRate;
+
+            fullyConnected1BiasGrad.clear();
+            fullyConnected1WeightGrad.clear();
+            fullyConnected2BiasGrad.clear();
+            fullyConnected2WeightGrad.clear();
+
             //backward
             softmaxLogLossDerivative.evaluate();
             dotProductWithBias2Derivative.evaluate();
             sigmoidDerivative.evaluate();
             dotProductWithBias1Derivative.evaluate();
 
-            qDebug() << e << i<< "cost" << overallCost / (float) batchSize << learningRate;
+
             emit updateCost(overallCost / (float) batchSize);
             overallCost = 0.0;
 
@@ -844,81 +852,84 @@ void MNIST::trainFullyConnectedModel()
             } 
         
 
-        if (i % testInterval == 0)
-        {
-            unsigned int correct = 0;
-                
-            openTestData();
-
-            for (unsigned int v = 0;v<numOfTestImage/batchSize; ++v)
+            if (i % testInterval == 0)
             {
+                unsigned int correct = 0;
+                
+                openTestData();
+
+                for (unsigned int v = 0;v<numOfTestImage/batchSize; ++v)
+                {
+                    fullyConnected1Output.clear();
+                    fullyConnected2Output.clear();
+                    softmaxOutput.clear();
+                    cost.clear();
+                    softmaxGrad.clear();
+ 
+                    loadOneTestData(image, label,batchSize);
+
+                    //forward
+                    fullyConnected1.evaluate();
+                    sigmoid1.evaluate();
+                    //ReLu1.evaluate();
+                    fullyConnected2.evaluate();
+                    softmaxLogLoss.evaluate();
+
+                    for (unsigned int b = 0;b<batchSize;++b)
+                    {
+                        unsigned int maxIndex = 0;
+                        float maxValue = softmaxOutput[b * softmaxOutput.shape()[0]];
+                        for(unsigned int e = 1; e < softmaxOutput.shape()[0]; ++e)
+                        {
+                            if (maxValue < softmaxOutput[b* softmaxOutput.shape()[0] + e])
+                            {
+                                maxValue = softmaxOutput[b* softmaxOutput.shape()[0] + e];
+                                maxIndex = e;
+                            }
+                        }
+                
+                        if ((float) maxIndex == label[b])
+                        {
+                            correct ++;
+                        }
+                    }
+
+                    qDebug() << "Accuracy" << (float) correct / (float) numOfTestImage;
+
+                }
+
+                closeTestData();
+
+                //clean up
+        
                 fullyConnected1Output.clear();
                 fullyConnected2Output.clear();
                 softmaxOutput.clear();
                 cost.clear();
                 softmaxGrad.clear();
- 
-                loadOneTestData(image, label,batchSize);
+                fullyConnected1OutputGrad.clear();
+                fullyConnected2BiasGrad.clear();
+                fullyConnected2WeightGrad.clear();
+                fullyConnected1BiasGrad.clear();
+                fullyConnected1WeightGrad.clear();
+                imageGrad.clear();
 
-                //forward
-                fullyConnected1.evaluate();
-                sigmoid1.evaluate();
-                //ReLu1.evaluate();
-                fullyConnected2.evaluate();
-                softmaxLogLoss.evaluate();
-
-                for (unsigned int b = 0;b<batchSize;++b)
-                {
-                    unsigned int maxIndex = 0;
-                    float maxValue = softmaxOutput[b * softmaxOutput.shape()[0]];
-                    for(unsigned int e = 1; e < softmaxOutput.shape()[0]; ++e)
-                    {
-                        if (maxValue < softmaxOutput[b* softmaxOutput.shape()[0] + e])
-                        {
-                            maxValue = softmaxOutput[b* softmaxOutput.shape()[0] + e];
-                            maxIndex = e;
-                        }
-                    }
-                
-                    if ((float) maxIndex == label[b])
-                    {
-                        correct ++;
-                    }
-                }
-
-                 qDebug() << "Accuracy" << (float) correct / (float) numOfTestImage;
-
-                 closeTestData();
-             }
-
-            //clean up
+                //closeData();
+                emit updateProgress(i / (float)(numOfImage), ((e-1)*numOfImage + i) / (60.0f*numOfImage));
         
-            fullyConnected1Output.clear();
-            fullyConnected2Output.clear();
-            softmaxOutput.clear();
-            cost.clear();
-            softmaxGrad.clear();
-            fullyConnected1OutputGrad.clear();
-            fullyConnected2BiasGrad.clear();
-            fullyConnected2WeightGrad.clear();
-            fullyConnected1BiasGrad.clear();
-            fullyConnected1WeightGrad.clear();
-            imageGrad.clear();
-
-            //closeData();
-            emit updateProgress(i / (float)(numOfImage), ((e-1)*numOfImage + i) / (60.0f*numOfImage)); 
-        
-        }
+            }
     
-        /*if (e % 10000 == 0)
-        {
-            learningRate *= 0.8;
-        }*/
+            /*if (e % 10000 == 0)
+            {
+                learningRate *= 0.8;
+            }*/
+
+        }
         closeTrainData();
+        //closeData();
     }
-    //closeData();
 }
-}
+
 void MNIST::trainConvolutionalModelGPU()
 {
     //openFileDump("rb");
@@ -928,7 +939,7 @@ void MNIST::trainConvolutionalModelGPU()
     FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> image({1,28,28,batchSize});
     image.init();
 
-    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, unsigned int> label({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, unsigned int> label({1, batchSize});
     label.init();
 
     FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> featureMap({1,5,5, featureMapSize});
@@ -970,7 +981,7 @@ void MNIST::trainConvolutionalModelGPU()
     FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> softmaxOutput({10,batchSize});
     softmaxOutput.init();
 
-    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> cost({batchSize});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> cost({1, batchSize});
     cost.init();
 
 
@@ -1333,11 +1344,12 @@ void MNIST::run()
 
     FreeWill::Context<FreeWill::DeviceType::GPU_CUDA>::getSingleton().open();
 
-   trainConvolutionalModelGPU();
-  //  trainConvolutionalModel();
+   // trainConvolutionalModelGPU();
+    //trainConvolutionalModel();
+    trainFullyConnectedModel();
     FreeWill::Context<FreeWill::DeviceType::GPU_CUDA>::getSingleton().close();
-  //
-  //trainFullyConnectedModel();
+
+
 return;
     if (false)
     {

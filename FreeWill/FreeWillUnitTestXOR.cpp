@@ -251,7 +251,7 @@ void FreeWillUnitTest::xorTestGPU()
     FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> secondLayerNeuronDerivative({1,4});
     secondLayerNeuronDerivative.init(); 
     
-    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> cost({4});
+    FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> cost({1, 4});
     cost.init();
 
     FreeWill::Tensor<FreeWill::DeviceType::GPU_CUDA, float> label({1, 4});

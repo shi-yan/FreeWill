@@ -27,9 +27,11 @@ namespace FreeWill
 
             FAIL_IF (input("Output")->shape().dimension() != 2);
 
-            FAIL_IF (input("Label")->shape().dimension() != 1);
+            FAIL_IF (input("Label")->shape().dimension() != 2);
 
-            FAIL_IF (input("Output")->shape()[1] != input("Label")->shape()[0]);
+            FAIL_IF (input("Label")->shape()[0] != 1);
+
+            FAIL_IF (input("Output")->shape()[1] != input("Label")->shape()[1]);
 
             return true;
         }
