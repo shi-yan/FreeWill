@@ -86,6 +86,11 @@ link_directories("/usr/local/cuda/lib64")
 include_directories(../../Utils/WebUI/DemoBase)
 
 set(MNIST_SOURCES 
+    MNISTConvNetCPU.cpp
+    MNISTConvNetGPU.cpp
+    MNISTFullyConnectedCPU.cpp
+    MNISTFullyConnectedCPUModel.cpp
+    MNISTFullyConnectedGPU.cpp
     MNIST.cpp
     ../../FreeWill/Tensor/Shape.cpp
     ../../FreeWill/Model/Solver.cpp
@@ -98,7 +103,7 @@ set(MNIST_SOURCES
     ../../Utils/WebUI/DemoBase/WebsocketServer.cpp
     main.cpp)
 
-if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/train-images-idx3-ubyte.gz")
+if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/t10k-labels-idx1-ubyte")
     MESSAGE("Downloading Dataset for MNIST ...")
     execute_process(COMMAND wget http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz --directory-prefix=${CMAKE_CURRENT_BINARY_DIR})
     execute_process(COMMAND wget http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz --directory-prefix=${CMAKE_CURRENT_BINARY_DIR})
