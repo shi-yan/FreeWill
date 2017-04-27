@@ -10,6 +10,10 @@
 #include <type_traits>
 #include <cstdio>
 #include "../Tensor/ReferenceCountedBlob.h"
+#include <thread>
+#include "Device.h"
+#include <iostream>
+#include <vector>
 
 namespace FreeWill
 {
@@ -23,7 +27,8 @@ namespace FreeWill
             m_sharedOneVectorFloat(nullptr),
             m_sharedOneVectorFloatSize(0),
             m_sharedOneVectorDouble(nullptr),
-            m_sharedOneVectorDoubleSize(0)
+            m_sharedOneVectorDoubleSize(0),
+            m_deviceCount(0)
         {}
 
         cudnnHandle_t m_cudnnHandle;
@@ -33,38 +38,57 @@ namespace FreeWill
         unsigned int m_sharedOneVectorFloatSize;
         double *m_sharedOneVectorDouble;
         unsigned int m_sharedOneVectorDoubleSize;
+        int m_deviceCount;
+        std::vector<Device<DeviceUsed>> m_deviceList;
+
 
     public:
 
         void open()
         {
-            int deviceCount;
-            cudaGetDeviceCount(&deviceCount);
-            int device;
-            for (device = 0; device < deviceCount; ++device)
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
-                cudaDeviceProp deviceProp;
-                cudaGetDeviceProperties(&deviceProp, device);
-                printf("Device %d has compute capability %d.%d.\n", device, deviceProp.major, deviceProp.minor);
-                printf("Maximum threads per block: %d\n", deviceProp.maxThreadsPerBlock);
-                printf("Device texture alignment: %lu\n", deviceProp.textureAlignment);
-                printf("Device texture dimension: %d X %d\n", deviceProp.maxTexture2D[0], deviceProp.maxTexture2D[1]);
+                cudaGetDeviceCount(&m_deviceCount);
+                int device;
+                for (device = 0; device < m_deviceCount; ++device)
+                {
+                    cudaDeviceProp deviceProp;
+                    cudaGetDeviceProperties(&deviceProp, device);
+                    printf("Device %d has compute capability %d.%d.\n", device, deviceProp.major, deviceProp.minor);
+                    printf("Maximum threads per block: %d\n", deviceProp.maxThreadsPerBlock);
+                    printf("Device texture alignment: %lu\n", deviceProp.textureAlignment);
+                    printf("Device texture dimension: %d X %d\n", deviceProp.maxTexture2D[0], deviceProp.maxTexture2D[1]);
+                }
+
+                size_t freeMem = 0;
+                size_t totalMem = 0;
+                cudaMemGetInfo(&freeMem, &totalMem);
+                printf("available video memory: %ld, %ld (bytes)\n", freeMem, totalMem);
+
+                RUN_CUDNN( cudnnCreate(&m_cudnnHandle));
+                RUN_CUBLAS( cublasCreate(&m_cublasHandle));
             }
+            else if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
+            {
+                m_deviceCount = std::thread::hardware_concurrency();
 
-            size_t freeMem = 0;
-            size_t totalMem = 0;
-            cudaMemGetInfo(&freeMem, &totalMem);
-            printf("available video memory: %ld, %ld (bytes)\n", freeMem, totalMem);
+                std::cout << "CPU count:" << m_deviceCount;
 
-            RUN_CUDNN( cudnnCreate(&m_cudnnHandle));
-            RUN_CUBLAS( cublasCreate(&m_cublasHandle));
+                for(int i = 0; i<m_deviceCount; ++i)
+                {
+                    m_deviceList.push_back(Device<DeviceUsed>());
+                }
+            }
         }
 
         void close()
         {
-            RUN_CUDNN( cudnnDestroy(m_cudnnHandle));
-            RUN_CUBLAS( cublasDestroy(m_cublasHandle));
-            cudaDeviceReset();           
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
+            {
+                RUN_CUDNN( cudnnDestroy(m_cudnnHandle));
+                RUN_CUBLAS( cublasDestroy(m_cublasHandle));
+                cudaDeviceReset();
+            }
         }
 
         static Context &getSingleton()

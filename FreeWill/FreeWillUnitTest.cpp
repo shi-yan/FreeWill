@@ -1263,5 +1263,14 @@ void FreeWillUnitTest::maxPoolingTestCPUAndGPU()
     }
 }
 
+void FreeWillUnitTest::threadTestCPU()
+{
+    FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().open();
+
+
+
+    FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().close();
+}
+
 QTEST_MAIN(FreeWillUnitTest)
 #include "FreeWillUnitTest.moc"

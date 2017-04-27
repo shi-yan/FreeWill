@@ -105,6 +105,9 @@ set(FreeWill_SOURCES
     Operator/MaxPooling.h
     Operator/MaxPoolingDerivative.h
     Context/Context.h
+    Context/Device.h
+    Context/Device.cpp
+    Context/DeviceCPU.cpp
     Model/Model.h
     Model/Model.cpp
     Model/TensorDescriptor.h

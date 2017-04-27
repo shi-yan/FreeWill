@@ -36,4 +36,5 @@ private slots:
     void xorTest();
     void xorTestGPU();
     void modelXORTest();
+    void threadTestCPU();
 };
