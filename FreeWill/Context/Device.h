@@ -20,6 +20,16 @@ namespace FreeWill
 
     class Model;
 
+    class WorkerMessage
+    {
+    private:
+        Model *m_model;
+        std::condition_variable m_conditionFinished;
+        std::mutex m_busyLock;
+        WorkType m_workType;
+
+    }
+
     template<DeviceType DeviceUsed>
     class Device{};
 
@@ -40,6 +50,8 @@ namespace FreeWill
         WorkType m_workType;
         std::mutex m_busyLock;
         std::condition_variable m_conditionNewWorkAvailable;
+
+        std::vector<WorkerMessage> m_messagePool;
 
 
         void threadLoop();

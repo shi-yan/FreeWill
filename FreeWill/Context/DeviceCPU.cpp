@@ -38,7 +38,7 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop()
 
         {
             std::unique_lock<std::mutex> ol(outputLock);
-            std::cout << "thread: " << this_id << "output" << std::endl;
+            std::cout << "thread: " << this_id << " output." << std::endl;
         }
 
         m_workType = WorkType::NO_WORK;
