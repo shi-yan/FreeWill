@@ -8,7 +8,7 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::pushWork(WorkType workTy
 
 void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop()
 {
-    std::thread::id this_id = std::this_thread::get_id();
+    /*std::thread::id this_id = std::this_thread::get_id();
 
     std::cout << "thread" << this_id << "started" << std::endl;
 
@@ -16,5 +16,5 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop()
     {
         std::unique_lock<std::mutex> workLock(m_conditionNewWorkAvailable);
         m_conditionNewWorkAvailable.wait(workLock, []{return m_workType != WorkType::NO_WORK;});
-    }
+    }*/
 }

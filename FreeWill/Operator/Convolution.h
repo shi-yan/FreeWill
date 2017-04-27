@@ -202,6 +202,17 @@ namespace FreeWill
                                                       filterSize,
                                                       filterSize));
 
+                cudnnDataType_t cudnnDataType = cudnnDataType_t::CUDNN_DATA_FLOAT;
+
+                if constexpr (std::is_same<DataType, float>::value)
+                {
+                   cudnnDataType = cudnnDataType_t::CUDNN_DATA_FLOAT;
+                }
+                else if constexpr (std::is_same<DataType, double>::value)
+                {
+                   cudnnDataType = cudnnDataType_t::CUDNN_DATA_DOUBLE;
+                }
+
                 //qDebug() <<"zero padding stride:" << m_zeroPaddingX << m_zeroPaddingY << m_strideX << m_strideY;
                 RUN_CUDNN(cudnnSetConvolution2dDescriptor( m_convolutionDescriptor,
                                                            m_zeroPaddingY ,
@@ -210,7 +221,7 @@ namespace FreeWill
                                                            m_strideX,
                                                            1,
                                                            1,
-                                                           CUDNN_CROSS_CORRELATION ));
+                                                           CUDNN_CROSS_CORRELATION, cudnnDataType));
 
                 RUN_CUDNN(cudnnGetConvolutionForwardAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
                                                                m_inputGPUTensorDescriptor,

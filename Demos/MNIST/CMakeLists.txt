@@ -55,9 +55,9 @@ add_definitions(${Qt5Network_DEFINITIONS})
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
 
 
-find_package(Qt5Test REQUIRED)
-set_property(TARGET Qt5::Test PROPERTY INTERFACE_COMPILE_FEATURES "")
-include_directories(${Qt5Test_INCLUDE_DIRS})
+#find_package(Qt5Test REQUIRED)
+#set_property(TARGET Qt5::Test PROPERTY INTERFACE_COMPILE_FEATURES "")
+#include_directories(${Qt5Test_INCLUDE_DIRS})
 
 get_target_property(QtCore_Location Qt5::Core LOCATION)
 
@@ -67,7 +67,6 @@ include_directories("../../FreeWill")
 include_directories("../../Utils/WebUI/Swiftly/Swiftly")
 include_directories("../../Utils/WebUI/Swiftly/http-parser")
 include_directories("../../Utils/WebUI/Swiftly/qt-mustache/src")
-#include_directories("/usr/include/x86_64-linux-gnu/qt5/QtWebSockets")
 
 find_package(CUDA REQUIRED)
 include_directories( ${CUDA_INCLUDE_DIRS} )
@@ -78,7 +77,17 @@ list(APPEND CUDA_NVCC_FLAGS "-arch=sm_52;-std=c++11;-O3;--use_fast_math;--expt-e
 SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
 
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+
+link_directories("/usr/local/cuda/lib")
+set(Qt5Websockets_Lib_Name ${CMAKE_PREFIX_PATH}/lib/QtWebSockets.framework/QtWebSockets)
+
+else()
+
 link_directories("/usr/local/cuda/lib64")
+set(Qt5Websockets_Lib_Name Qt5WebSockets)
+
+endif()
 
 # get_directory_property(OUT_VAR LINK_DIRECTORIES)
 # message(STATUS "DIR: ${OUT_VAR}")
@@ -123,7 +132,7 @@ configure_file(${CMAKE_SOURCE_DIR}/Utils/WebUI/Html/dygraph-extra.js ${CMAKE_CUR
 add_executable(MNIST ${MNIST_SOURCES})
 target_link_libraries(MNIST Qt5::Network)
 target_link_libraries(MNIST Qt5::Core)
-target_link_libraries(MNIST Qt5WebSockets)
+target_link_libraries(MNIST ${Qt5Websockets_Lib_Name})
 target_link_libraries(MNIST Swiftly)
 target_link_libraries(MNIST cuda_kernel)
 target_link_libraries(MNIST ${CUDA_LIBRARIES})

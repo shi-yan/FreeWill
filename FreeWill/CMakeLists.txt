@@ -73,7 +73,15 @@ cuda_add_library(cuda_kernel
                  Operator/SoftmaxLogLoss_CUDA.h
                  Operator/SoftmaxLogLoss_CUDA.cu)
 
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+
+link_directories("/usr/local/cuda/lib")
+
+else()
+
 link_directories("/usr/local/cuda/lib64")
+
+endif()
 
 # get_directory_property(OUT_VAR LINK_DIRECTORIES)
 # message(STATUS "DIR: ${OUT_VAR}")

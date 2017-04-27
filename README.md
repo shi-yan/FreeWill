@@ -27,4 +27,8 @@ In case you want to specify which Qt5 to use (for example you want to build Qt y
 
     CMAKE_PREFIX_PATH=/home/shiy/Qt/5.7/gcc_64 cmake ..  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=debug
 
+An example of building FreeWill on Mac OS with complex compiler setup:
 
+    cmake .. -DCMAKE_BUILD_TYPE=debug -DCMAKE_PREFIX_PATH=/Users/shiyan/Qt/5.7/clang_64 -DCMAKE_CXX_COMPILER=/Users/shiyan/gcc7/bin/g++ -DCMAKE_C_COMPILER=/Users/shiyan/gcc7/bin/gcc -DCUDA_HOST_COMPILER=/Library/Developer/CommandLineTools/usr/bin/clang
+
+In this case, Qt 5.7 installed with Qt installer is used. A Self-built gcc7 is used to compile c++. [A down-graded clang 3.7 is used for cuda compiling, as the newer clang isn't supported by nvcc](https://github.com/arrayfire/arrayfire/issues/1384).

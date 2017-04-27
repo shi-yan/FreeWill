@@ -2,7 +2,6 @@
 #include <QDebug>
 #include <ctime>
 #include <random>
-#include <endian.h>
 #include <QDataStream>
 #include <type_traits>
 
