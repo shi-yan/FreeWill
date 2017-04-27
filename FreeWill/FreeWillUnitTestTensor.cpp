@@ -11,12 +11,12 @@ void FreeWillUnitTest::initTestCase()
 {
     srand(/*time(NULL)*/0);
 
-    FreeWill::Context<FreeWill::DeviceType::GPU_CUDA>::getSingleton().open();
+    //FreeWill::Context<FreeWill::DeviceType::GPU_CUDA>::getSingleton().open();
 }
 
 void FreeWillUnitTest::cleanupTestCase()
 {
-    FreeWill::Context<FreeWill::DeviceType::GPU_CUDA>::getSingleton().close();
+    //FreeWill::Context<FreeWill::DeviceType::GPU_CUDA>::getSingleton().close();
 }
 
 void FreeWillUnitTest::blobTest()

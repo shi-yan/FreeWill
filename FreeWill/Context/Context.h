@@ -39,7 +39,7 @@ namespace FreeWill
         double *m_sharedOneVectorDouble;
         unsigned int m_sharedOneVectorDoubleSize;
         int m_deviceCount;
-        std::vector<Device<DeviceUsed>> m_deviceList;
+        std::vector<Device<DeviceUsed>*> m_deviceList;
 
 
     public:
@@ -72,11 +72,23 @@ namespace FreeWill
             {
                 m_deviceCount = std::thread::hardware_concurrency();
 
-                std::cout << "CPU count:" << m_deviceCount;
+                std::cout << "CPU count:" << m_deviceCount << std::endl;
 
                 for(int i = 0; i<m_deviceCount; ++i)
                 {
-                    m_deviceList.push_back(Device<DeviceUsed>());
+                    Device<DeviceUsed> *device = new Device<DeviceUsed>();
+                    m_deviceList.push_back(device);
+                    device->init();
+
+                }
+
+
+
+                for(int i = 0; i<500000000;++i)
+                {
+                    int e = rand() % m_deviceList.size();
+                    m_deviceList[e]->pushWork(WorkType::FORWARD, nullptr);
+                    //break;
                 }
             }
         }
@@ -88,6 +100,17 @@ namespace FreeWill
                 RUN_CUDNN( cudnnDestroy(m_cudnnHandle));
                 RUN_CUBLAS( cublasDestroy(m_cublasHandle));
                 cudaDeviceReset();
+            }
+            else if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
+            {
+
+                for(int i = 0; i<m_deviceList.size();++i)
+                {
+                    m_deviceList[i]->terminate();
+                    delete m_deviceList[i];
+                }
+
+                m_deviceList.clear();
             }
         }
 
