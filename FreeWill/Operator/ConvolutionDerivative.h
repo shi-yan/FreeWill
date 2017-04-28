@@ -26,6 +26,10 @@ namespace FreeWill
         cudnnConvolutionDescriptor_t m_convolutionDescriptor;
         cudnnConvolutionBwdFilterAlgo_t m_filterBackwardAlgorithm;
         cudnnConvolutionBwdDataAlgo_t m_prevActivationDeltaAlgorithm;
+        unsigned char *m_filterBackwardAlgorithmWorkspace;
+        size_t m_filterBackwardAlgorithmWorkspaceSize;
+        unsigned char *m_prevActivationDeltaAlgorithmWorkspace;
+        size_t m_prevActivationDeltaAlgorithmWorkspaceSize;
 
 
     public:
@@ -43,7 +47,11 @@ namespace FreeWill
             m_featureMapFilterDescriptor(0),
             m_convolutionDescriptor(0),
             m_filterBackwardAlgorithm(),
-            m_prevActivationDeltaAlgorithm()
+            m_prevActivationDeltaAlgorithm(),
+            m_filterBackwardAlgorithmWorkspace(nullptr),
+            m_filterBackwardAlgorithmWorkspaceSize(0),
+            m_prevActivationDeltaAlgorithmWorkspace(nullptr),
+            m_prevActivationDeltaAlgorithmWorkspaceSize(0)
         {
             if (DeviceUsed == DeviceType::GPU_CUDA)
             {
@@ -73,6 +81,18 @@ namespace FreeWill
                 m_prevActivationDeltaGPUTensorDescriptor = 0;
                 m_featureMapFilterDescriptor = 0;
                 m_convolutionDescriptor = 0;
+
+                if (m_filterBackwardAlgorithmWorkspace)
+                {
+                    RUN_CUDA(cudaFree(m_filterBackwardAlgorithmWorkspace));
+                    m_filterBackwardAlgorithmWorkspace = nullptr;
+                }
+
+                if (m_prevActivationDeltaAlgorithmWorkspace)
+                {
+                    RUN_CUDA(cudaFree(m_prevActivationDeltaAlgorithmWorkspace));
+                    m_prevActivationDeltaAlgorithmWorkspace = nullptr;
+                }
             }
         }
 
@@ -254,7 +274,17 @@ namespace FreeWill
                                                                       0,
                                                                       &m_filterBackwardAlgorithm ));
 
-                //displayFilterBackwardAlgorithm(m_filterBackwardAlgorithm);
+                displayFilterBackwardAlgorithm(m_filterBackwardAlgorithm);
+
+                RUN_CUDNN(cudnnGetConvolutionBackwardFilterWorkspaceSize(Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                                                                         m_prevActivationGPUTensorDescriptor,
+                                                                         m_outputDeltaGPUTensorDescriptor,
+                                                                         m_convolutionDescriptor,
+                                                                         m_featureMapFilterDescriptor,
+                                                                         m_filterBackwardAlgorithm,
+                                                                         &m_filterBackwardAlgorithmWorkspaceSize));
+
+                qDebug() << "workspace size:" << m_filterBackwardAlgorithmWorkspaceSize;
 
                 const int requestedFilterAlgoCount = 6;
                 cudnnConvolutionBwdFilterAlgoPerf_t filterBackwardPerfResults[requestedFilterAlgoCount];
@@ -269,16 +299,30 @@ namespace FreeWill
                                                                        &returnedFilterAlgoCount,
                                                                        filterBackwardPerfResults ));
 
-                //qDebug() << returnedFilterAlgoCount << "convolution filter backward algorithm benchmarks:";
+                qDebug() << returnedFilterAlgoCount << "convolution filter backward algorithm benchmarks:";
 
-                /*for(int i =0;i<returnedFilterAlgoCount;++i)
+                for(int i =0;i<returnedFilterAlgoCount;++i)
                 {
                     qDebug() << i << "Status:" << filterBackwardPerfResults[i].status 
                         << "Time:" << filterBackwardPerfResults[i].time << "milliseconds" 
                         << "Memory need:" << filterBackwardPerfResults[i].memory;
 
                     displayFilterBackwardAlgorithm(filterBackwardPerfResults[i].algo);
-                }*/
+                }
+
+                if (filterBackwardPerfResults[0].algo != m_filterBackwardAlgorithm)
+                {
+                    m_filterBackwardAlgorithm = filterBackwardPerfResults[0].algo;
+                    m_filterBackwardAlgorithmWorkspaceSize = filterBackwardPerfResults[0].memory;
+                }
+
+                if (m_filterBackwardAlgorithmWorkspaceSize > 0)
+                {
+                    RUN_CUDA(cudaMalloc(&m_filterBackwardAlgorithmWorkspace, m_filterBackwardAlgorithmWorkspaceSize));
+                }
+
+                qDebug() << "----------------------------------------------------------------------------";
+
 
                 RUN_CUDNN(cudnnGetConvolutionBackwardDataAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
                                                                     m_featureMapFilterDescriptor,
@@ -289,7 +333,17 @@ namespace FreeWill
                                                                     0,
                                                                     &m_prevActivationDeltaAlgorithm));
 
-                //displayPrevActivationDeltaAlgorithm(m_prevActivationDeltaAlgorithm);
+                displayPrevActivationDeltaAlgorithm(m_prevActivationDeltaAlgorithm);
+
+                RUN_CUDNN(cudnnGetConvolutionBackwardDataWorkspaceSize( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                                                                        m_featureMapFilterDescriptor,
+                                                                        m_outputDeltaGPUTensorDescriptor,
+                                                                        m_convolutionDescriptor,
+                                                                        m_prevActivationDeltaGPUTensorDescriptor,
+                                                                        m_prevActivationDeltaAlgorithm,
+                                                                        &m_prevActivationDeltaAlgorithmWorkspaceSize));
+
+                qDebug() << "workspace size:" << m_prevActivationDeltaAlgorithmWorkspaceSize;
 
                 const int requestedPrevActivationAlgoCount = 6;
                 cudnnConvolutionBwdDataAlgoPerf_t prevActivationPerfResults[requestedPrevActivationAlgoCount];
@@ -304,14 +358,27 @@ namespace FreeWill
                                                                      &returnedPrevActivationAlgoCount,
                                                                      prevActivationPerfResults));
 
-                /*for(int i =0;i<returnedPrevActivationAlgoCount;++i)
+                for(int i =0;i<returnedPrevActivationAlgoCount;++i)
                 {
                     qDebug() << i << "Status:" << prevActivationPerfResults[i].status
                         << "Time:" << prevActivationPerfResults[i].time << "milliseconds"
                         << "Memory need:" << prevActivationPerfResults[i].memory;
 
                     displayPrevActivationDeltaAlgorithm(prevActivationPerfResults[i].algo);
-                }*/
+                }
+
+                if (prevActivationPerfResults[0].algo != m_prevActivationDeltaAlgorithm)
+                {
+                    m_prevActivationDeltaAlgorithm = prevActivationPerfResults[0].algo;
+                    m_prevActivationDeltaAlgorithmWorkspaceSize = prevActivationPerfResults[0].memory;
+                }
+
+                if (m_prevActivationDeltaAlgorithmWorkspaceSize > 0)
+                {
+                    RUN_CUDA(cudaMalloc(&m_prevActivationDeltaAlgorithmWorkspace, m_prevActivationDeltaAlgorithmWorkspaceSize));
+                }
+
+                qDebug() << "----------------------------------------------------------------------------";
                 
             }
 
@@ -436,8 +503,8 @@ namespace FreeWill
                                                         _outputGrad->gpuDataHandle(),
                                                         m_convolutionDescriptor,
                                                         m_filterBackwardAlgorithm,
-                                                        nullptr,
-                                                        0,
+                                                        m_filterBackwardAlgorithmWorkspace,
+                                                        m_filterBackwardAlgorithmWorkspaceSize,
                                                         &beta,
                                                         m_featureMapFilterDescriptor,
                                                         _featureMapGrad->gpuDataHandle()));
@@ -458,8 +525,8 @@ namespace FreeWill
                                                        _outputGrad->gpuDataHandle(),
                                                        m_convolutionDescriptor,
                                                        m_prevActivationDeltaAlgorithm,
-                                                       nullptr,
-                                                       0,
+                                                       m_prevActivationDeltaAlgorithmWorkspace,
+                                                       m_prevActivationDeltaAlgorithmWorkspaceSize,
                                                        &beta,
                                                        m_prevActivationDeltaGPUTensorDescriptor,
                                                        _inputGrad->gpuDataHandle()));

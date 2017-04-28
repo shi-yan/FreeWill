@@ -5,6 +5,7 @@
 #include "../Tensor/ReferenceCountedBlob.h"
 #include <thread>
 #include <mutex>
+#include <condition_variable>
 
 namespace FreeWill
 {
@@ -28,7 +29,7 @@ namespace FreeWill
         std::mutex m_busyLock;
         WorkType m_workType;
 
-    }
+    };
 
     template<DeviceType DeviceUsed>
     class Device{};

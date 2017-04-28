@@ -85,7 +85,7 @@ set(Qt5Websockets_Lib_Name ${CMAKE_PREFIX_PATH}/lib/QtWebSockets.framework/QtWeb
 else()
 
 link_directories("/usr/local/cuda/lib64")
-set(Qt5Websockets_Lib_Name Qt5WebSockets)
+set(Qt5Websockets_Lib_Name ${CMAKE_PREFIX_PATH}/lib/libQt5WebSockets.so)
 
 endif()
 

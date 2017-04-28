@@ -28,6 +28,7 @@ namespace FreeWill
         cudnnConvolutionDescriptor_t m_convolutionDescriptor;
         cudnnConvolutionFwdAlgo_t m_convolutionForwardAlgorithm;
         size_t m_workspaceSize;
+        unsigned char *m_workspace;
 
     public:
         Convolution(unsigned int strideX = 1, unsigned int strideY = 1, 
@@ -43,7 +44,8 @@ namespace FreeWill
             m_filterDescriptor(0),
             m_convolutionDescriptor(0),
             m_convolutionForwardAlgorithm(),
-            m_workspaceSize(0)
+            m_workspaceSize(0),
+            m_workspace(nullptr)
         {
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
@@ -70,6 +72,12 @@ namespace FreeWill
                 m_filterDescriptor = 0;
                 m_convolutionDescriptor = 0;
                 m_biasGPUTensorDescriptor = 0;
+
+                if (m_workspace)
+                {
+                    RUN_CUDA(cudaFree(m_workspace));
+                    m_workspace = nullptr;
+                }
             }
         }
 
@@ -232,8 +240,8 @@ namespace FreeWill
                                                                0,
                                                                &m_convolutionForwardAlgorithm));
 
-                //qDebug() << "Convolution forward algorithm find based on huristic:";
-                //displayConvolutionAlgorithm(m_convolutionForwardAlgorithm);
+                qDebug() << "Convolution forward algorithm find based on huristic:";
+                displayConvolutionAlgorithm(m_convolutionForwardAlgorithm);
 
                 RUN_CUDNN(cudnnGetConvolutionForwardWorkspaceSize( Context<DeviceUsed>::getSingleton().cudnnHandle(),
                                                                           m_inputGPUTensorDescriptor,
@@ -242,11 +250,11 @@ namespace FreeWill
                                                                           m_outputGPUTensorDescriptor,
                                                                           m_convolutionForwardAlgorithm,
                                                                           &m_workspaceSize));
-                //qDebug() << "Required workspace size:" << m_workspaceSize;
+                qDebug() << "Required workspace size:" << m_workspaceSize;
 
 
                 int returnedAlgoCount = 0;
-                const int requestedAlgoCount = 8;
+                const int requestedAlgoCount = 20;
                 cudnnConvolutionFwdAlgoPerf_t perfResults[requestedAlgoCount];
 
                 RUN_CUDNN(cudnnFindConvolutionForwardAlgorithm(  Context<DeviceUsed>::getSingleton().cudnnHandle(),
@@ -254,19 +262,31 @@ namespace FreeWill
                                                                  m_filterDescriptor,
                                                                  m_convolutionDescriptor,
                                                                  m_outputGPUTensorDescriptor,
-                                                                 8,
+                                                                 requestedAlgoCount,
                                                                  &returnedAlgoCount,
                                                                  perfResults));
 
-                /*qDebug() << returnedAlgoCount << "convolution forward algorithm benchmarks:";
+                qDebug() << returnedAlgoCount << "convolution forward algorithm benchmarks:";
 
                 for(int i =0;i<returnedAlgoCount;++i)
                 {
                     qDebug() << i << "Status:" << perfResults[i].status << "Time:" << perfResults[i].time << "milliseconds" << "Memory need:" << perfResults[i].memory;
 
                     displayConvolutionAlgorithm(perfResults[i].algo);
-                }*/
+                }
 
+                qDebug() << "----------------------------------------------------------------------------";
+
+                if (m_convolutionForwardAlgorithm != perfResults[0].algo)
+                {
+                    m_convolutionForwardAlgorithm = perfResults[0].algo;
+                    m_workspaceSize = perfResults[0].memory;
+                }
+
+                if (m_workspaceSize)
+                {
+                    RUN_CUDA(cudaMalloc(&m_workspace, m_workspaceSize));
+                }
             }
 
             return true;
@@ -351,25 +371,28 @@ namespace FreeWill
             }
             else if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
-                if (m_workspaceSize == 0)
+                if (m_workspaceSize != 0)
                 {
-                    float alpha = 1.0;
-                    float beta = 0.0;
-                    RUN_CUDNN(cudnnConvolutionForward( Context<DeviceUsed>::getSingleton().cudnnHandle(),
-                                                       &alpha,
-                                                       m_inputGPUTensorDescriptor,
-                                                       _input->gpuDataHandle(),
-                                                       m_filterDescriptor,
-                                                       _featureMap->gpuDataHandle(),
-                                                       m_convolutionDescriptor,
-                                                       m_convolutionForwardAlgorithm,
-                                                       nullptr,
-                                                       0,
-                                                       &beta,
-                                                       m_outputGPUTensorDescriptor,
-                                                       _output->gpuDataHandle()));
+                    qDebug() << "Convolution forward algorithm requires workspace!";
+                }
 
-                    beta = 1.0;
+                float alpha = 1.0;
+                float beta = 0.0;
+                RUN_CUDNN(cudnnConvolutionForward( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                                                   &alpha,
+                                                   m_inputGPUTensorDescriptor,
+                                                   _input->gpuDataHandle(),
+                                                   m_filterDescriptor,
+                                                   _featureMap->gpuDataHandle(),
+                                                   m_convolutionDescriptor,
+                                                   m_convolutionForwardAlgorithm,
+                                                   m_workspace,
+                                                   m_workspaceSize,
+                                                   &beta,
+                                                   m_outputGPUTensorDescriptor,
+                                                   _output->gpuDataHandle()));
+
+                beta = 1.0;
 
                     //displayTensorDescriptor(m_biasGPUTensorDescriptor);
                     //displayTensorDescriptor(m_inputGPUTensorDescriptor);
@@ -378,18 +401,15 @@ namespace FreeWill
                     //printf("bias size:%d\n", _bias->shape().size());
                     //printf("output size:%d\n", _output->shape().size());
 
-                    RUN_CUDNN(cudnnAddTensor( Context<DeviceUsed>::getSingleton().cudnnHandle(),
-                                              &alpha,
-                                              m_biasGPUTensorDescriptor,
-                                              _bias->gpuDataHandle(),
-                                              &beta,
-                                              m_outputGPUTensorDescriptor,
-                                              _output->gpuDataHandle()));
-                }
-                else
-                {
-                    qDebug() << "Convolution forward algorithm requires workspace!";
-                }
+                RUN_CUDNN(cudnnAddTensor( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                                          &alpha,
+                                          m_biasGPUTensorDescriptor,
+                                          _bias->gpuDataHandle(),
+                                          &beta,
+                                          m_outputGPUTensorDescriptor,
+                                          _output->gpuDataHandle()));
+
+
             }
 
         }
