@@ -11,7 +11,7 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::pushWork(FreeWill::Worke
 
 void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::terminate()
 {
-    FreeWill::WorkerMessage message(FreeWill::WorkerMessage::Type::TERMINATE);
+    FreeWill::WorkerMessage message(FreeWill::WorkerMessage::Type::TERMINATE, (FreeWill::Operator<FreeWill::DeviceType::CPU_NAIVE>*)nullptr);
     pushWork(&message);
     message.join();
     m_workerThread->join();
@@ -36,8 +36,11 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop()
         }
 
         {
-            std::unique_lock<std::mutex> ol(outputLock);
-            std::cout << "thread: " << this_id << " output." << message->debug_num << std::endl;
+            //std::unique_lock<std::mutex> ol(outputLock);
+            //std::cout << "thread: " << this_id << " output." << message->debug_num << std::endl;
+
+            Operator<FreeWill::DeviceType::CPU_NAIVE> *operatorBase = message->template operatorBase<FreeWill::DeviceType::CPU_NAIVE>();
+            operatorBase->evaluate();
         }
 
         message->done();

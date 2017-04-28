@@ -1,8 +1,16 @@
 #include "WorkerMessage.h"
 
-FreeWill::WorkerMessage::WorkerMessage(Type workType, Model *model)
+FreeWill::WorkerMessage::WorkerMessage(Type workType, Operator<DeviceType::CPU_NAIVE> *operatorBase, Model *model)
     :m_workType(workType),
       m_model(model),
+      m_operatorBase(operatorBase),
+      m_finished(false)
+{}
+
+FreeWill::WorkerMessage::WorkerMessage(Type workType, Operator<DeviceType::GPU_CUDA> *operatorBase, Model *model)
+    :m_workType(workType),
+      m_model(model),
+      m_operatorBase(operatorBase),
       m_finished(false)
 {}
 

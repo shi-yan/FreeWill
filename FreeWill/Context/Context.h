@@ -115,6 +115,14 @@ namespace FreeWill
             }
         }
 
+        void pushWork(unsigned int deviceId, WorkerMessage *message)
+        {
+            if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
+            {
+                m_deviceList[deviceId]->pushWork(message);
+            }
+        }
+
         void close()
         {
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)

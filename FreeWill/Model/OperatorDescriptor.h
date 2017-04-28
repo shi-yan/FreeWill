@@ -18,6 +18,7 @@
 #include "TensorDescriptor.h"
 #include <any>
 #include <fstream>
+#include "../Context/WorkerMessage.h"
 
 namespace FreeWill
 {
@@ -666,11 +667,27 @@ namespace FreeWill
         template<DeviceType DeviceUsed>
         void evaluate()
         {
+            int deviceId = 0;
+            int deviceCount = m_operators[DeviceUsed].size();
+
+            std::vector<WorkerMessage*> messages(deviceCount, nullptr);
+
+
             auto iter = m_operators[DeviceUsed].begin();
 
             for(;iter != m_operators[DeviceUsed].end(); ++iter)
             {
-                std::get<Operator<DeviceUsed>*>(*iter)->evaluate();
+                Operator<DeviceUsed> *operatorBase = std::get<Operator<DeviceUsed>*>(*iter);
+                messages[deviceId] = new WorkerMessage(WorkerMessage::Type::FORWARD, operatorBase);
+                Context<DeviceUsed>::getSingleton().pushWork(deviceId, messages[deviceId]);
+                deviceId++;
+            }
+
+
+            for(int i =0;i<deviceCount;++i)
+            {
+                messages[i]->join();
+                delete messages[i];
             }
         }
 

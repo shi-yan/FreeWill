@@ -106,6 +106,10 @@ set(MNIST_SOURCES
     ../../FreeWill/Model/Model.cpp
     ../../FreeWill/Model/TensorDescriptor.cpp
     ../../FreeWill/Model/OperatorDescriptor.cpp
+    ../../FreeWill/Context/Context.h
+    ../../FreeWill/Context/DeviceCPU.cpp
+    ../../FreeWill/Context/WorkerMessage.cpp
+    ../../FreeWill/Context/Semaphore.cpp
     ../../Utils/WebUI/DemoBase/DemoBase.cpp
     ../../Utils/WebUI/DemoBase/DemoUI.cpp
     ../../Utils/WebUI/DemoBase/Session.cpp

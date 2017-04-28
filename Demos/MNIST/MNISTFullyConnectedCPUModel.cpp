@@ -11,7 +11,7 @@ void MNIST::trainFullyConnectedModelWithModelClass()
 
     FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().open();
 
-    unsigned int batchSize = 10;
+    unsigned int batchSize = 2;
 
     FreeWill::Model *model = FreeWill::Model::create();
 

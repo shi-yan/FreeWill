@@ -56,7 +56,16 @@ namespace FreeWill
                     tensor->template toType<float>()->init();
                     if (m_isRandomlyInitialized)
                     {
-                        tensor->template toType<float>()->randomize();
+                        if (i == 0)
+                        {
+                            tensor->template toType<float>()->randomize();
+                        }
+                        else
+                        {
+                            TensorBase<DeviceUsed> *firstTensor = std::get<TensorBase<DeviceUsed>*>(m_tensors[DeviceUsed][0]);
+                            std::copy((unsigned char*)firstTensor->cpuDataHandle(),
+                                      ((unsigned char*)firstTensor->cpuDataHandle())+firstTensor->sizeInByte(), (unsigned char*) tensor->cpuDataHandle());
+                        }
                     }
                     break;
                 case DataType::DOUBLE:
@@ -64,7 +73,16 @@ namespace FreeWill
                     tensor->template toType<double>()->init();
                     if (m_isRandomlyInitialized)
                     {
-                        tensor->template toType<double>()->randomize();
+                        if (i == 0)
+                        {
+                            tensor->template toType<double>()->randomize();
+                        }
+                        else
+                        {
+                            TensorBase<DeviceUsed> *firstTensor = std::get<TensorBase<DeviceUsed>*>(m_tensors[DeviceUsed][0]);
+                            std::copy((unsigned char*)firstTensor->cpuDataHandle(),
+                                      ((unsigned char*)firstTensor->cpuDataHandle())+firstTensor->sizeInByte(), (unsigned char*) tensor->cpuDataHandle());
+                        }
                     }
                     break;
                 case DataType::UNSIGNED_INT:

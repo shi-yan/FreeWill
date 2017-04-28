@@ -70,17 +70,17 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
-        DataType *beginMutateData(const TensorDescriptorHandle &tensorDescriptorHandle)
+        DataType *beginMutateData(const TensorDescriptorHandle &tensorDescriptorHandle, int deviceId = 0)
         {
            TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
 
-           TensorBase<DeviceUsed>* tensorBase = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][0]);
+           TensorBase<DeviceUsed>* tensorBase = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][deviceId]);
 
            return static_cast<DataType*>(tensorBase->cpuDataHandle());
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
-        void endMutateData(const TensorDescriptorHandle &tensorDescriptorHandle)
+        void endMutateData(const TensorDescriptorHandle &tensorDescriptorHandle, int deviceId = 0)
         {
             TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
 
