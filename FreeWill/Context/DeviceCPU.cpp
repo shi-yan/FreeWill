@@ -1,18 +1,19 @@
 #include "Device.h"
 #include "../Model/Model.h"
 
-void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::pushWork(WorkType workType, Model *model)
+void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::pushWork(FreeWill::WorkerMessage *message)
 {
-    std::unique_lock<std::mutex> workLock(m_busyLock);
-    m_conditionNewWorkAvailable.wait(workLock, [=]{return m_workType == WorkType::NO_WORK;});
-    m_workType = workType;
-    workLock.unlock();
-    m_conditionNewWorkAvailable.notify_one();
+    m_commandQueue.push(message);
+
+    message->thread_id = 1;
+
 }
 
 void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::terminate()
 {
-    pushWork(WorkType::TERMINATE, nullptr);
+    FreeWill::WorkerMessage message(FreeWill::WorkerMessage::Type::TERMINATE);
+    pushWork(&message);
+    message.join();
     m_workerThread->join();
     delete m_workerThread;
     m_workerThread = nullptr;
@@ -26,33 +27,27 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop()
 
     while(!m_finished)
     {
+        FreeWill::WorkerMessage *message = m_commandQueue.pop();
 
-        std::unique_lock<std::mutex> workLock(m_busyLock);
-        m_conditionNewWorkAvailable.wait(workLock, [=]{return m_workType != WorkType::NO_WORK;});
-
-        if (m_workType == WorkType::TERMINATE)
+        if (message->workType() == FreeWill::WorkerMessage::Type::TERMINATE)
         {
-            workLock.unlock();
+            message->done();
             break;
         }
 
         {
             std::unique_lock<std::mutex> ol(outputLock);
-            std::cout << "thread: " << this_id << " output." << std::endl;
+            std::cout << "thread: " << this_id << " output." << message->debug_num << std::endl;
         }
 
-        m_workType = WorkType::NO_WORK;
-        workLock.unlock();
-        m_conditionNewWorkAvailable.notify_one();
+        message->done();
 
     }
 
-    //std::cout <<
+    //std::cout << " terminated"<<std::endl;
 }
 
 void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::init()
 {
     m_workerThread = new std::thread([=]{FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop();});
-    //m_workerThread->join();
-    //delete thread;
 }

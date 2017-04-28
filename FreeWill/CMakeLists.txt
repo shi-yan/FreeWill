@@ -116,6 +116,11 @@ set(FreeWill_SOURCES
     Context/Device.h
     Context/Device.cpp
     Context/DeviceCPU.cpp
+    Context/WorkerMessage.h
+    Context/WorkerMessage.cpp
+    Context/Semaphore.h
+    Context/Semaphore.cpp
+    Context/Ringbuffer.h
     Model/Model.h
     Model/Model.cpp
     Model/TensorDescriptor.h

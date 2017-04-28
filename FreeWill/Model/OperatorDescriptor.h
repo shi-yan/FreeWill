@@ -723,64 +723,68 @@ namespace FreeWill
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
         bool init(std::map<std::string, TensorDescriptor*> &tensors)
         {
-            Operator<DeviceUsed> *operatorBase = nullptr;
+            int deviceCount = Context<DeviceUsed>::getSingleton().deviceCount();
 
-            switch(m_operatorName)
+            for(int i =0;i<deviceCount;++i)
             {
-            case OperatorName::ACTIVATION:
-                operatorBase = initActivation<DeviceUsed>(tensors);
-            break;
-            case OperatorName::ACTIVATION_DERIVATIVE:
-                operatorBase = initActivationDerivative<DeviceUsed>(tensors);
-            break;
-            case OperatorName::CONVOLUTION:
-                operatorBase = initConvolution<DeviceUsed>(tensors);
-            break;
-            case OperatorName::CONVOLUTION_DERIVATIVE:
-                operatorBase = initConvolutionDerivative<DeviceUsed>(tensors);
-            break;
-            case OperatorName::CROSS_ENTROPY_LOSS:
-                operatorBase = initCrossEntropyLoss<DeviceUsed>(tensors);
-            break;
-            case OperatorName::DOT_PRODUCT_WITH_BIAS:
-                operatorBase = initDotProductWithBias<DeviceUsed>(tensors);
-            break;
-            case OperatorName::DOT_PRODUCT_WITH_BIAS_DERIVATIVE:
-                operatorBase = initDotProductWithBiasDerivative<DeviceUsed>(tensors);
-            break;
-            case OperatorName::ELEMENTWISE_ADD:
-                operatorBase = initElementwiseAdd<DeviceUsed>(tensors);
-            break;
-            case OperatorName::MAX_POOLING:
-                operatorBase = initMaxPooling<DeviceUsed>(tensors);
-            break;
-            case OperatorName::MAX_POOLING_DERIVATIVE:
-                operatorBase = initMaxPoolingDerivative<DeviceUsed>(tensors);
-            break;
-            case OperatorName::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE:
-                operatorBase = initSigmoidCrossEntropyLossDerivative<DeviceUsed>(tensors);
-            break;
-            case OperatorName::SOFTMAX_LOG_LOSS:
-                operatorBase = initSoftmaxLogLoss<DeviceUsed>(tensors);
-            break;
-            case OperatorName::SOFTMAX_LOG_LOSS_DERIVATIVE:
-                operatorBase = initSoftmaxLogLossDerivative<DeviceUsed>(tensors);
-            break;
+                Operator<DeviceUsed> *operatorBase = nullptr;
+
+                switch(m_operatorName)
+                {
+                case OperatorName::ACTIVATION:
+                    operatorBase = initActivation<DeviceUsed>(tensors);
+                break;
+                case OperatorName::ACTIVATION_DERIVATIVE:
+                    operatorBase = initActivationDerivative<DeviceUsed>(tensors);
+                break;
+                case OperatorName::CONVOLUTION:
+                    operatorBase = initConvolution<DeviceUsed>(tensors);
+                break;
+                case OperatorName::CONVOLUTION_DERIVATIVE:
+                    operatorBase = initConvolutionDerivative<DeviceUsed>(tensors);
+                break;
+                case OperatorName::CROSS_ENTROPY_LOSS:
+                    operatorBase = initCrossEntropyLoss<DeviceUsed>(tensors);
+                break;
+                case OperatorName::DOT_PRODUCT_WITH_BIAS:
+                    operatorBase = initDotProductWithBias<DeviceUsed>(tensors);
+                break;
+                case OperatorName::DOT_PRODUCT_WITH_BIAS_DERIVATIVE:
+                    operatorBase = initDotProductWithBiasDerivative<DeviceUsed>(tensors);
+                break;
+                case OperatorName::ELEMENTWISE_ADD:
+                    operatorBase = initElementwiseAdd<DeviceUsed>(tensors);
+                break;
+                case OperatorName::MAX_POOLING:
+                    operatorBase = initMaxPooling<DeviceUsed>(tensors);
+                break;
+                case OperatorName::MAX_POOLING_DERIVATIVE:
+                    operatorBase = initMaxPoolingDerivative<DeviceUsed>(tensors);
+                break;
+                case OperatorName::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE:
+                    operatorBase = initSigmoidCrossEntropyLossDerivative<DeviceUsed>(tensors);
+                break;
+                case OperatorName::SOFTMAX_LOG_LOSS:
+                    operatorBase = initSoftmaxLogLoss<DeviceUsed>(tensors);
+                break;
+                case OperatorName::SOFTMAX_LOG_LOSS_DERIVATIVE:
+                    operatorBase = initSoftmaxLogLossDerivative<DeviceUsed>(tensors);
+                break;
+                }
+
+                if (!operatorBase)
+                {
+                    return false;
+                }
+
+                if (!operatorBase->init())
+                {
+                    delete operatorBase;
+                    return false;
+                }
+
+                m_operators[DeviceUsed].push_back(operatorBase);
             }
-
-            if (!operatorBase)
-            {
-                return false;
-            }
-
-            if (!operatorBase->init())
-            {
-                delete operatorBase;
-                return false;
-            }
-
-            m_operators[DeviceUsed].push_back(operatorBase);
-
             return true;
         }
     };

@@ -3,10 +3,13 @@
 #include "MNIST.h"
 #include "Model/Model.h"
 #include "Model/Solver.h"
+#include "Context/Context.h"
 
 void MNIST::trainFullyConnectedModelWithModelClass()
 {
     qDebug() << "================== CPU Fully Connected network with model class ==========================";
+
+    FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().open();
 
     unsigned int batchSize = 10;
 
@@ -204,4 +207,6 @@ void MNIST::trainFullyConnectedModelWithModelClass()
     }
 
     delete model;
+
+    FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().close();
 }

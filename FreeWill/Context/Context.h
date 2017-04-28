@@ -76,7 +76,7 @@ namespace FreeWill
 
                 for(int i = 0; i<m_deviceCount; ++i)
                 {
-                    Device<DeviceUsed> *device = new Device<DeviceUsed>();
+                    Device<DeviceUsed> *device = new Device<DeviceUsed>(i);
                     m_deviceList.push_back(device);
                     device->init();
 
@@ -84,12 +84,34 @@ namespace FreeWill
 
 
 
-                for(int i = 0; i<500000000;++i)
+                /*for(int i = 0; i<500;++i)
                 {
-                    int e = rand() % m_deviceList.size();
-                    m_deviceList[e]->pushWork(WorkType::FORWARD, nullptr);
-                    //break;
-                }
+                    WorkerMessage *messages[100] = {nullptr};
+
+                    for (int e = 0; e<100;++e)
+                    {
+                        messages[e] = new WorkerMessage(FreeWill::WorkerMessage::Type::NO_WORK);
+                        messages[e]->debug_num = i;
+                    }
+
+
+                    for (int e = 0; e<100;++e)
+                    {
+                        int d = rand() % m_deviceList.size();
+                        m_deviceList[d]->pushWork(messages[e]);
+                    }
+
+
+                    for (int e = 0;e<100;++e)
+                    {
+                        messages[e]->join();
+                        delete messages[e];
+                        messages[e] = nullptr;
+                    }
+
+                    std::cout << "=============================== finished batch: " << i <<std::endl;
+
+                }*/
             }
         }
 
@@ -118,6 +140,11 @@ namespace FreeWill
         {
             static Context obj;
             return obj;
+        }
+
+        int deviceCount() const
+        {
+            return m_deviceCount;
         }
 
         const cudnnHandle_t & cudnnHandle() const

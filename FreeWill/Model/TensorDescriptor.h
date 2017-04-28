@@ -6,6 +6,7 @@
 #include <map>
 #include <variant>
 #include <cstdint>
+#include "../Context/Context.h"
 
 namespace FreeWill
 {
@@ -43,39 +44,43 @@ namespace FreeWill
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
         void allocateTensor(unsigned int batchSize)
         {
-            FreeWill::TensorBase<DeviceUsed> *tensor = nullptr;
-            switch (m_dataType)
+            int deviceCount = Context<DeviceUsed>::getSingleton().deviceCount();
+
+            for (int i =0;i<deviceCount;++i)
             {
-            case DataType::FLOAT:
-                tensor = new FreeWill::Tensor<DeviceUsed, float>(m_isBatchTensor?(m_shape + (m_batchSize = batchSize)):m_shape, m_name);
-                tensor->template toType<float>()->init();
-                if (m_isRandomlyInitialized)
+                FreeWill::TensorBase<DeviceUsed> *tensor = nullptr;
+                switch (m_dataType)
                 {
-                    tensor->template toType<float>()->randomize();
+                case DataType::FLOAT:
+                    tensor = new FreeWill::Tensor<DeviceUsed, float>(m_isBatchTensor?(m_shape + (m_batchSize = batchSize)):m_shape, m_name);
+                    tensor->template toType<float>()->init();
+                    if (m_isRandomlyInitialized)
+                    {
+                        tensor->template toType<float>()->randomize();
+                    }
+                    break;
+                case DataType::DOUBLE:
+                    tensor = new FreeWill::Tensor<DeviceUsed, double>(m_isBatchTensor?(m_shape + (m_batchSize = batchSize)):m_shape, m_name);
+                    tensor->template toType<double>()->init();
+                    if (m_isRandomlyInitialized)
+                    {
+                        tensor->template toType<double>()->randomize();
+                    }
+                    break;
+                case DataType::UNSIGNED_INT:
+                    tensor = new FreeWill::Tensor<DeviceUsed, unsigned int>(m_isBatchTensor?(m_shape + (m_batchSize = batchSize)):m_shape, m_name);
+                    tensor->template toType<unsigned int>()->init();
+                    if (m_isRandomlyInitialized)
+                    {
+                        //tensor->template toType<unsigned int>()->randomize();
+                    }
+                    break;
+                default:
+                    break;
                 }
-                break;
-            case DataType::DOUBLE:
-                tensor = new FreeWill::Tensor<DeviceUsed, double>(m_isBatchTensor?(m_shape + (m_batchSize = batchSize)):m_shape, m_name);
-                tensor->template toType<double>()->init();
-                if (m_isRandomlyInitialized)
-                {
-                    tensor->template toType<double>()->randomize();
-                }
-                break;
-            case DataType::UNSIGNED_INT:
-                tensor = new FreeWill::Tensor<DeviceUsed, unsigned int>(m_isBatchTensor?(m_shape + (m_batchSize = batchSize)):m_shape, m_name);
-                tensor->template toType<unsigned int>()->init();
-                if (m_isRandomlyInitialized)
-                {
-                    //tensor->template toType<unsigned int>()->randomize();
-                }
-                break;
-            default:
-                break;
+
+                m_tensors[DeviceUsed].push_back(tensor);
             }
-
-
-            m_tensors[DeviceUsed].push_back(tensor);
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
