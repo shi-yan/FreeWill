@@ -102,7 +102,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
-        TensorBase<DeviceUsed> *getTensorForDevice(unsigned int deviceIndex = 0)
+        TensorBase<DeviceUsed> *getTensorForDevice(unsigned int deviceIndex)
         {
             return std::get<TensorBase<DeviceUsed>*>(m_tensors[DeviceUsed][deviceIndex]);
         }

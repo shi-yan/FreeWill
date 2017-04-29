@@ -54,7 +54,7 @@ namespace FreeWill
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
         Operator<DeviceUsed> *operatorBase()
         {
-            std::get<Operator<DeviceUsed> *>(m_operatorBase);
+            return std::get<Operator<DeviceUsed> *>(m_operatorBase);
         }
     };
 }
