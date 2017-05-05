@@ -10,6 +10,15 @@ bool FreeWill::Solver::init(FreeWill::Model *model)
     }
 
     clearUpdateOperators();
+
+    for(auto iter = model->m_updatePairs.begin(); iter != model->m_updatePairs.end(); ++iter)
+    {
+        FreeWill::TensorDescriptorHandle operandB = iter->second;
+
+        model->generateGradientMergeOperators(m_mergeGradientOperators, operandB);
+
+    }
+
     for(auto iter = model->m_updatePairs.begin(); iter != model->m_updatePairs.end(); ++iter)
     {
         FreeWill::TensorDescriptorHandle operandA = iter->first;
@@ -110,6 +119,20 @@ void FreeWill::Solver::backward(FreeWill::Model *model)
 
 void FreeWill::Solver::update(double learningRate)
 {
+    for(int i = 0;i<m_mergeGradientOperators.size();++i)
+    {
+        switch(m_deviceUsed)
+        {
+        case FreeWill::DeviceType::CPU_NAIVE:
+            std::get<Operator<FreeWill::DeviceType::CPU_NAIVE>*>(m_mergeGradientOperators[i])->evaluate();
+            break;
+        case FreeWill::DeviceType::GPU_CUDA:
+            std::get<Operator<FreeWill::DeviceType::GPU_CUDA>*>(m_mergeGradientOperators[i])->evaluate();
+            break;
+        }
+    }
+
+
     if (m_previousLearningRate != learningRate)
     {
         for(auto iter = m_updateOperators.begin(); iter != m_updateOperators.end(); ++iter)

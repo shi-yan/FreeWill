@@ -12,6 +12,9 @@ namespace FreeWill
     class Solver
     {
         std::vector<OperatorDescriptor*> m_updateOperators;
+        std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> m_mergeGradientOperators;
+        std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> m_updateFirstDeviceTensor;
+
         double m_previousLearningRate;
     public:
         DeviceType m_deviceUsed;

@@ -132,6 +132,30 @@ namespace FreeWill
             return ss.str();
         }
 
+        template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
+        void generateGradientMergeOperators(std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> operatorList,
+                                            const TensorDescriptorHandle &TensorDescriptorHandle)
+        {
+
+            TensorDescriptor* tensorDescriptor = m_tensors[TensorDescriptorHandle.first];
+
+
+            TensorBase<DeviceUsed> *tensorBase = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][0]);
+
+            for(unsigned int i = 1; i < tensorDescriptor->m_tensors[DeviceUsed].size(); ++i)
+            {
+                TensorBase<DeviceUsed> *tensor = std::get<TensorBase<DeviceUsed>*> (tensorDescriptor->m_tensors[DeviceUsed][i]);
+
+                ElementwiseAdd<DeviceUsed, DataType> *elementwiseAdd = new ElementwiseAdd<DeviceUsed, DataType>();
+                elementwiseAdd->setInputParameter("OperandA", tensorBase);
+                elementwiseAdd->setInputParameter("OperandB", tensor);
+                elementwiseAdd->setOutputParameter("Result", tensorBase);
+                elementwiseAdd->init();
+
+                operatorList.push_back(elementwiseAdd);
+            }
+
+        }
 
     };
 }

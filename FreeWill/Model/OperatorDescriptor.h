@@ -64,14 +64,14 @@ namespace FreeWill
         void evaluateSVGDiagramSize(unsigned int &width, unsigned int &height);
 
         template<DeviceType DeviceUsed>
-        bool setInput(Operator<DeviceUsed> *operatorBase, const std::string &inputName, std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        bool setInput(Operator<DeviceUsed> *operatorBase, const std::string &inputName, std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             if (m_inputs.find(inputName) == m_inputs.end())
             {
                 return false;
             }
 
-            TensorBase<DeviceUsed> *tensorBase = tensors[m_inputs[inputName].first]->getTensorForDevice<DeviceUsed>();
+            TensorBase<DeviceUsed> *tensorBase = tensors[m_inputs[inputName].first]->getTensorForDevice<DeviceUsed>(deviceId);
 
             if (m_inputs[inputName].second != Shape())
             {
@@ -88,14 +88,14 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        bool setOutput(Operator<DeviceUsed> *operatorBase, const std::string &outputName, std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        bool setOutput(Operator<DeviceUsed> *operatorBase, const std::string &outputName, std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             if (m_outputs.find(outputName) == m_outputs.end())
             {
                 return false;
             }
 
-            TensorBase<DeviceUsed> *tensorBase = tensors[m_outputs[outputName].first]->getTensorForDevice<DeviceUsed>();
+            TensorBase<DeviceUsed> *tensorBase = tensors[m_outputs[outputName].first]->getTensorForDevice<DeviceUsed>(deviceId);
 
             if (m_outputs[outputName].second != Shape())
             {
@@ -112,7 +112,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initActivation(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initActivation(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
             if (m_parameters.find("Mode") == m_parameters.end())
@@ -192,7 +192,7 @@ namespace FreeWill
                 break;
             }
 
-            if (!setInput(operatorBase, "Input", tensors) || !setOutput(operatorBase, "Output", tensors))
+            if (!setInput(operatorBase, "Input", tensors, deviceId) || !setOutput(operatorBase, "Output", tensors, deviceId))
             {
                 delete operatorBase;
                 operatorBase = nullptr;
@@ -202,7 +202,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initActivationDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initActivationDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
             if (m_parameters.find("Mode") == m_parameters.end())
@@ -278,9 +278,9 @@ namespace FreeWill
                 }
                 break;
             }
-            if (!setInput(operatorBase, "Output", tensors) ||
-                    !setInput(operatorBase, "OutputDelta", tensors) ||
-                    !setOutput(operatorBase, "InputDelta", tensors))
+            if (!setInput(operatorBase, "Output", tensors, deviceId) ||
+                    !setInput(operatorBase, "OutputDelta", tensors, deviceId) ||
+                    !setOutput(operatorBase, "InputDelta", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -290,7 +290,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initConvolution(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initConvolution(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
@@ -312,10 +312,10 @@ namespace FreeWill
 
             }
 
-            if (!setInput(operatorBase, "Input", tensors) ||
-                    !setInput(operatorBase, "FeatureMap", tensors) ||
-                    !setInput(operatorBase, "Bias", tensors) ||
-                    !setOutput(operatorBase, "Output", tensors))
+            if (!setInput(operatorBase, "Input", tensors, deviceId) ||
+                    !setInput(operatorBase, "FeatureMap", tensors, deviceId) ||
+                    !setInput(operatorBase, "Bias", tensors, deviceId) ||
+                    !setOutput(operatorBase, "Output", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -326,7 +326,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initConvolutionDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initConvolutionDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
@@ -346,12 +346,12 @@ namespace FreeWill
 
             }
 
-            if (!setInput(operatorBase, "PrevActivation", tensors) ||
-                    !setInput(operatorBase, "FeatureMap", tensors) ||
-                    !setInput(operatorBase, "OutputGrad", tensors) ||
-                    !setOutput(operatorBase, "FeatureMapGrad", tensors) ||
-                    !setOutput(operatorBase, "BiasGrad", tensors) ||
-                    !setOutput(operatorBase, "InputGrad", tensors))
+            if (!setInput(operatorBase, "PrevActivation", tensors, deviceId) ||
+                    !setInput(operatorBase, "FeatureMap", tensors, deviceId) ||
+                    !setInput(operatorBase, "OutputGrad", tensors, deviceId) ||
+                    !setOutput(operatorBase, "FeatureMapGrad", tensors, deviceId) ||
+                    !setOutput(operatorBase, "BiasGrad", tensors, deviceId) ||
+                    !setOutput(operatorBase, "InputGrad", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -361,7 +361,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initCrossEntropyLoss(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initCrossEntropyLoss(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
@@ -380,9 +380,9 @@ namespace FreeWill
                 return nullptr;
             }
 
-            if (!setInput(operatorBase, "Input", tensors) ||
-                    !setInput(operatorBase, "Label", tensors) ||
-                    !setOutput(operatorBase, "Cost", tensors))
+            if (!setInput(operatorBase, "Input", tensors, deviceId) ||
+                    !setInput(operatorBase, "Label", tensors, deviceId) ||
+                    !setOutput(operatorBase, "Cost", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -394,7 +394,7 @@ namespace FreeWill
 
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initDotProductWithBias(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initDotProductWithBias(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
@@ -414,10 +414,10 @@ namespace FreeWill
                 return nullptr;
             }
 
-            if (!setInput(operatorBase, "Input", tensors) ||
-                    !setInput(operatorBase, "Weight", tensors) ||
-                    !setInput(operatorBase, "Bias", tensors) ||
-                    !setOutput(operatorBase, "Output", tensors))
+            if (!setInput(operatorBase, "Input", tensors, deviceId) ||
+                    !setInput(operatorBase, "Weight", tensors, deviceId) ||
+                    !setInput(operatorBase, "Bias", tensors, deviceId) ||
+                    !setOutput(operatorBase, "Output", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -428,7 +428,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initDotProductWithBiasDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initDotProductWithBiasDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
@@ -448,12 +448,12 @@ namespace FreeWill
                 return nullptr;
             }
 
-            if (!setInput(operatorBase, "InputActivation", tensors) ||
-                    !setInput(operatorBase, "OutputDelta", tensors) ||
-                    !setInput(operatorBase, "Weight", tensors) ||
-                    !setOutput(operatorBase, "WeightGrad", tensors) ||
-                    !setOutput(operatorBase, "BiasGrad", tensors) ||
-                    !setOutput(operatorBase, "InputDelta", tensors))
+            if (!setInput(operatorBase, "InputActivation", tensors, deviceId) ||
+                    !setInput(operatorBase, "OutputDelta", tensors, deviceId) ||
+                    !setInput(operatorBase, "Weight", tensors, deviceId) ||
+                    !setOutput(operatorBase, "WeightGrad", tensors, deviceId) ||
+                    !setOutput(operatorBase, "BiasGrad", tensors, deviceId) ||
+                    !setOutput(operatorBase, "InputDelta", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -463,7 +463,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initElementwiseAdd(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initElementwiseAdd(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
@@ -489,9 +489,9 @@ namespace FreeWill
                 return nullptr;
             }
 
-            if (!setInput(operatorBase, "OperandA", tensors) ||
-                    !setInput(operatorBase, "OperandB", tensors) ||
-                    !setOutput(operatorBase, "Result", tensors))
+            if (!setInput(operatorBase, "OperandA", tensors, deviceId) ||
+                    !setInput(operatorBase, "OperandB", tensors, deviceId) ||
+                    !setOutput(operatorBase, "Result", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -501,7 +501,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initMaxPooling(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initMaxPooling(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
@@ -520,10 +520,10 @@ namespace FreeWill
                 return nullptr;
             }
 
-            if (!setInput(operatorBase, "Input", tensors) ||
-                    !setOutput(operatorBase, "Output", tensors) ||
-                    !setOutput(operatorBase, "SwitchX", tensors) ||
-                    !setOutput(operatorBase, "SwitchY", tensors))
+            if (!setInput(operatorBase, "Input", tensors, deviceId) ||
+                    !setOutput(operatorBase, "Output", tensors, deviceId) ||
+                    !setOutput(operatorBase, "SwitchX", tensors, deviceId) ||
+                    !setOutput(operatorBase, "SwitchY", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -534,7 +534,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initMaxPoolingDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initMaxPoolingDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
@@ -554,12 +554,12 @@ namespace FreeWill
             }
 
 
-            if (!setInput(operatorBase, "Output", tensors) ||
-                    !setInput(operatorBase, "OutputGrad", tensors) ||
-                    !setInput(operatorBase, "Input", tensors) ||
-                    !setInput(operatorBase, "SwitchX", tensors) ||
-                    !setInput(operatorBase, "SwitchY", tensors) ||
-                    !setOutput(operatorBase, "InputGrad", tensors))
+            if (!setInput(operatorBase, "Output", tensors, deviceId) ||
+                    !setInput(operatorBase, "OutputGrad", tensors, deviceId) ||
+                    !setInput(operatorBase, "Input", tensors, deviceId) ||
+                    !setInput(operatorBase, "SwitchX", tensors, deviceId) ||
+                    !setInput(operatorBase, "SwitchY", tensors, deviceId) ||
+                    !setOutput(operatorBase, "InputGrad", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -569,7 +569,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initSigmoidCrossEntropyLossDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initSigmoidCrossEntropyLossDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
@@ -589,9 +589,9 @@ namespace FreeWill
                 return nullptr;
             }
 
-            if (!setInput(operatorBase, "Input", tensors) ||
-                    !setInput(operatorBase, "Label", tensors) ||
-                    !setOutput(operatorBase, "Output", tensors))
+            if (!setInput(operatorBase, "Input", tensors, deviceId) ||
+                    !setInput(operatorBase, "Label", tensors, deviceId) ||
+                    !setOutput(operatorBase, "Output", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -602,7 +602,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initSoftmaxLogLoss(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initSoftmaxLogLoss(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
@@ -621,10 +621,10 @@ namespace FreeWill
                 return nullptr;
             }
 
-            if (!setInput(operatorBase, "Input", tensors) ||
-                    !setInput(operatorBase, "Label", tensors) ||
-                    !setOutput(operatorBase, "Cost", tensors) ||
-                    !setOutput(operatorBase, "Output", tensors))
+            if (!setInput(operatorBase, "Input", tensors, deviceId) ||
+                    !setInput(operatorBase, "Label", tensors, deviceId) ||
+                    !setOutput(operatorBase, "Cost", tensors, deviceId) ||
+                    !setOutput(operatorBase, "Output", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -634,7 +634,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        Operator<DeviceUsed> *initSoftmaxLogLossDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        Operator<DeviceUsed> *initSoftmaxLogLossDerivative(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
         {
             Operator<DeviceUsed> *operatorBase = nullptr;
 
@@ -653,9 +653,9 @@ namespace FreeWill
                 return nullptr;
             }
 
-            if (!setInput(operatorBase, "Output", tensors) ||
-                    !setInput(operatorBase, "Label", tensors) ||
-                    !setOutput(operatorBase, "InputGrad", tensors))
+            if (!setInput(operatorBase, "Output", tensors, deviceId) ||
+                    !setInput(operatorBase, "Label", tensors, deviceId) ||
+                    !setOutput(operatorBase, "InputGrad", tensors, deviceId))
             {
                 delete operatorBase;
                 return nullptr;
@@ -696,6 +696,12 @@ namespace FreeWill
         {
             auto iter = m_operators[DeviceUsed].begin();
 
+
+            int deviceId = 0;
+            int deviceCount = m_operators[DeviceUsed].size();
+            std::vector<WorkerMessage*> messages(deviceCount, nullptr);
+
+
             for(;iter != m_operators[DeviceUsed].end(); ++iter)
             {
                 Operator<DeviceUsed> *operatorBase = std::get<Operator<DeviceUsed>*>(*iter);
@@ -733,8 +739,19 @@ namespace FreeWill
                     break;
                 }
 
-                operatorBase->evaluate();
+                //operatorBase->evaluate();
+
+                messages[deviceId] = new WorkerMessage(WorkerMessage::Type::FORWARD, operatorBase);
+                Context<DeviceUsed>::getSingleton().pushWork(deviceId, messages[deviceId]);
+                deviceId++;
             }
+
+            for(int i =0;i<deviceCount;++i)
+            {
+                messages[i]->join();
+                delete messages[i];
+            }
+
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
@@ -749,43 +766,43 @@ namespace FreeWill
                 switch(m_operatorName)
                 {
                 case OperatorName::ACTIVATION:
-                    operatorBase = initActivation<DeviceUsed>(tensors);
+                    operatorBase = initActivation<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::ACTIVATION_DERIVATIVE:
-                    operatorBase = initActivationDerivative<DeviceUsed>(tensors);
+                    operatorBase = initActivationDerivative<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::CONVOLUTION:
-                    operatorBase = initConvolution<DeviceUsed>(tensors);
+                    operatorBase = initConvolution<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::CONVOLUTION_DERIVATIVE:
-                    operatorBase = initConvolutionDerivative<DeviceUsed>(tensors);
+                    operatorBase = initConvolutionDerivative<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::CROSS_ENTROPY_LOSS:
-                    operatorBase = initCrossEntropyLoss<DeviceUsed>(tensors);
+                    operatorBase = initCrossEntropyLoss<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::DOT_PRODUCT_WITH_BIAS:
-                    operatorBase = initDotProductWithBias<DeviceUsed>(tensors);
+                    operatorBase = initDotProductWithBias<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::DOT_PRODUCT_WITH_BIAS_DERIVATIVE:
-                    operatorBase = initDotProductWithBiasDerivative<DeviceUsed>(tensors);
+                    operatorBase = initDotProductWithBiasDerivative<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::ELEMENTWISE_ADD:
-                    operatorBase = initElementwiseAdd<DeviceUsed>(tensors);
+                    operatorBase = initElementwiseAdd<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::MAX_POOLING:
-                    operatorBase = initMaxPooling<DeviceUsed>(tensors);
+                    operatorBase = initMaxPooling<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::MAX_POOLING_DERIVATIVE:
-                    operatorBase = initMaxPoolingDerivative<DeviceUsed>(tensors);
+                    operatorBase = initMaxPoolingDerivative<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE:
-                    operatorBase = initSigmoidCrossEntropyLossDerivative<DeviceUsed>(tensors);
+                    operatorBase = initSigmoidCrossEntropyLossDerivative<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::SOFTMAX_LOG_LOSS:
-                    operatorBase = initSoftmaxLogLoss<DeviceUsed>(tensors);
+                    operatorBase = initSoftmaxLogLoss<DeviceUsed>(tensors, i);
                 break;
                 case OperatorName::SOFTMAX_LOG_LOSS_DERIVATIVE:
-                    operatorBase = initSoftmaxLogLossDerivative<DeviceUsed>(tensors);
+                    operatorBase = initSoftmaxLogLossDerivative<DeviceUsed>(tensors, i);
                 break;
                 }
 
