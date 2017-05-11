@@ -15,6 +15,7 @@
 #include "../Operator/SigmoidCrossEntropyLossDerivative.h"
 #include "../Operator/SoftmaxLogLoss.h"
 #include "../Operator/SoftmaxLogLossDerivative.h"
+#include "../Operator/Duplicate.h"
 #include "TensorDescriptor.h"
 #include <any>
 #include <fstream>
@@ -665,6 +666,35 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
+        Operator<DeviceUsed> *initDuplicate(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
+        {
+            Operator<DeviceUsed> *operatorBase = nullptr;
+
+            switch(m_dataType)
+            {
+            case DataType::FLOAT:
+                operatorBase = new Duplicate<DeviceUsed, float>();
+                break;
+            case DataType::DOUBLE:
+                operatorBase = new Duplicate<DeviceUsed, double>();
+                break;
+            case DataType::UNSIGNED_INT:
+                operatorBase = new Duplicate<DeviceUsed, unsigned int>();
+                break;
+
+            }
+
+            if (!setInput(operatorBase, "From", tensors, deviceId) ||
+                    !setOutput(operatorBase, "To", tensors, deviceId))
+            {
+                delete operatorBase;
+                return nullptr;
+            }
+
+            return operatorBase;
+        }
+
+        template<DeviceType DeviceUsed>
         void evaluate()
         {
             int deviceId = 0;
@@ -803,6 +833,9 @@ namespace FreeWill
                 break;
                 case OperatorName::SOFTMAX_LOG_LOSS_DERIVATIVE:
                     operatorBase = initSoftmaxLogLossDerivative<DeviceUsed>(tensors, i);
+                break;
+                case OperatorName::DUPLICATE:
+                    operatorBase = initDuplicate<DeviceUsed>(tensors, i);
                 break;
                 }
 

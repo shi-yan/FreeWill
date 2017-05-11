@@ -87,6 +87,7 @@ endif()
 # message(STATUS "DIR: ${OUT_VAR}")
 
 set(FreeWill_SOURCES
+    DeviceSelection.h
     FreeWillUnitTestTensor.cpp
     FreeWillUnitTest.cpp
     FreeWillUnitTestXOR.cpp
@@ -107,7 +108,7 @@ set(FreeWill_SOURCES
     Operator/SigmoidCrossEntropyLossDerivative.h
     Operator/SoftmaxLogLossDerivative.h
     Operator/Convolution.h
-    DeviceSelection.h
+    Operator/Duplicate.h
     Operator/ConvolutionDerivative.h
     Operator/DotProductWithBiasDerivative.h
     Operator/MaxPooling.h

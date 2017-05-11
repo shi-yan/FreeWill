@@ -134,10 +134,10 @@ namespace FreeWill
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
         void generateGradientMergeOperators(std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> operatorList,
-                                            const TensorDescriptorHandle &TensorDescriptorHandle)
+                                            const TensorDescriptorHandle &tensorDescriptorHandle)
         {
 
-            TensorDescriptor* tensorDescriptor = m_tensors[TensorDescriptorHandle.first];
+            TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
 
 
             TensorBase<DeviceUsed> *tensorBase = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][0]);
@@ -155,6 +155,50 @@ namespace FreeWill
                 operatorList.push_back(elementwiseAdd);
             }
 
+        }
+
+        template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
+        void generateUpdateFirstDeviceTensorOperators(std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> operatorList,
+                                                      const TensorDescriptorHandle &tensorDescriptorHandle,
+                                                      const TensorDescriptorHandle &gradientDescriptorHandle)
+        {
+            TensorDescriptor *operandATensorDescriptor = m_tensors[tensorDescriptorHandle.first];
+
+            TensorDescriptor *operandBTensorDescriptor = m_tensors[gradientDescriptorHandle.first];
+
+            TensorBase<DeviceUsed> *operandATensorBase = std::get<TensorBase<DeviceUsed>*>(operandATensorDescriptor->m_tensors[DeviceUsed][0]);
+            TensorBase<DeviceUsed> *operandBTensorBase = std::get<TensorBase<DeviceUsed>*>(operandBTensorDescriptor->m_tensors[DeviceUsed][0]);
+
+            ElementwiseAdd<DeviceUsed, DataType> *elementwiseAdd = new ElementwiseAdd<DeviceUsed, DataType>();
+            elementwiseAdd->setInputParameter("OperandA", operandATensorBase);
+            elementwiseAdd->setInputParameter("OperandB", operandBTensorBase);
+            elementwiseAdd->setOutputParameter("Result", operandATensorBase);
+            elementwiseAdd->init();
+            operatorList.push_back(elementwiseAdd);
+        }
+
+        template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
+        void generateBroadcastFirstDeviceTensorOperators(std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> operatorList,
+                                                      const TensorDescriptorHandle &tensorDescriptorHandle)
+        {
+            TensorDescriptor *operandATensorDescriptor = m_tensors[tensorDescriptorHandle.first];
+
+            TensorBase<DeviceUsed> *operandATensorBase = std::get<TensorBase<DeviceUsed>*>(operandATensorDescriptor->m_tensors[DeviceUsed][0]);
+
+            for(unsigned int i = 1; i < operandATensorDescriptor->m_tensors[DeviceUsed].size(); ++i)
+            {
+                TensorBase<DeviceUsed> *operandATensorBaseDup = std::get<TensorBase<DeviceUsed>*>(operandATensorDescriptor->m_tensors[DeviceUsed][i]);
+
+                ElementwiseAdd<DeviceUsed, DataType> *elementwiseAdd = new ElementwiseAdd<DeviceUsed, DataType>(0.0f);
+
+                elementwiseAdd->setInputParameter("OperandA", operandATensorBase);
+                elementwiseAdd->setInputParameter("OperandB", operandATensorBase);
+                elementwiseAdd->setOutputParameter("Result", operandATensorBaseDup);
+
+                operatorList.push_back(elementwiseAdd);
+
+
+            }
         }
 
     };

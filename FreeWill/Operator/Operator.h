@@ -43,7 +43,8 @@ namespace FreeWill
         MAX_POOLING_DERIVATIVE,
         SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE,
         SOFTMAX_LOG_LOSS,
-        SOFTMAX_LOG_LOSS_DERIVATIVE
+        SOFTMAX_LOG_LOSS_DERIVATIVE,
+        DUPLICATE
     };
 
     static std::map<std::string, OperatorName> operatorNameTable {{"Activation", OperatorName::ACTIVATION},
@@ -57,7 +58,8 @@ namespace FreeWill
                 {"MaxPoolingDerivative", OperatorName::MAX_POOLING_DERIVATIVE},
                 {"SigmoidCrossEntropyLossDerivative", OperatorName::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE},
                 {"SoftmaxLogLoss", OperatorName::SOFTMAX_LOG_LOSS},
-                {"SoftmaxLogLossDerivative", OperatorName::SOFTMAX_LOG_LOSS_DERIVATIVE}};
+                {"SoftmaxLogLossDerivative", OperatorName::SOFTMAX_LOG_LOSS_DERIVATIVE},
+                {"Duplicate", OperatorName::DUPLICATE}};
 
     template <DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
     class Operator
