@@ -60,11 +60,11 @@ namespace FreeWill
         bool defineWeightUpdatePairs(const std::vector<std::pair<TensorDescriptorHandle, TensorDescriptorHandle>> &updatePairs);
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
-        const DataType *readonlyAccess(const TensorDescriptorHandle &tensorDescriptorHandle)
+        const DataType *readonlyAccess(const TensorDescriptorHandle &tensorDescriptorHandle, int deviceId = 0)
         {
            TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
 
-           TensorBase<DeviceUsed>* tensorBase = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][0]);
+           TensorBase<DeviceUsed>* tensorBase = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][deviceId]);
 
            return static_cast<const DataType*>(tensorBase->cpuDataHandle());
         }
@@ -80,22 +80,25 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
-        void endMutateData(const TensorDescriptorHandle &tensorDescriptorHandle, int deviceId = 0)
+        void endMutateData(const TensorDescriptorHandle &tensorDescriptorHandle, int deviceId = -1)
         {
             TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
 
-            unsigned char *sourcePtr = static_cast<unsigned char*>(std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][0])->cpuDataHandle());
-            unsigned int sourceSize = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][0])->sizeInByte();
-
-            for(unsigned int i = 1; i < tensorDescriptor->m_tensors[DeviceUsed].size(); ++i)
+            if (deviceId < 0)
             {
-                unsigned char *destPtr = static_cast<unsigned char*>(std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][i])->cpuDataHandle());
+                unsigned char *sourcePtr = static_cast<unsigned char*>(std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][0])->cpuDataHandle());
+                unsigned int sourceSize = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][0])->sizeInByte();
 
-                std::copy(sourcePtr, sourcePtr + sourceSize, destPtr);
-
-                if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
+                for(unsigned int i = 1; i < tensorDescriptor->m_tensors[DeviceUsed].size(); ++i)
                 {
-                    std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][i])->copyFromHostToDevice();
+                    unsigned char *destPtr = static_cast<unsigned char*>(std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][i])->cpuDataHandle());
+
+                    std::copy(sourcePtr, sourcePtr + sourceSize, destPtr);
+
+                    if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
+                    {
+                        std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][i])->copyFromHostToDevice();
+                    }
                 }
             }
         }
@@ -133,7 +136,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
-        void generateGradientMergeOperators(std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> operatorList,
+        void generateGradientMergeOperators(std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> &operatorList,
                                             const TensorDescriptorHandle &tensorDescriptorHandle)
         {
 
@@ -158,7 +161,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
-        void generateUpdateFirstDeviceTensorOperators(std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> operatorList,
+        void generateUpdateFirstDeviceTensorOperators(std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> &operatorList,
                                                       const TensorDescriptorHandle &tensorDescriptorHandle,
                                                       const TensorDescriptorHandle &gradientDescriptorHandle)
         {
@@ -178,7 +181,7 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
-        void generateBroadcastFirstDeviceTensorOperators(std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> operatorList,
+        void generateBroadcastFirstDeviceTensorOperators(std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> &operatorList,
                                                       const TensorDescriptorHandle &tensorDescriptorHandle)
         {
             TensorDescriptor *operandATensorDescriptor = m_tensors[tensorDescriptorHandle.first];

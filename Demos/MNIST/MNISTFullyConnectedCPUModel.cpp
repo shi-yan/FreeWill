@@ -5,13 +5,15 @@
 #include "Model/Solver.h"
 #include "Context/Context.h"
 
+#include <chrono>
+
 void MNIST::trainFullyConnectedModelWithModelClass()
 {
     qDebug() << "================== CPU Fully Connected network with model class ==========================";
 
-    FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().open();
+    FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().open(1);
 
-    unsigned int batchSize = 2;
+    unsigned int batchSize = 16;
 
     FreeWill::Model *model = FreeWill::Model::create();
 
@@ -80,38 +82,49 @@ void MNIST::trainFullyConnectedModelWithModelClass()
     solver.m_batchSize = batchSize;
     solver.init(model);
 
-    float learningRate = 0.01;
+    float learningRate = 0.02;
 
     float overallCost = 0.0;
     const int testInterval = 2000;
 
+    const int deviceCount = FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().deviceCount();
+
     for(unsigned int e = 1; e<=60; ++e)
     {
         openTrainData();
-
-        for(unsigned int i = 1; i<=numOfImage/batchSize; ++i)
+        auto startTime = std::chrono::steady_clock::now();
+        std::chrono::duration<double, std::nano> forwardTime = std::chrono::duration<double, std::nano>::zero();
+        std::chrono::duration<double, std::nano> backwardTime = std::chrono::duration<double, std::nano>::zero();
+        for(unsigned int i = 1; i<=numOfImage/(batchSize*deviceCount); ++i)
         {
-            float *inputData = model->beginMutateData(image);
-            unsigned int *labelData = model->beginMutateData<FreeWill::DeviceType::CPU_NAIVE, unsigned int>(label);
-
-            loadOneTrainData(inputData, labelData, batchSize);
-
-            model->endMutateData(image);
-            model->endMutateData(label);
-
-
-            solver.forward(model);
-
-            const float *costData = model->readonlyAccess(cost);
-
-            for(unsigned int c = 0; c<batchSize; ++c)
+            for(int d = 0; d<deviceCount;++d)
             {
-                overallCost += costData[c];
+                float *inputData = model->beginMutateData(image, d);
+                unsigned int *labelData = model->beginMutateData<FreeWill::DeviceType::CPU_NAIVE, unsigned int>(label,d);
+
+                loadOneTrainData(inputData, labelData, batchSize);
+
+                model->endMutateData(image,d);
+                model->endMutateData(label,d);
+            }
+            auto forwardStartTime = std::chrono::steady_clock::now();
+            solver.forward(model);
+            auto forwardEndTime = std::chrono::steady_clock::now();
+            forwardTime += std::chrono::duration <double, std::nano>(forwardEndTime - forwardStartTime);
+
+            for(int d = 0; d<deviceCount;++d)
+            {
+                const float *costData = model->readonlyAccess(cost);
+
+                for(unsigned int c = 0; c<batchSize; ++c)
+                {
+                    overallCost += costData[c];
+                }
             }
 
-            qDebug() << e << i<< "cost" << overallCost / (float) batchSize << learningRate;
+            //qDebug() << e << i<< "cost" << overallCost / (float) (batchSize*deviceCount) << (learningRate / (float)(deviceCount));
 
-            emit updateCost(overallCost / (float) batchSize);
+            //emit updateCost(overallCost / (float) (batchSize*deviceCount));
             overallCost = 0.0;
 
 
@@ -120,45 +133,70 @@ void MNIST::trainFullyConnectedModelWithModelClass()
             model->clearTensor(fullyConnected2BiasGrad);
             model->clearTensor(fullyConnected2WeightGrad);
 
+            auto backwardStartTime = std::chrono::steady_clock::now();
+
             solver.backward(model);
 
-            solver.update(-learningRate);
+            auto backwardEndTime = std::chrono::steady_clock::now();
+            backwardTime += std::chrono::duration <double, std::nano>(backwardEndTime - backwardStartTime);
+
+
+            solver.update(-learningRate/(float)deviceCount);
 
             if (i%30000 == 0)
             {
                learningRate *= 0.9;
             }
 
-            if (i % testInterval == 0)
+
+            //emit updateProgress(i*(batchSize*deviceCount) / (float)(numOfImage), ((e-1)*numOfImage + i*batchSize*deviceCount) / (60.0f*numOfImage));
+
+        }
+        auto endTime = std::chrono::steady_clock::now();
+        auto diff = endTime - startTime;
+
+        qDebug() << std::chrono::duration <double, std::milli> (diff).count() << " ms used for 1 epoch";
+        qDebug() << std::chrono::duration <double, std::milli> (forwardTime).count() << " ms used for forward";
+        qDebug() << std::chrono::duration <double, std::milli> (backwardTime).count() << " ms used for backward";
+
+        closeTrainData();
+
+        if (/*i % testInterval == 0*/true)
+        {
+            unsigned int correct = 0;
+
+            openTestData();
+
+            for (unsigned int v = 0;v<numOfTestImage/(batchSize*deviceCount); ++v)
             {
-                unsigned int correct = 0;
+                model->clearTensor(fullyConnected1Output);
+                model->clearTensor(fullyConnected2Output);
+                model->clearTensor(softmaxOutput);
+                model->clearTensor(cost);
+                model->clearTensor(softmaxGrad);
 
-                openTestData();
-
-                for (unsigned int v = 0;v<numOfTestImage/batchSize; ++v)
+                for(unsigned int d = 0;d<deviceCount;++d)
                 {
-                    model->clearTensor(fullyConnected1Output);
-                    model->clearTensor(fullyConnected2Output);
-                    model->clearTensor(softmaxOutput);
-                    model->clearTensor(cost);
-                    model->clearTensor(softmaxGrad);
-
-                    float *inputData = model->beginMutateData(image);
-                    unsigned int *labelData = model->beginMutateData<FreeWill::DeviceType::CPU_NAIVE, unsigned int>(label);
+                    float *inputData = model->beginMutateData(image,d);
+                    unsigned int *labelData = model->beginMutateData<FreeWill::DeviceType::CPU_NAIVE, unsigned int>(label,d);
 
 
                     loadOneTestData(inputData, labelData, batchSize);
 
-                    model->endMutateData(image);
-                    model->endMutateData(label);
+                    model->endMutateData(image,d);
+                    model->endMutateData(label,d);
+                }
 
-                    solver.forward(model);
+                solver.forward(model);
+
+                for(unsigned int d = 0;d<deviceCount;++d)
+                {
 
                     for (unsigned int b = 0; b<batchSize; ++b)
                     {
                         unsigned int maxIndex = 0;
 
-                        const float *softmaxOutputData = model->readonlyAccess(softmaxOutput);
+                        const float *softmaxOutputData = model->readonlyAccess(softmaxOutput,d);
 
                         float maxValue = softmaxOutputData[b * 10];
 
@@ -171,39 +209,39 @@ void MNIST::trainFullyConnectedModelWithModelClass()
                             }
                         }
 
-                        const unsigned int *labelData = model->readonlyAccess<FreeWill::DeviceType::CPU_NAIVE, unsigned int>(label);
+                        const unsigned int *labelData = model->readonlyAccess<FreeWill::DeviceType::CPU_NAIVE, unsigned int>(label,d);
 
                         if ((float) maxIndex == labelData[b])
                         {
                             correct ++;
                         }
                     }
-
-
                 }
-                qDebug() << "Accuracy" << (float) correct / (float) numOfTestImage;
-
-                closeTestData();
-
-                model->clearTensor(fullyConnected1Output);
-                model->clearTensor(fullyConnected2Output);
-                model->clearTensor(softmaxOutput);
-                model->clearTensor(cost);
-                model->clearTensor(softmaxGrad);
-                model->clearTensor(fullyConnected1OutputGrad);
-                model->clearTensor(fullyConnected2BiasGrad);
-                model->clearTensor(fullyConnected2WeightGrad);
-                model->clearTensor(fullyConnected1BiasGrad);
-                model->clearTensor(fullyConnected1WeightGrad);
-                model->clearTensor(imageGrad);
 
 
             }
+            qDebug() << "Accuracy" << (float) correct / (float) numOfTestImage;
 
-            emit updateProgress(i*batchSize / (float)(numOfImage), ((e-1)*numOfImage + i*batchSize) / (60.0f*numOfImage));
+            closeTestData();
+
+            model->clearTensor(fullyConnected1Output);
+            model->clearTensor(fullyConnected2Output);
+            model->clearTensor(softmaxOutput);
+            model->clearTensor(cost);
+            model->clearTensor(softmaxGrad);
+            model->clearTensor(fullyConnected1OutputGrad);
+            model->clearTensor(fullyConnected2BiasGrad);
+            model->clearTensor(fullyConnected2WeightGrad);
+            model->clearTensor(fullyConnected1BiasGrad);
+            model->clearTensor(fullyConnected1WeightGrad);
+            model->clearTensor(imageGrad);
+
 
         }
-        closeTrainData();
+
+
+        break;
+
     }
 
     delete model;

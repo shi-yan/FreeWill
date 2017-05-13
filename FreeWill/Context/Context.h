@@ -44,7 +44,7 @@ namespace FreeWill
 
     public:
 
-        void open()
+        void open(unsigned int deviceCountOverride = 0)
         {
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
@@ -70,7 +70,14 @@ namespace FreeWill
             }
             else if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
-                m_deviceCount = std::thread::hardware_concurrency();
+                if (deviceCountOverride == 0)
+                {
+                    m_deviceCount = std::thread::hardware_concurrency();
+                }
+                else
+                {
+                    m_deviceCount = deviceCountOverride;
+                }
 
                 std::cout << "CPU count:" << m_deviceCount << std::endl;
 
@@ -127,8 +134,14 @@ namespace FreeWill
         {
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
-                RUN_CUDNN( cudnnDestroy(m_cudnnHandle));
-                RUN_CUBLAS( cublasDestroy(m_cublasHandle));
+                if (m_cudnnHandle)
+                {
+                    RUN_CUDNN( cudnnDestroy(m_cudnnHandle));
+                }
+                if (m_cublasHandle)
+                {
+                    RUN_CUBLAS( cublasDestroy(m_cublasHandle));
+                }
                 cudaDeviceReset();
             }
             else if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)

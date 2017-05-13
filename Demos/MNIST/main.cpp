@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     mnist->moveToThread(mnist);
     QObject::connect(mnist, &MNIST::updateCost, &websocketServer, &WebsocketServer::onUpdateCost);
     QObject::connect(mnist, &MNIST::updateProgress, &websocketServer, &WebsocketServer::onUpdateProgress);
-    mnist->start();    
+    mnist->start();
     
     return a.exec();
 }
