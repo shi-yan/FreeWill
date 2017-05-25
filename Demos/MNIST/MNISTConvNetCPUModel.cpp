@@ -80,11 +80,17 @@ void MNIST::trainConvolutionalModelWithModelClass()
     FreeWill::OperatorDescriptorHandle convSigmoid = model->addOperator("convSigmoid", FreeWill::OperatorName::ACTIVATION,
     {{"Input", convOutput}},{{"Output", convOutput}},{{"Mode", FreeWill::ActivationMode::SIGMOID}});
 
+    /*FreeWill::OperatorDescriptorHandle reshapeBeforeMaxPooling = model->addOperator("reshapeBeforeMaxPooling", FreeWill::OperatorName::RESHAPE,
+    {{"Tensor", poolingOutput}}, {}, {{"NewShape", Shape({featureMapSize*12*12})}});*/
+
     FreeWill::OperatorDescriptorHandle maxPooling = model->addOperator("maxPooling", FreeWill::OperatorName::MAX_POOLING,
-    {{"Input", convOutput}}, {{"Output", poolingOutput.reshape({featureMapSize, 12,12})}, {"SwitchX", poolingSwitchX},{"SwitchY", poolingSwitchY}});
+    {{"Input", convOutput}}, {{"Output", poolingOutput.reshape({featureMapSize, 12, 12})}, {"SwitchX", poolingSwitchX},{"SwitchY", poolingSwitchY}});
+
+    /*FreeWill::OperatorDescriptorHandle reshapeAfterMaxPooling = model->addOperator("reshapeAfterMaxPooling", FreeWill::OperatorName::RESHAPE,
+    {{"Tensor", poolingOutput}}, {}, {{"NewShape", Shape({featureMapSize, 12,12})}});*/
 
     FreeWill::OperatorDescriptorHandle fullyConnected1 = model->addOperator("fullyConnected1", FreeWill::OperatorName::DOT_PRODUCT_WITH_BIAS,
-    {{"Input", poolingOutput}, {"Weight", fullyConnected1Weight}, {"Bias", fullyConnected1Bias}}, {{"Output", fullyConnected1Output}});
+    {{"Input", poolingOutput.reshape({featureMapSize* 12* 12})}, {"Weight", fullyConnected1Weight}, {"Bias", fullyConnected1Bias}}, {{"Output", fullyConnected1Output}});
 
     FreeWill::OperatorDescriptorHandle sigmoid1 = model->addOperator("sigmoid1", FreeWill::OperatorName::ACTIVATION,
     {{"Input", fullyConnected1Output}}, {{"Output", fullyConnected1Output}},
@@ -110,10 +116,10 @@ void MNIST::trainConvolutionalModelWithModelClass()
 
     FreeWill::OperatorDescriptorHandle dotProductWithBias1Derivative = model->addOperator("dotProductWithBias1Derivative", FreeWill::OperatorName::DOT_PRODUCT_WITH_BIAS_DERIVATIVE,
     {{"InputActivation", poolingOutput.reshape({featureMapSize*12*12})},{"OutputDelta", fullyConnected1OutputGrad},{"Weight", fullyConnected1Weight}},
-    {{"InputDelta", poolingOutputGrad},{"BiasGrad", fullyConnected1BiasGrad},{"WeightGrad", fullyConnected1WeightGrad}});
+    {{"InputDelta", poolingOutputGrad.reshape({featureMapSize*12*12})},{"BiasGrad", fullyConnected1BiasGrad},{"WeightGrad", fullyConnected1WeightGrad}});
 
     FreeWill::OperatorDescriptorHandle maxPoolingDerivative = model->addOperator("maxPoolingDerivative", FreeWill::OperatorName::MAX_POOLING_DERIVATIVE,
-    {{"OutputGrad", poolingOutputGrad.reshape({featureMapSize, 12,12})}, {"SwitchX", poolingSwitchX}, {"SwitchY", poolingSwitchY}},{{"InputGrad", convOutputGrad}});
+    {{"OutputGrad", poolingOutputGrad.reshape({featureMapSize, 12, 12})}, {"SwitchX", poolingSwitchX}, {"SwitchY", poolingSwitchY}},{{"InputGrad", convOutputGrad}});
 
     FreeWill::OperatorDescriptorHandle convSigmoidDerivative = model->addOperator("convSigmoidDerivative", FreeWill::OperatorName::ACTIVATION_DERIVATIVE,
     {{"Output", convOutput},{"OutputDelta", convOutputGrad}}, {{"InputDelta", convOutputGrad}},
@@ -143,8 +149,6 @@ void MNIST::trainConvolutionalModelWithModelClass()
         FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().close();
         return;
     }
-
-    return;
 
     float learningRate = 0.05;
 
@@ -188,7 +192,7 @@ void MNIST::trainConvolutionalModelWithModelClass()
 
             qDebug() << e << i<< "cost" << overallCost / (float) (batchSize*deviceCount) << (learningRate / (float)(deviceCount));
 
-            //emit updateCost(overallCost / (float) (batchSize*deviceCount));
+            emit updateCost(overallCost / (float) (batchSize*deviceCount));
             overallCost = 0.0;
 
             model->clearTensor(softmaxGrad );
@@ -219,7 +223,7 @@ void MNIST::trainConvolutionalModelWithModelClass()
             }
 
 
-            //emit updateProgress(i*(batchSize*deviceCount) / (float)(numOfImage), ((e-1)*numOfImage + i*batchSize*deviceCount) / (60.0f*numOfImage));
+            emit updateProgress(i*(batchSize*deviceCount) / (float)(numOfImage), ((e-1)*numOfImage + i*batchSize*deviceCount) / (60.0f*numOfImage));
 
         }
         auto endTime = std::chrono::steady_clock::now();

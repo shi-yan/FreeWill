@@ -34,7 +34,7 @@ namespace FreeWill
             :m_model(in.m_model),
               m_name(in.m_name),
               m_shape(in.m_shape),
-              m_isReshaped(false)
+              m_isReshaped(in.m_isReshaped)
         {}
 
         void operator=(const TensorDescriptorHandle &in)

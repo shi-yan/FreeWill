@@ -16,6 +16,7 @@
 #include "../Operator/SoftmaxLogLoss.h"
 #include "../Operator/SoftmaxLogLossDerivative.h"
 #include "../Operator/Duplicate.h"
+#include "../Operator/Reshape.h"
 #include "TensorDescriptor.h"
 #include <any>
 #include <fstream>
@@ -717,29 +718,91 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        void evaluate(std::vector<WorkerMessage*> &messageQueue)
+        void reshape(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, unsigned int deviceCount)
         {
-            int deviceId = 0;
-            int deviceCount = m_operators[DeviceUsed].size();
 
-            //std::vector<WorkerMessage*> messages(deviceCount, nullptr);
-
-            /*if (m_inputsNeedReshape.size() > 0)
+            if (m_inputsNeedReshape.size() > 0)
             {
                 for(unsigned int i = 0;i<m_inputsNeedReshape.size();++i)
                 {
-                    if (m_inputsNeedReshape[i].isReshaped())
+                    TensorDescriptor *tensorDescriptor = tensors[m_inputsNeedReshape[i].name()];
+                    Shape newShape = m_inputsNeedReshape[i].shape();
+
+                    for (unsigned int e = 0;e<deviceCount;++e)
                     {
-                        Shape newShape = m_inputs[inputName].shape();
+                        TensorBase<DeviceUsed> *tensorBase = tensorDescriptor->getTensorForDevice<DeviceUsed>(e);
+
                         if (! tensorBase->reshape(tensorDescriptor->m_isBatchTensor?(newShape + tensorDescriptor->m_batchSize):newShape ))
                         {
-                            std::cerr << "Reshape failed for input: " << inputName << " tensor: " << tensorBase->name() << " from: " << tensorBase->shape() << " to: " << m_inputs[inputName].shape() << std::endl;
-                            return false;
+                            std::cerr << "Reshape failed for tensor: " << tensorBase->name() << " from: " << tensorBase->shape() << " to: " << newShape << std::endl;
+                            return;
                         }
-                        m_inputsNeedReshape.push_back(m_inputs[inputName]);
                     }
                 }
-            }*/
+            }
+
+            if (m_outputsNeedReshape.size() > 0)
+            {
+                for(unsigned int i = 0;i<m_outputsNeedReshape.size();++i)
+                {
+                    TensorDescriptor *tensorDescriptor = tensors[m_outputsNeedReshape[i].name()];
+                    Shape newShape = m_outputsNeedReshape[i].shape();
+
+                    for (unsigned int e = 0;e<deviceCount;++e)
+                    {
+                        TensorBase<DeviceUsed> *tensorBase = tensorDescriptor->getTensorForDevice<DeviceUsed>(e);
+
+                        if (! tensorBase->reshape(tensorDescriptor->m_isBatchTensor?(newShape + tensorDescriptor->m_batchSize):newShape ))
+                        {
+                            std::cerr << "Reshape failed for tensor: " << tensorBase->name() << " from: " << tensorBase->shape() << " to: " << newShape << std::endl;
+                            return;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        template<DeviceType DeviceUsed>
+        Operator<DeviceUsed> *initReshape(std::map<std::string, FreeWill::TensorDescriptor*> &tensors, int deviceId)
+        {
+            Operator<DeviceUsed> *operatorBase = nullptr;
+            if (m_parameters.find("NewShape") == m_parameters.end())
+            {
+                qDebug() << "Reshape needs to specify newshape";
+                return nullptr;
+            }
+
+            switch(m_dataType)
+            {
+            case DataType::FLOAT:
+                operatorBase = new Reshape<DeviceUsed, float>(Shape());
+                break;
+            case DataType::DOUBLE:
+                operatorBase = new Reshape<DeviceUsed, double>(Shape());
+                break;
+            case DataType::UNSIGNED_INT:
+                operatorBase = new Reshape<DeviceUsed, unsigned int>(Shape());
+                break;
+            }
+
+            if (!setInput(operatorBase, "Tensor", tensors, deviceId))
+            {
+                delete operatorBase;
+                return nullptr;
+            }
+            return operatorBase;
+        }
+
+        template<DeviceType DeviceUsed>
+        void evaluate(std::vector<WorkerMessage*> &messageQueue, std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
+        {
+            int deviceId = 0;
+            unsigned int deviceCount = m_operators[DeviceUsed].size();
+
+            //std::vector<WorkerMessage*> messages(deviceCount, nullptr);
+
+            reshape<DeviceUsed>(tensors, deviceCount);
 
             auto iter = m_operators[DeviceUsed].begin();
             //auto startTime = std::chrono::steady_clock::now();
@@ -770,14 +833,16 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        void evaluateWithParameterUpdate(const std::map<std::string, std::any> &newParameters)
+        void evaluateWithParameterUpdate(const std::map<std::string, std::any> &newParameters, std::map<std::string, FreeWill::TensorDescriptor*> &tensors)
         {
             auto iter = m_operators[DeviceUsed].begin();
 
-
             int deviceId = 0;
-            int deviceCount = m_operators[DeviceUsed].size();
+            unsigned int deviceCount = m_operators[DeviceUsed].size();
+
             //std::vector<WorkerMessage*> messages(deviceCount, nullptr);
+
+            reshape<DeviceUsed>(tensors, deviceCount);
 
 
             for(;iter != m_operators[DeviceUsed].end(); ++iter)
@@ -797,6 +862,7 @@ namespace FreeWill
                 case FreeWill::OperatorName::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE:
                 case FreeWill::OperatorName::SOFTMAX_LOG_LOSS:
                 case FreeWill::OperatorName::SOFTMAX_LOG_LOSS_DERIVATIVE:
+                case FreeWill::OperatorName::RESHAPE:
                     break;
                 case FreeWill::OperatorName::ELEMENTWISE_ADD:
                     if (newParameters.find("Rate") != newParameters.end())
@@ -887,12 +953,17 @@ namespace FreeWill
                 case OperatorName::DUPLICATE:
                     operatorBase = initDuplicate<DeviceUsed>(tensors, i);
                 break;
+                case OperatorName::RESHAPE:
+                    operatorBase = initReshape<DeviceUsed>(tensors, i);
+                break;
                 }
 
                 if (!operatorBase)
                 {
                     return false;
                 }
+
+                reshape<DeviceUsed>(tensors, deviceCount);
 
                 if (!operatorBase->init())
                 {

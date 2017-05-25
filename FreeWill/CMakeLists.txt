@@ -113,6 +113,7 @@ set(FreeWill_SOURCES
     Operator/DotProductWithBiasDerivative.h
     Operator/MaxPooling.h
     Operator/MaxPoolingDerivative.h
+    Operator/Reshape.h
     Context/Context.h
     Context/Device.h
     Context/Device.cpp

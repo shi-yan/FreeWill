@@ -44,6 +44,7 @@ namespace FreeWill
         SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE,
         SOFTMAX_LOG_LOSS,
         SOFTMAX_LOG_LOSS_DERIVATIVE,
+        RESHAPE,
         DUPLICATE
     };
 
@@ -59,7 +60,8 @@ namespace FreeWill
                 {"SigmoidCrossEntropyLossDerivative", OperatorName::SIGMOID_CROSS_ENTROPY_LOSS_DERIVATIVE},
                 {"SoftmaxLogLoss", OperatorName::SOFTMAX_LOG_LOSS},
                 {"SoftmaxLogLossDerivative", OperatorName::SOFTMAX_LOG_LOSS_DERIVATIVE},
-                {"Duplicate", OperatorName::DUPLICATE}};
+                {"Duplicate", OperatorName::DUPLICATE},
+                {"Reshape", OperatorName::RESHAPE}};
 
     template <DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
     class Operator

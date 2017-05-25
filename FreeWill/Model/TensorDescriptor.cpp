@@ -82,7 +82,8 @@ FreeWill::TensorDescriptor::~TensorDescriptor()
 FreeWill::TensorDescriptorHandle::TensorDescriptorHandle(Model *model, const std::string &name, const Shape &shape)
     :m_model(model),
       m_name(name),
-      m_shape(shape)
+      m_shape(shape),
+      m_isReshaped(false)
 {}
 
 FreeWill::TensorDescriptorHandle &FreeWill::TensorDescriptorHandle::enableBatch()
