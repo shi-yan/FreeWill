@@ -1,17 +1,19 @@
 #include "Solver.h"
 #include "Model.h"
 #include <sstream>
+#include <iostream>
 
 bool FreeWill::Solver::init(FreeWill::Model *model)
 {
     if (!model->init(*this))
     {
         return false;
+        std::cerr << "can't init model" << std::endl;
     }
 
     clearUpdateOperators();
 
-    m_dataType = model->m_tensors[model->m_updatePairs.begin()->second.first]->m_dataType;
+    m_dataType = model->m_tensors[model->m_updatePairs.begin()->second.name()]->m_dataType;
 
     for(auto iter = model->m_updatePairs.begin(); iter != model->m_updatePairs.end(); ++iter)
     {
@@ -136,44 +138,64 @@ void FreeWill::Solver::clearUpdateOperators()
 
 void FreeWill::Solver::forward(FreeWill::Model *model)
 {
+
+    std::vector<WorkerMessage*> messageQueue;
+
     auto iter = model->m_forwardPath.begin();
 
     switch(m_deviceUsed)
     {
     case FreeWill::DeviceType::CPU_NAIVE:
+        messageQueue.reserve(model->m_forwardPath.size() * Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().deviceCount());
         for(; iter != model->m_forwardPath.end();++iter)
         {
-            model->m_operators[(*iter)]->evaluate<FreeWill::DeviceType::CPU_NAIVE>();
+            model->m_operators[(*iter)]->evaluate<FreeWill::DeviceType::CPU_NAIVE>(messageQueue);
             //break;
         }
         break;
     case FreeWill::DeviceType::GPU_CUDA:
         for(; iter != model->m_forwardPath.end();++iter)
         {
-            model->m_operators[(*iter)]->evaluate<FreeWill::DeviceType::GPU_CUDA>();
+            model->m_operators[(*iter)]->evaluate<FreeWill::DeviceType::GPU_CUDA>(messageQueue);
         }
         break;
+    }
+
+    for(int i=0;i<messageQueue.size();++i)
+    {
+        messageQueue[i]->join();
+        delete messageQueue[i];
     }
 }
 
 void FreeWill::Solver::backward(FreeWill::Model *model)
 {
+    std::vector<WorkerMessage*> messageQueue;
+
     auto iter = model->m_backwardPath.begin();
 
     switch(m_deviceUsed)
     {
     case FreeWill::DeviceType::CPU_NAIVE:
+        messageQueue.reserve(model->m_forwardPath.size() * Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().deviceCount());
+
         for(; iter != model->m_backwardPath.end();++iter)
         {
-            model->m_operators[(*iter)]->evaluate<FreeWill::DeviceType::CPU_NAIVE>();
+            model->m_operators[(*iter)]->evaluate<FreeWill::DeviceType::CPU_NAIVE>(messageQueue);
         }
         break;
     case FreeWill::DeviceType::GPU_CUDA:
         for(; iter != model->m_backwardPath.end();++iter)
         {
-            model->m_operators[(*iter)]->evaluate<FreeWill::DeviceType::GPU_CUDA>();
+            model->m_operators[(*iter)]->evaluate<FreeWill::DeviceType::GPU_CUDA>(messageQueue);
         }
         break;
+    }
+
+    for(int i=0;i<messageQueue.size();++i)
+    {
+        messageQueue[i]->join();
+        delete messageQueue[i];
     }
 }
 

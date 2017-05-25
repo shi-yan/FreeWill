@@ -17,7 +17,11 @@ namespace FreeWill
     class Model;
 
     template<DeviceType DeviceUsed>
-    class Device{};
+    class Device
+    {
+    public:
+        int m_debugId;
+    };
 
     template<>
     class Device<DeviceType::GPU_CUDA>

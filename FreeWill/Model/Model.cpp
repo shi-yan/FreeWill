@@ -10,16 +10,16 @@ FreeWill::Model* FreeWill::Model::create()
     return model;
 }
 
-FreeWill::TensorDescriptorHandle FreeWill::Model::addTensor(const std::string &name, const Shape &shape, bool isBatchTensor, bool isRandomlyInitialized, DataType dataType)
+FreeWill::TensorDescriptorHandle FreeWill::Model::addTensor(const std::string &name, const Shape &shape, DataType dataType, bool isBatchTensor, bool isRandomlyInitialized)
 {
     if (m_tensors.find(name) != m_tensors.end())
     {
-        return {std::string(), Shape()};
+        return TensorDescriptorHandle(this, std::string(), Shape());
     }
    
-    m_tensors[name] = new FreeWill::TensorDescriptor(name, shape, isBatchTensor, isRandomlyInitialized, dataType);
+    m_tensors[name] = new FreeWill::TensorDescriptor(name, shape, dataType, isBatchTensor, isRandomlyInitialized);
     
-   return {name, Shape()};
+    return TensorDescriptorHandle(this, name, Shape());
 }
 
 
@@ -87,11 +87,12 @@ bool FreeWill::Model::init(Solver const &solver)
 
         for(;iterOperator != m_operators.end(); ++iterOperator)
         {
-            std::cout << iterOperator->first << std::endl;
+            std::cout << iterOperator->first << m_operators.size()<< std::endl;
             OperatorDescriptor *descriptor = iterOperator->second;
 
             if (!descriptor->init<FreeWill::DeviceType::CPU_NAIVE>(m_tensors))
             {
+                std::cerr << "failed to init operator:" << iterOperator->first;
                 return false;
             }
         }

@@ -34,11 +34,11 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop()
             message->done();
             break;
         }
-
+        /*{
+            std::unique_lock<std::mutex> ol(outputLock);
+            std::cout << "thread: " << this_id << " device "<< m_deviceId << " output." << message->debug_num << std::endl;
+        }*/
         {
-            //std::unique_lock<std::mutex> ol(outputLock);
-            //std::cout << "thread: " << this_id << " output." << message->debug_num << std::endl;
-
             Operator<FreeWill::DeviceType::CPU_NAIVE> *operatorBase = message->template operatorBase<FreeWill::DeviceType::CPU_NAIVE>();
             operatorBase->evaluate();
         }
@@ -53,4 +53,13 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop()
 void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::init()
 {
     m_workerThread = new std::thread([=]{FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop();});
+    /*cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(m_deviceId, &cpuset);
+    int rc = pthread_setaffinity_np(m_workerThread->native_handle(),
+                                    sizeof(cpu_set_t), &cpuset);*/
+     struct sched_param param = {0};
+     param.sched_priority = 99;
+
+    pthread_setschedparam(m_workerThread->native_handle(), SCHED_BATCH, &param);
 }

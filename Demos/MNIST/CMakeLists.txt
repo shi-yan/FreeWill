@@ -100,6 +100,7 @@ set(MNIST_SOURCES
     MNISTFullyConnectedCPU.cpp
     MNISTFullyConnectedCPUModel.cpp
     MNISTFullyConnectedGPU.cpp
+    MNISTConvNetCPUModel.cpp
     MNIST.cpp
     ../../FreeWill/Tensor/Shape.cpp
     ../../FreeWill/Model/Solver.cpp

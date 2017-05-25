@@ -1,4 +1,5 @@
 #include "TensorDescriptor.h"
+#include "Model.h"
 
 FreeWill::TensorDescriptor::TensorDescriptor(const TensorDescriptor &in)
     :m_name(in.m_name),
@@ -22,7 +23,7 @@ void FreeWill::TensorDescriptor::operator =(const TensorDescriptor &in)
     m_tensors = in.m_tensors;
 }
 
-FreeWill::TensorDescriptor::TensorDescriptor(const std::string &name, const Shape &shape, bool isBatchTensor, bool isRandomlyInitialized, DataType dataType)
+FreeWill::TensorDescriptor::TensorDescriptor(const std::string &name, const Shape &shape, DataType dataType, bool isBatchTensor, bool isRandomlyInitialized)
     :m_name(name),
       m_shape(shape),
       m_isBatchTensor(isBatchTensor),
@@ -71,9 +72,54 @@ FreeWill::TensorDescriptor::~TensorDescriptor()
 }
 
 
-FreeWill::TensorDescriptorHandle operator^(FreeWill::TensorDescriptorHandle &handle, const FreeWill::Shape &newShape)
+/*FreeWill::TensorDescriptorHandle operator^(FreeWill::TensorDescriptorHandle &handle, const FreeWill::Shape &newShape)
 {
     FreeWill::TensorDescriptorHandle newHandle = handle;
-    newHandle.second = newShape;
+    newHandle.m_shape = newShape;
+    return newHandle;
+}*/
+
+FreeWill::TensorDescriptorHandle::TensorDescriptorHandle(Model *model, const std::string &name, const Shape &shape)
+    :m_model(model),
+      m_name(name),
+      m_shape(shape)
+{}
+
+FreeWill::TensorDescriptorHandle &FreeWill::TensorDescriptorHandle::enableBatch()
+{
+    TensorDescriptor* tensorDescriptor = m_model->m_tensors[m_name];
+
+    if (!tensorDescriptor->isInitialized())
+    {
+        tensorDescriptor->m_isBatchTensor = true;
+    }
+    else
+    {
+        std::cerr << "Can't enable batch after tensor is initialized!"<<std::endl;
+    }
+
+    return *this;
+}
+
+FreeWill::TensorDescriptorHandle &FreeWill::TensorDescriptorHandle::randomize()
+{
+    TensorDescriptor* tensorDescriptor = m_model->m_tensors[m_name];
+
+    if (!tensorDescriptor->isInitialized())
+    {
+        tensorDescriptor->m_isRandomlyInitialized = true;
+    }
+    else
+    {
+        std::cerr << "Can't set randomization after tensor is initialized!"<<std::endl;
+    }
+    return *this;
+}
+
+FreeWill::TensorDescriptorHandle FreeWill::TensorDescriptorHandle::reshape(const FreeWill::Shape &newShape) const
+{
+    FreeWill::TensorDescriptorHandle newHandle = *this;
+    newHandle.m_shape = newShape;
+    newHandle.m_isReshaped = true;
     return newHandle;
 }

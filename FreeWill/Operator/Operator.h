@@ -86,6 +86,7 @@ namespace FreeWill
             {
                 struct ParameterDescriptor d;
                 d.m_name = (*iterInput);
+                d.m_tensor = nullptr;
                 m_inputParameters[(*iterInput)] = d;
             }
 
@@ -95,6 +96,7 @@ namespace FreeWill
            {
                 struct ParameterDescriptor d;
                 d.m_name = (*iterOutput);
+                d.m_tensor = nullptr;
                 m_outputParameters[(*iterOutput)] = d;
            }
         }
@@ -111,18 +113,24 @@ namespace FreeWill
 
             for (; iterInput != m_inputParameters.end(); ++iterInput)
             {
-                std::cerr << "Input: " << iterInput->first;
-                std::cerr << " Tensor: " << iterInput->second.m_tensor->name();
-                std::cerr << " Shape: " << (iterInput->second.m_tensor->shape()) << std::endl;
+                if (iterInput->second.m_tensor)
+                {
+                    std::cerr << "Input: " << iterInput->first;
+                    std::cerr << " Tensor: " << iterInput->second.m_tensor->name();
+                    std::cerr << " Shape: " << (iterInput->second.m_tensor->shape()) << std::endl;
+                }
             }
 
             typename std::map<std::string, struct ParameterDescriptor>::iterator iterOutput = m_outputParameters.begin();
 
             for (; iterOutput != m_outputParameters.end(); ++iterOutput)
             {
-                std::cerr << "Output: " << iterOutput->first;
-                std::cerr << " Tensor: " << iterOutput->second.m_tensor->name();
-                std::cerr << " Shape: " << (iterOutput->second.m_tensor->shape()) << std::endl;
+                if (iterOutput->second.m_tensor)
+                {
+                    std::cerr << "Output: " << iterOutput->first;
+                    std::cerr << " Tensor: " << iterOutput->second.m_tensor->name();
+                    std::cerr << " Shape: " << (iterOutput->second.m_tensor->shape()) << std::endl;
+                }
             }
 
             std::cerr << "================= ===================== =========================" << std::endl;

@@ -142,13 +142,17 @@ void MNIST::run()
     case TestMode::GPU_CONVNET:
         trainConvolutionalModelGPU();
         break;
+    case TestMode::CPU_CONVNET_MODEL:
+        trainConvolutionalModelWithModelClass();
+        break;
     }
 
     FreeWill::Context<FreeWill::DeviceType::GPU_CUDA>::getSingleton().close();
 }
 
-QMap<QString, MNIST::TestMode> MNIST::testModeLoopup = {{"CPU_FULLYCONNECTED", MNIST::TestMode::CPU_FULLYCONNECTED},
+QMap<QString, MNIST::TestMode> MNIST::testModeLookup = {{"CPU_FULLYCONNECTED", MNIST::TestMode::CPU_FULLYCONNECTED},
                                                         {"CPU_FULLYCONNECTED_MODEL", MNIST::TestMode::CPU_FULLYCONNECTED_MODEL},
                                                         {"CPU_CONVNET",MNIST::TestMode::CPU_CONVNET},
+                                                        {"CPU_CONVNET_MODEL", MNIST::TestMode::CPU_CONVNET_MODEL},
                                                         {"GPU_FULLYCONNECTED",MNIST::TestMode::GPU_FULLYCONNECTED},
                                                         {"GPU_CONVNET",MNIST::TestMode::GPU_CONVNET}};

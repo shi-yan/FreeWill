@@ -32,11 +32,12 @@ public:
         CPU_FULLYCONNECTED,
         CPU_FULLYCONNECTED_MODEL,
         CPU_CONVNET,
+        CPU_CONVNET_MODEL,
         GPU_FULLYCONNECTED,
         GPU_CONVNET
     };
 
-    static QMap<QString, MNIST::TestMode> testModeLoopup;
+    static QMap<QString, MNIST::TestMode> testModeLookup;
 
 private:
     TestMode m_testMode;
@@ -144,6 +145,7 @@ public:
 
     void trainFullyConnectedModel();
     void trainConvolutionalModel();
+    void trainConvolutionalModelWithModelClass();
     void trainConvolutionalModelGPU();
     void trainFullyConnectedModelWithModelClass();
     void trainFullyConnectedModelGPU();

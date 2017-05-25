@@ -18,13 +18,55 @@ namespace FreeWill
         UNSIGNED_INT
     };
 
-    typedef std::pair<std::string, Shape> TensorDescriptorHandle;
-
     class Model;
+
+    class TensorDescriptorHandle
+    {
+    private:
+        Model *m_model;
+        std::string m_name;
+        Shape m_shape;
+        bool m_isReshaped;
+
+    public:
+        TensorDescriptorHandle(Model *model = nullptr, const std::string &name = std::string(), const Shape &shape = Shape());
+        TensorDescriptorHandle(const TensorDescriptorHandle &in)
+            :m_model(in.m_model),
+              m_name(in.m_name),
+              m_shape(in.m_shape),
+              m_isReshaped(false)
+        {}
+
+        void operator=(const TensorDescriptorHandle &in)
+        {
+            m_model = in.m_model;
+            m_name = in.m_name;
+            m_shape = in.m_shape;
+            m_isReshaped = in.m_isReshaped;
+        }
+        TensorDescriptorHandle &enableBatch();
+        TensorDescriptorHandle &randomize();
+
+        const std::string &name() const
+        {
+            return m_name;
+        }
+
+        const Shape &shape() const
+        {
+            return m_shape;
+        }
+
+        bool isReshaped() const
+        {
+            return m_isReshaped;
+        }
+
+        TensorDescriptorHandle reshape(const Shape &newShape) const;
+    };
 
     class TensorDescriptor
     {
-        friend class Model;
     public:
         std::string m_name;
         Shape m_shape;
@@ -35,11 +77,16 @@ namespace FreeWill
 
         std::map<DeviceType, std::vector<std::variant<TensorBase<DeviceType::GPU_CUDA>*, TensorBase<DeviceType::CPU_NAIVE>*>>> m_tensors;
 
-        TensorDescriptor(const std::string &name, const Shape &shape, bool isBatchTensor = false, bool isRandomlyInitialized = true, DataType dataType = DataType::FLOAT);
+        TensorDescriptor(const std::string &name, const Shape &shape, DataType dataType = DataType::FLOAT, bool isBatchTensor = false, bool isRandomlyInitialized = false);
         ~TensorDescriptor();
 
         void operator=(const TensorDescriptor &in);
         TensorDescriptor(const TensorDescriptor &in);
+
+        bool isInitialized()
+        {
+            return !(m_tensors.size() == 0);
+        }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
         void allocateTensor(unsigned int batchSize)
@@ -108,7 +155,5 @@ namespace FreeWill
         }
     };
 }
-
-FreeWill::TensorDescriptorHandle operator^(FreeWill::TensorDescriptorHandle &handle, const FreeWill::Shape &newShape);
 
 #endif

@@ -17,9 +17,11 @@
 namespace FreeWill
 {
     class Solver;
+    class TensorDescriptorHandle;
     class Model
     {
         friend class Solver;
+        friend class TensorDescriptorHandle;
 
     private:
         Model();
@@ -39,7 +41,7 @@ namespace FreeWill
         static Model* create();
         ~Model();
         bool init(Solver const &solver);
-        TensorDescriptorHandle addTensor(const std::string &name, const Shape &shape, bool isBatchTensor = false, bool isRandomlyInitialized = true, DataType dataType = DataType::FLOAT);
+        TensorDescriptorHandle addTensor(const std::string &name, const Shape &shape, DataType dataType = DataType::FLOAT, bool isBatchTensor = false, bool isRandomlyInitialized = false);
         OperatorDescriptorHandle addOperator(const std::string &name,
                         const std::string &operatorName,
                         const std::map<std::string, TensorDescriptorHandle> &inputs,
@@ -62,7 +64,7 @@ namespace FreeWill
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
         const DataType *readonlyAccess(const TensorDescriptorHandle &tensorDescriptorHandle, int deviceId = 0)
         {
-           TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
+           TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.name()];
 
            TensorBase<DeviceUsed>* tensorBase = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][deviceId]);
 
@@ -72,7 +74,7 @@ namespace FreeWill
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
         DataType *beginMutateData(const TensorDescriptorHandle &tensorDescriptorHandle, int deviceId = 0)
         {
-           TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
+           TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.name()];
 
            TensorBase<DeviceUsed>* tensorBase = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][deviceId]);
 
@@ -82,7 +84,7 @@ namespace FreeWill
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
         void endMutateData(const TensorDescriptorHandle &tensorDescriptorHandle, int deviceId = -1)
         {
-            TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
+            TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.name()];
 
             if (deviceId < 0)
             {
@@ -106,7 +108,7 @@ namespace FreeWill
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
         void clearTensor(const TensorDescriptorHandle &tensorDescriptorHandle)
         {
-            TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
+            TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.name()];
 
             for(unsigned int i = 0; i < tensorDescriptor->m_tensors[DeviceUsed].size(); ++i)
             {
@@ -123,7 +125,7 @@ namespace FreeWill
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE, typename DataType = float>
         std::string debugOutputTensor(const TensorDescriptorHandle &TensorDescriptorHandle)
         {
-            TensorDescriptor* tensorDescriptor = m_tensors[TensorDescriptorHandle.first];
+            TensorDescriptor* tensorDescriptor = m_tensors[TensorDescriptorHandle.name()];
 
             std::stringstream ss;
 
@@ -140,7 +142,7 @@ namespace FreeWill
                                             const TensorDescriptorHandle &tensorDescriptorHandle)
         {
 
-            TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.first];
+            TensorDescriptor* tensorDescriptor = m_tensors[tensorDescriptorHandle.name()];
 
 
             TensorBase<DeviceUsed> *tensorBase = std::get<TensorBase<DeviceUsed>*>(tensorDescriptor->m_tensors[DeviceUsed][0]);
@@ -165,9 +167,9 @@ namespace FreeWill
                                                       const TensorDescriptorHandle &tensorDescriptorHandle,
                                                       const TensorDescriptorHandle &gradientDescriptorHandle)
         {
-            TensorDescriptor *operandATensorDescriptor = m_tensors[tensorDescriptorHandle.first];
+            TensorDescriptor *operandATensorDescriptor = m_tensors[tensorDescriptorHandle.name()];
 
-            TensorDescriptor *operandBTensorDescriptor = m_tensors[gradientDescriptorHandle.first];
+            TensorDescriptor *operandBTensorDescriptor = m_tensors[gradientDescriptorHandle.name()];
 
             TensorBase<DeviceUsed> *operandATensorBase = std::get<TensorBase<DeviceUsed>*>(operandATensorDescriptor->m_tensors[DeviceUsed][0]);
             TensorBase<DeviceUsed> *operandBTensorBase = std::get<TensorBase<DeviceUsed>*>(operandBTensorDescriptor->m_tensors[DeviceUsed][0]);
@@ -184,7 +186,7 @@ namespace FreeWill
         void generateBroadcastFirstDeviceTensorOperators(std::vector<std::variant<Operator<DeviceType::CPU_NAIVE>*, Operator<DeviceType::GPU_CUDA>*>> &operatorList,
                                                       const TensorDescriptorHandle &tensorDescriptorHandle)
         {
-            TensorDescriptor *operandATensorDescriptor = m_tensors[tensorDescriptorHandle.first];
+            TensorDescriptor *operandATensorDescriptor = m_tensors[tensorDescriptorHandle.name()];
 
             TensorBase<DeviceUsed> *operandATensorBase = std::get<TensorBase<DeviceUsed>*>(operandATensorDescriptor->m_tensors[DeviceUsed][0]);
 

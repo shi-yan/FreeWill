@@ -22,23 +22,23 @@ void FreeWillUnitTest::modelXORTest()
     //FreeWill::RandomNumberGenerator::getSingleton().beginReplay("recordRandom.bin");
     FreeWill::Model *model = FreeWill::Model::create();
 
-    FreeWill::TensorDescriptorHandle input = model->addTensor("input", {2}, true, false);
-    FreeWill::TensorDescriptorHandle firstLayerActivation = model->addTensor("firstLayerActivation", {2}, true, false);
-    FreeWill::TensorDescriptorHandle firstLayerDelta = model->addTensor("firstLayerDelta", {2}, true, false);
-    FreeWill::TensorDescriptorHandle secondLayerActivation = model->addTensor("secondLayerActivation", {1}, true, false);
-    FreeWill::TensorDescriptorHandle secondLayerDelta = model->addTensor("secondLayerDelta", {1}, true, false);
-    FreeWill::TensorDescriptorHandle cost = model->addTensor("cost", {1}, true, false);
-    FreeWill::TensorDescriptorHandle label = model->addTensor("label",{1}, true, false);
+    FreeWill::TensorDescriptorHandle input = model->addTensor("input", {2}).enableBatch();
+    FreeWill::TensorDescriptorHandle firstLayerActivation = model->addTensor("firstLayerActivation", {2}).enableBatch();
+    FreeWill::TensorDescriptorHandle firstLayerDelta = model->addTensor("firstLayerDelta", {2}).enableBatch();
+    FreeWill::TensorDescriptorHandle secondLayerActivation = model->addTensor("secondLayerActivation", {1}).enableBatch();
+    FreeWill::TensorDescriptorHandle secondLayerDelta = model->addTensor("secondLayerDelta", {1}).enableBatch();
+    FreeWill::TensorDescriptorHandle cost = model->addTensor("cost", {1}).enableBatch();
+    FreeWill::TensorDescriptorHandle label = model->addTensor("label",{1}, FreeWill::DataType::UNSIGNED_INT).enableBatch();
 
-    FreeWill::TensorDescriptorHandle firstLayerWeight = model->addTensor("firstLayerWeight", {2,2});
-    FreeWill::TensorDescriptorHandle firstLayerBias = model->addTensor("firstLayerBias", {2});
-    FreeWill::TensorDescriptorHandle firstLayerWeightDerivative = model->addTensor("firstLayerWeightDerivative", {2,2}, false, false);
-    FreeWill::TensorDescriptorHandle firstLayerBiasDerivative = model->addTensor("firstLayerBiasDerivative", {2}, false, false);
-    FreeWill::TensorDescriptorHandle secondLayerWeight = model->addTensor("secondLayerWeight",{1,2});
-    FreeWill::TensorDescriptorHandle secondLayerBias = model->addTensor("secondLayerBias", {1});
-    FreeWill::TensorDescriptorHandle secondLayerWeightDerivative = model->addTensor("secondLayerWeightDerivative", {1,2}, false, false);
-    FreeWill::TensorDescriptorHandle secondLayerBiasDerivative = model->addTensor("secondLayerBiasDerivative", {1}, false, false);
-    FreeWill::TensorDescriptorHandle inputNeuronDelta = model->addTensor("inputNeuronDelta", {2}, true, false);
+    FreeWill::TensorDescriptorHandle firstLayerWeight = model->addTensor("firstLayerWeight", {2,2}).randomize();
+    FreeWill::TensorDescriptorHandle firstLayerBias = model->addTensor("firstLayerBias", {2}).randomize();
+    FreeWill::TensorDescriptorHandle firstLayerWeightDerivative = model->addTensor("firstLayerWeightDerivative", {2,2});
+    FreeWill::TensorDescriptorHandle firstLayerBiasDerivative = model->addTensor("firstLayerBiasDerivative", {2});
+    FreeWill::TensorDescriptorHandle secondLayerWeight = model->addTensor("secondLayerWeight",{1,2}).randomize();
+    FreeWill::TensorDescriptorHandle secondLayerBias = model->addTensor("secondLayerBias", {1}).randomize();
+    FreeWill::TensorDescriptorHandle secondLayerWeightDerivative = model->addTensor("secondLayerWeightDerivative", {1,2});
+    FreeWill::TensorDescriptorHandle secondLayerBiasDerivative = model->addTensor("secondLayerBiasDerivative", {1});
+    FreeWill::TensorDescriptorHandle inputNeuronDelta = model->addTensor("inputNeuronDelta", {2}).enableBatch();
 
 
     FreeWill::OperatorDescriptorHandle firstLayerFullyConnected = model->addOperator("firstLayerFullyConnected", FreeWill::OperatorName::DOT_PRODUCT_WITH_BIAS,

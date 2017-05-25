@@ -20,6 +20,7 @@
 #include <any>
 #include <fstream>
 #include "../Context/WorkerMessage.h"
+#include <chrono>
 
 namespace FreeWill
 {
@@ -54,6 +55,8 @@ namespace FreeWill
         std::map<std::string, FreeWill::TensorDescriptorHandle> m_outputs;
         std::map<std::string, std::any> m_parameters;
         std::map<DeviceType, std::vector<std::variant<Operator<DeviceType::GPU_CUDA>*, Operator<DeviceType::CPU_NAIVE>*>>> m_operators;
+        std::vector<FreeWill::TensorDescriptorHandle> m_inputsNeedReshape;
+        std::vector<FreeWill::TensorDescriptorHandle> m_outputsNeedReshape;
 
         OperatorDescriptor(const std::string &name, OperatorName operatorName,
                            const std::map<std::string, FreeWill::TensorDescriptorHandle> &inputs,
@@ -72,15 +75,18 @@ namespace FreeWill
                 return false;
             }
 
-            TensorBase<DeviceUsed> *tensorBase = tensors[m_inputs[inputName].first]->getTensorForDevice<DeviceUsed>(deviceId);
+            TensorDescriptor *tensorDescriptor = tensors[m_inputs[inputName].name()];
+            TensorBase<DeviceUsed> *tensorBase = tensorDescriptor->getTensorForDevice<DeviceUsed>(deviceId);
 
-            if (m_inputs[inputName].second != Shape())
+            if (m_inputs[inputName].isReshaped())
             {
-                if (! tensorBase->reshape(m_inputs[inputName].second))
+                Shape newShape = m_inputs[inputName].shape();
+                if (! tensorBase->reshape(tensorDescriptor->m_isBatchTensor?(newShape + tensorDescriptor->m_batchSize):newShape ))
                 {
-                    std::cerr << "Reshape failed for input: " << inputName << " tensor: " << tensorBase->name() << " from: " << tensorBase->shape() << " to: " << m_inputs[inputName].second << std::endl;
+                    std::cerr << "Reshape failed for input: " << inputName << " tensor: " << tensorBase->name() << " from: " << tensorBase->shape() << " to: " << m_inputs[inputName].shape() << std::endl;
                     return false;
                 }
+                m_inputsNeedReshape.push_back(m_inputs[inputName]);
             }
 
             operatorBase->setInputParameter(inputName, tensorBase);
@@ -96,15 +102,19 @@ namespace FreeWill
                 return false;
             }
 
-            TensorBase<DeviceUsed> *tensorBase = tensors[m_outputs[outputName].first]->getTensorForDevice<DeviceUsed>(deviceId);
+            TensorDescriptor *tensorDescriptor = tensors[m_outputs[outputName].name()];
+            TensorBase<DeviceUsed> *tensorBase = tensorDescriptor->getTensorForDevice<DeviceUsed>(deviceId);
 
-            if (m_outputs[outputName].second != Shape())
+            if (m_outputs[outputName].isReshaped())
             {
-                if (! tensorBase->reshape(m_outputs[outputName].second))
+                Shape newShape = m_outputs[outputName].shape();
+
+                if (! tensorBase->reshape(tensorDescriptor->m_isBatchTensor?(newShape + tensorDescriptor->m_batchSize):newShape))
                 {
-                    std::cerr << "Reshape failed for output: " << outputName << " tensor: " << tensorBase->name() << " from: " << tensorBase->shape() << " to: " << m_outputs[outputName].second << std::endl;
+                    std::cerr << "Reshape failed for output: " << outputName << " tensor: " << tensorBase->name() << " from: " << tensorBase->shape() << " to: " << m_outputs[outputName].shape() << std::endl;
                     return false;
                 }
+                m_outputsNeedReshape.push_back(m_outputs[outputName]);
             }
 
             operatorBase->setOutputParameter(outputName, tensorBase);
@@ -208,6 +218,7 @@ namespace FreeWill
             Operator<DeviceUsed> *operatorBase = nullptr;
             if (m_parameters.find("Mode") == m_parameters.end())
             {
+                qDebug() << "activation needs to specify mode";
                 return nullptr;
             }
 
@@ -554,16 +565,27 @@ namespace FreeWill
                 return nullptr;
             }
 
-
-            if (!setInput(operatorBase, "Output", tensors, deviceId) ||
-                    !setInput(operatorBase, "OutputGrad", tensors, deviceId) ||
-                    !setInput(operatorBase, "Input", tensors, deviceId) ||
+            if constexpr (DeviceUsed == FreeWill::DeviceType::CPU_NAIVE)
+            {
+                if (!setInput(operatorBase, "OutputGrad", tensors, deviceId) ||
                     !setInput(operatorBase, "SwitchX", tensors, deviceId) ||
                     !setInput(operatorBase, "SwitchY", tensors, deviceId) ||
                     !setOutput(operatorBase, "InputGrad", tensors, deviceId))
+                {
+                    delete operatorBase;
+                    return nullptr;
+                }
+            }
+            else if constexpr (DeviceUsed == FreeWill::DeviceType::GPU_CUDA)
             {
-                delete operatorBase;
-                return nullptr;
+                if (!setInput(operatorBase, "Output", tensors, deviceId) ||
+                    !setInput(operatorBase, "OutputGrad", tensors, deviceId) ||
+                    !setInput(operatorBase, "Input", tensors, deviceId) ||
+                    !setOutput(operatorBase, "InputGrad", tensors, deviceId))
+                {
+                    delete operatorBase;
+                    return nullptr;
+                }
             }
 
             return operatorBase;
@@ -695,30 +717,56 @@ namespace FreeWill
         }
 
         template<DeviceType DeviceUsed>
-        void evaluate()
+        void evaluate(std::vector<WorkerMessage*> &messageQueue)
         {
             int deviceId = 0;
             int deviceCount = m_operators[DeviceUsed].size();
 
-            std::vector<WorkerMessage*> messages(deviceCount, nullptr);
+            //std::vector<WorkerMessage*> messages(deviceCount, nullptr);
 
+            /*if (m_inputsNeedReshape.size() > 0)
+            {
+                for(unsigned int i = 0;i<m_inputsNeedReshape.size();++i)
+                {
+                    if (m_inputsNeedReshape[i].isReshaped())
+                    {
+                        Shape newShape = m_inputs[inputName].shape();
+                        if (! tensorBase->reshape(tensorDescriptor->m_isBatchTensor?(newShape + tensorDescriptor->m_batchSize):newShape ))
+                        {
+                            std::cerr << "Reshape failed for input: " << inputName << " tensor: " << tensorBase->name() << " from: " << tensorBase->shape() << " to: " << m_inputs[inputName].shape() << std::endl;
+                            return false;
+                        }
+                        m_inputsNeedReshape.push_back(m_inputs[inputName]);
+                    }
+                }
+            }*/
 
             auto iter = m_operators[DeviceUsed].begin();
+            //auto startTime = std::chrono::steady_clock::now();
 
             for(;iter != m_operators[DeviceUsed].end(); ++iter)
             {
                 Operator<DeviceUsed> *operatorBase = std::get<Operator<DeviceUsed>*>(*iter);
-                messages[deviceId] = new WorkerMessage(WorkerMessage::Type::FORWARD, operatorBase);
-                Context<DeviceUsed>::getSingleton().pushWork(deviceId, messages[deviceId]);
+                /*messages[deviceId]*/ WorkerMessage *message = new WorkerMessage(WorkerMessage::Type::FORWARD, operatorBase);
+                //messages[deviceId]->debug_num = deviceId;
+                Context<DeviceUsed>::getSingleton().pushWork(deviceId, /*messages[deviceId]*/message);
                 deviceId++;
+                messageQueue.push_back(message);
             }
 
+            //auto middle = std::chrono::steady_clock::now();
 
-            for(int i =0;i<deviceCount;++i)
+            /*for(int i =0;i<deviceCount;++i)
             {
                 messages[i]->join();
                 delete messages[i];
-            }
+            }*/
+
+            //auto endTime = std::chrono::steady_clock::now();
+            //auto diff = middle - startTime;
+
+            //std::cout << "time for wait: " << std::chrono::duration <double, std::milli> (diff).count() << " ms used for 1 epoch" << std::endl;
+
         }
 
         template<DeviceType DeviceUsed>
@@ -729,7 +777,7 @@ namespace FreeWill
 
             int deviceId = 0;
             int deviceCount = m_operators[DeviceUsed].size();
-            std::vector<WorkerMessage*> messages(deviceCount, nullptr);
+            //std::vector<WorkerMessage*> messages(deviceCount, nullptr);
 
 
             for(;iter != m_operators[DeviceUsed].end(); ++iter)
@@ -771,16 +819,16 @@ namespace FreeWill
 
                 //operatorBase->evaluate();
 
-                messages[deviceId] = new WorkerMessage(WorkerMessage::Type::FORWARD, operatorBase);
-                Context<DeviceUsed>::getSingleton().pushWork(deviceId, messages[deviceId]);
+                /*messages[deviceId]*/ WorkerMessage *message = new WorkerMessage(WorkerMessage::Type::FORWARD, operatorBase);
+                Context<DeviceUsed>::getSingleton().pushWork(deviceId, /*messages[deviceId]*/ message);
                 deviceId++;
             }
 
-            for(int i =0;i<deviceCount;++i)
+            /*for(int i =0;i<deviceCount;++i)
             {
                 messages[i]->join();
                 delete messages[i];
-            }
+            }*/
 
         }
 
@@ -788,6 +836,8 @@ namespace FreeWill
         bool init(std::map<std::string, TensorDescriptor*> &tensors)
         {
             int deviceCount = Context<DeviceUsed>::getSingleton().deviceCount();
+
+            qDebug() << "init operator" << m_name.c_str();
 
             for(int i =0;i<deviceCount;++i)
             {

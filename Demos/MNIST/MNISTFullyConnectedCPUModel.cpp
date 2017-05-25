@@ -11,36 +11,36 @@ void MNIST::trainFullyConnectedModelWithModelClass()
 {
     qDebug() << "================== CPU Fully Connected network with model class ==========================";
 
-    FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().open(1);
+    FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().open();
 
-    unsigned int batchSize = 16;
+    unsigned int batchSize = 2;
 
     FreeWill::Model *model = FreeWill::Model::create();
 
-    FreeWill::TensorDescriptorHandle image = model->addTensor("image", {28*28}, true, false);
-    FreeWill::TensorDescriptorHandle label = model->addTensor("label", {1}, true, false, FreeWill::DataType::UNSIGNED_INT);
-    FreeWill::TensorDescriptorHandle fullyConnected1Weight = model->addTensor("fullyConnected1Weight", {100, 28*28});
+    FreeWill::TensorDescriptorHandle image = model->addTensor("image", {28*28}).enableBatch();
+    FreeWill::TensorDescriptorHandle label = model->addTensor("label", {1}, FreeWill::DataType::UNSIGNED_INT).enableBatch();
+    FreeWill::TensorDescriptorHandle fullyConnected1Weight = model->addTensor("fullyConnected1Weight", {100, 28*28}).randomize();
     FreeWill::TensorDescriptorHandle fullyConnected1Bias = model->addTensor("fullyConnected1Bias", {100});
-    FreeWill::TensorDescriptorHandle fullyConnected1Output = model->addTensor("fullyConnected1Output", {100}, true, false);
+    FreeWill::TensorDescriptorHandle fullyConnected1Output = model->addTensor("fullyConnected1Output", {100}).enableBatch();
     FreeWill::TensorDescriptorHandle fullyConnected2Weight = model->addTensor("fullyConnected2Weight", {10,100});
     FreeWill::TensorDescriptorHandle fullyConnected2Bias = model->addTensor("fullyConnected2Bias", {10});
-    FreeWill::TensorDescriptorHandle fullyConnected2Output = model->addTensor("fullyConnected2Output", {10}, true, false);
-    FreeWill::TensorDescriptorHandle softmaxOutput = model->addTensor("softmaxOutput", {10}, true, false);
-    FreeWill::TensorDescriptorHandle cost = model->addTensor("cost", {1}, true, false);
+    FreeWill::TensorDescriptorHandle fullyConnected2Output = model->addTensor("fullyConnected2Output", {10}).enableBatch();
+    FreeWill::TensorDescriptorHandle softmaxOutput = model->addTensor("softmaxOutput", {10}).enableBatch();
+    FreeWill::TensorDescriptorHandle cost = model->addTensor("cost", {1}).enableBatch();
 
-    FreeWill::TensorDescriptorHandle softmaxGrad = model->addTensor("softmaxGrad", {10}, true, false);
+    FreeWill::TensorDescriptorHandle softmaxGrad = model->addTensor("softmaxGrad", {10}).enableBatch();
 
-    FreeWill::TensorDescriptorHandle fullyConnected2WeightGrad = model->addTensor("fullyConnected2WeightGrad", {10,100}, false, false);
+    FreeWill::TensorDescriptorHandle fullyConnected2WeightGrad = model->addTensor("fullyConnected2WeightGrad", {10,100});
 
-    FreeWill::TensorDescriptorHandle fullyConnected2BiasGrad = model->addTensor("fullyConnected2BiasGrad", {10}, false, false);
+    FreeWill::TensorDescriptorHandle fullyConnected2BiasGrad = model->addTensor("fullyConnected2BiasGrad", {10});
 
-    FreeWill::TensorDescriptorHandle fullyConnected1OutputGrad = model->addTensor("fullyConnected1OutputGrad", {100}, true, false);
+    FreeWill::TensorDescriptorHandle fullyConnected1OutputGrad = model->addTensor("fullyConnected1OutputGrad", {100}).enableBatch();
 
-    FreeWill::TensorDescriptorHandle fullyConnected1WeightGrad = model->addTensor("fullyConnected1WeightGrad", {100,28*28}, false, false);
+    FreeWill::TensorDescriptorHandle fullyConnected1WeightGrad = model->addTensor("fullyConnected1WeightGrad", {100,28*28});
 
-    FreeWill::TensorDescriptorHandle fullyConnected1BiasGrad = model->addTensor("fullyConnected1BiasGrad", {100}, false, false);
+    FreeWill::TensorDescriptorHandle fullyConnected1BiasGrad = model->addTensor("fullyConnected1BiasGrad", {100});
 
-    FreeWill::TensorDescriptorHandle imageGrad = model->addTensor("imageGrad", {28*28}, true, false);
+    FreeWill::TensorDescriptorHandle imageGrad = model->addTensor("imageGrad", {28*28}).enableBatch();
 
 
     FreeWill::OperatorDescriptorHandle fullyConnected1 = model->addOperator("fullyConnected1", FreeWill::OperatorName::DOT_PRODUCT_WITH_BIAS,
@@ -80,9 +80,13 @@ void MNIST::trainFullyConnectedModelWithModelClass()
     FreeWill::Solver solver;
     solver.m_deviceUsed = FreeWill::DeviceType::CPU_NAIVE;
     solver.m_batchSize = batchSize;
-    solver.init(model);
-
-    float learningRate = 0.02;
+    if (!solver.init(model))
+    {
+        delete model;
+        FreeWill::Context<FreeWill::DeviceType::CPU_NAIVE>::getSingleton().close();
+        return;
+    }
+    float learningRate = 0.05;
 
     float overallCost = 0.0;
     const int testInterval = 2000;
@@ -141,7 +145,7 @@ void MNIST::trainFullyConnectedModelWithModelClass()
             backwardTime += std::chrono::duration <double, std::nano>(backwardEndTime - backwardStartTime);
 
 
-            solver.update(-learningRate/(float)deviceCount);
+            solver.update(-learningRate/(float)(deviceCount*batchSize));
 
             if (i%30000 == 0)
             {

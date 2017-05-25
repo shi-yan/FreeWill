@@ -19,7 +19,8 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
 
-    parser.addOptions({{{"m", "mode"}, "Select test mode [CPU_FULLYCONNECTED, CPU_FULLYCONNECTED_MODEL, CPU_CONVNET, GPU_FULLYCONNECTED, GPU_CONVNET]", "GPU_CONVNET"}});
+    parser.addOptions({{{"m", "mode"}, "Select test mode [CPU_FULLYCONNECTED, "
+                        "CPU_FULLYCONNECTED_MODEL, CPU_CONVNET, GPU_FULLYCONNECTED, GPU_CONVNET, CPU_CONVNET_MODEL]", "GPU_CONVNET"}});
 
     parser.process(a);
 
@@ -27,9 +28,9 @@ int main(int argc, char *argv[])
 
     MNIST::TestMode testMode = MNIST::TestMode::GPU_CONVNET;
 
-    if (MNIST::testModeLoopup.contains(testModeString))
+    if (MNIST::testModeLookup.contains(testModeString))
     {
-        testMode = MNIST::testModeLoopup[testModeString];
+        testMode = MNIST::testModeLookup[testModeString];
     }
     else
     {
