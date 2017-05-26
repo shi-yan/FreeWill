@@ -244,7 +244,7 @@ void MNIST::trainFullyConnectedModelWithModelClass()
         }
 
 
-        break;
+        //break;
 
     }
 

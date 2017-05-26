@@ -800,7 +800,7 @@ namespace FreeWill
             int deviceId = 0;
             unsigned int deviceCount = m_operators[DeviceUsed].size();
 
-            //std::vector<WorkerMessage*> messages(deviceCount, nullptr);
+            std::vector<WorkerMessage*> messages(deviceCount, nullptr);
 
             reshape<DeviceUsed>(tensors, deviceCount);
 
@@ -810,20 +810,20 @@ namespace FreeWill
             for(;iter != m_operators[DeviceUsed].end(); ++iter)
             {
                 Operator<DeviceUsed> *operatorBase = std::get<Operator<DeviceUsed>*>(*iter);
-                /*messages[deviceId]*/ WorkerMessage *message = new WorkerMessage(WorkerMessage::Type::FORWARD, operatorBase);
-                //messages[deviceId]->debug_num = deviceId;
-                Context<DeviceUsed>::getSingleton().pushWork(deviceId, /*messages[deviceId]*/message);
+                messages[deviceId] = new WorkerMessage(WorkerMessage::Type::FORWARD, operatorBase);
+                messages[deviceId]->debug_num = deviceId;
+                Context<DeviceUsed>::getSingleton().pushWork(deviceId, messages[deviceId]);
                 deviceId++;
-                messageQueue.push_back(message);
+                //messageQueue.push_back(message);
             }
 
             //auto middle = std::chrono::steady_clock::now();
 
-            /*for(int i =0;i<deviceCount;++i)
+            for(int i =0;i<deviceCount;++i)
             {
                 messages[i]->join();
                 delete messages[i];
-            }*/
+            }
 
             //auto endTime = std::chrono::steady_clock::now();
             //auto diff = middle - startTime;
@@ -840,7 +840,7 @@ namespace FreeWill
             int deviceId = 0;
             unsigned int deviceCount = m_operators[DeviceUsed].size();
 
-            //std::vector<WorkerMessage*> messages(deviceCount, nullptr);
+            std::vector<WorkerMessage*> messages(deviceCount, nullptr);
 
             reshape<DeviceUsed>(tensors, deviceCount);
 
@@ -885,16 +885,16 @@ namespace FreeWill
 
                 //operatorBase->evaluate();
 
-                /*messages[deviceId]*/ WorkerMessage *message = new WorkerMessage(WorkerMessage::Type::FORWARD, operatorBase);
-                Context<DeviceUsed>::getSingleton().pushWork(deviceId, /*messages[deviceId]*/ message);
+                messages[deviceId] /*WorkerMessage *message*/ = new WorkerMessage(WorkerMessage::Type::FORWARD, operatorBase);
+                Context<DeviceUsed>::getSingleton().pushWork(deviceId, messages[deviceId] /* message*/);
                 deviceId++;
             }
 
-            /*for(int i =0;i<deviceCount;++i)
+            for(int i =0;i<deviceCount;++i)
             {
                 messages[i]->join();
                 delete messages[i];
-            }*/
+            }
 
         }
 

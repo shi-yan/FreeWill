@@ -182,7 +182,7 @@ void MNIST::trainConvolutionalModelWithModelClass()
 
             for(int d = 0; d<deviceCount;++d)
             {
-                const float *costData = model->readonlyAccess(poolingOutput);
+                const float *costData = model->readonlyAccess(cost);
 
                 for(unsigned int c = 0; c<batchSize; ++c)
                 {
@@ -326,7 +326,7 @@ void MNIST::trainConvolutionalModelWithModelClass()
         }
 
 
-        break;
+        //break;
 
     }
 
