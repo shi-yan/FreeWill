@@ -85,7 +85,7 @@ namespace FreeWill
 
         bool isInitialized()
         {
-            return !(m_tensors.size() == 0);
+            return !((m_tensors[FreeWill::DeviceType::CPU_NAIVE].size() == 0) && (m_tensors[FreeWill::DeviceType::GPU_CUDA].size() == 0));
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>
@@ -95,6 +95,11 @@ namespace FreeWill
 
             for (int i =0;i<deviceCount;++i)
             {
+                if constexpr (DeviceUsed == FreeWill::DeviceType::GPU_CUDA)
+                {
+                    RUN_CUDA(cudaSetDevice(i));
+                }
+
                 FreeWill::TensorBase<DeviceUsed> *tensor = nullptr;
                 switch (m_dataType)
                 {

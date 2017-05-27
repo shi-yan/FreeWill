@@ -26,6 +26,38 @@ namespace FreeWill
     template<>
     class Device<DeviceType::GPU_CUDA>
     {
+    private:
+        std::thread *m_workerThread;
+        bool m_finished = false;
+
+        Ringbuffer<WorkerMessage> m_commandQueue;
+        unsigned int m_deviceId;
+        unsigned int m_cudaDeviceId;
+
+        void threadLoop();
+
+    public:
+        Device(unsigned int deviceId = 0)
+            : m_workerThread(nullptr),
+              m_finished(false),
+              m_commandQueue(100),
+              m_deviceId(deviceId),
+              m_cudaDeviceId(deviceId)
+        {}
+
+        ~Device()
+        {
+            if (m_workerThread)
+            {
+                delete m_workerThread;
+            }
+        }
+
+        void pushWork(WorkerMessage *message);
+
+        void init();
+
+        void terminate();
 
     };
 

@@ -1,7 +1,7 @@
 #include "Device.h"
 #include "../Model/Model.h"
 
-void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::pushWork(FreeWill::WorkerMessage *message)
+void FreeWill::Device<FreeWill::DeviceType::GPU_CUDA>::pushWork(FreeWill::WorkerMessage *message)
 {
     m_commandQueue.push(message);
 
@@ -9,9 +9,9 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::pushWork(FreeWill::Worke
 
 }
 
-void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::terminate()
+void FreeWill::Device<FreeWill::DeviceType::GPU_CUDA>::terminate()
 {
-    FreeWill::WorkerMessage message(FreeWill::WorkerMessage::Type::TERMINATE, (FreeWill::Operator<FreeWill::DeviceType::CPU_NAIVE>*)nullptr);
+    FreeWill::WorkerMessage message(FreeWill::WorkerMessage::Type::TERMINATE, (FreeWill::Operator<FreeWill::DeviceType::GPU_CUDA>*)nullptr);
     pushWork(&message);
     message.join();
     m_workerThread->join();
@@ -21,9 +21,11 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::terminate()
 
 static std::mutex outputLock;
 
-void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop()
+void FreeWill::Device<FreeWill::DeviceType::GPU_CUDA>::threadLoop()
 {
     std::thread::id this_id = std::this_thread::get_id();
+
+    RUN_CUDA(cudaSetDevice(m_cudaDeviceId));
 
     while(!m_finished)
     {
@@ -39,7 +41,7 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop()
             std::cout << "thread: " << this_id << " device "<< m_deviceId << " output." << message->debug_num << std::endl;
         }*/
         {
-            Operator<FreeWill::DeviceType::CPU_NAIVE> *operatorBase = message->template operatorBase<FreeWill::DeviceType::CPU_NAIVE>();
+            Operator<FreeWill::DeviceType::GPU_CUDA> *operatorBase = message->template operatorBase<FreeWill::DeviceType::GPU_CUDA>();
             operatorBase->evaluate();
         }
 
@@ -50,9 +52,9 @@ void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop()
     //std::cout << " terminated"<<std::endl;
 }
 
-void FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::init()
+void FreeWill::Device<FreeWill::DeviceType::GPU_CUDA>::init()
 {
-    m_workerThread = new std::thread([=]{FreeWill::Device<FreeWill::DeviceType::CPU_NAIVE>::threadLoop();});
+    m_workerThread = new std::thread([=]{FreeWill::Device<FreeWill::DeviceType::GPU_CUDA>::threadLoop();});
     /*cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     CPU_SET(m_deviceId, &cpuset);

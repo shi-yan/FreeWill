@@ -118,6 +118,7 @@ set(FreeWill_SOURCES
     Context/Device.h
     Context/Device.cpp
     Context/DeviceCPU.cpp
+    Context/DeviceGPU.cpp
     Context/WorkerMessage.h
     Context/WorkerMessage.cpp
     Context/Semaphore.h
