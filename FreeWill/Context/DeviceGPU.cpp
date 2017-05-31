@@ -60,8 +60,12 @@ void FreeWill::Device<FreeWill::DeviceType::GPU_CUDA>::init()
     CPU_SET(m_deviceId, &cpuset);
     int rc = pthread_setaffinity_np(m_workerThread->native_handle(),
                                     sizeof(cpu_set_t), &cpuset);*/
-     struct sched_param param = {0};
-     param.sched_priority = 99;
+     //struct sched_param param = {0};
+     //param.sched_priority = 99;
 
-    pthread_setschedparam(m_workerThread->native_handle(), SCHED_BATCH, &param);
+    //pthread_setschedparam(m_workerThread->native_handle(), SCHED_BATCH, &param);
+
+    RUN_CUDA( cudaSetDevice(m_cudaDeviceId));
+    RUN_CUDNN( cudnnCreate(&m_cudnnHandle));
+    RUN_CUBLAS( cublasCreate(&m_cublasHandle));
 }

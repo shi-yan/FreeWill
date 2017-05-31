@@ -22,17 +22,13 @@ namespace FreeWill
     {
     private:
         Context()
-            :m_cudnnHandle(nullptr),
-            m_cublasHandle(nullptr),
-            m_sharedOneVectorFloat(nullptr),
+            :m_sharedOneVectorFloat(nullptr),
             m_sharedOneVectorFloatSize(0),
             m_sharedOneVectorDouble(nullptr),
             m_sharedOneVectorDoubleSize(0),
             m_deviceCount(0)
         {}
 
-        cudnnHandle_t m_cudnnHandle;
-        cublasHandle_t m_cublasHandle;
 
         float *m_sharedOneVectorFloat;
         unsigned int m_sharedOneVectorFloatSize;
@@ -49,15 +45,19 @@ namespace FreeWill
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 cudaGetDeviceCount(&m_deviceCount);
-                int device;
-                for (device = 0; device < m_deviceCount; ++device)
+                for (unsigned int i = 0; i < m_deviceCount; ++i)
                 {
                     cudaDeviceProp deviceProp;
-                    cudaGetDeviceProperties(&deviceProp, device);
-                    printf("Device %d has compute capability %d.%d.\n", device, deviceProp.major, deviceProp.minor);
+                    cudaGetDeviceProperties(&deviceProp, i);
+                    printf("Device %d has compute capability %d.%d.\n", i, deviceProp.major, deviceProp.minor);
                     printf("Maximum threads per block: %d\n", deviceProp.maxThreadsPerBlock);
                     printf("Device texture alignment: %lu\n", deviceProp.textureAlignment);
                     printf("Device texture dimension: %d X %d\n", deviceProp.maxTexture2D[0], deviceProp.maxTexture2D[1]);
+
+                    Device<DeviceUsed> *device = new Device<DeviceUsed>(i);
+                    m_deviceList.push_back(device);
+
+                    device->init();
                 }
 
                 size_t freeMem = 0;
@@ -65,8 +65,6 @@ namespace FreeWill
                 cudaMemGetInfo(&freeMem, &totalMem);
                 printf("available video memory: %ld, %ld (bytes)\n", freeMem, totalMem);
 
-                RUN_CUDNN( cudnnCreate(&m_cudnnHandle));
-                RUN_CUBLAS( cublasCreate(&m_cublasHandle));
             }
             else if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
@@ -134,15 +132,7 @@ namespace FreeWill
         {
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
-                if (m_cudnnHandle)
-                {
-                    RUN_CUDNN( cudnnDestroy(m_cudnnHandle));
-                }
-                if (m_cublasHandle)
-                {
-                    RUN_CUBLAS( cublasDestroy(m_cublasHandle));
-                }
-                cudaDeviceReset();
+
             }
             else if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
             {
@@ -168,14 +158,23 @@ namespace FreeWill
             return m_deviceCount;
         }
 
-        const cudnnHandle_t & cudnnHandle() const
+        const cudnnHandle_t & cudnnHandle(unsigned int deviceId = 0) const
         {
-            return m_cudnnHandle;
+            if constexpr (DeviceUsed == FreeWill::DeviceType::GPU_CUDA)
+            {
+                return m_deviceList[deviceId]->cudnnHandle();
+            }
+
+            return (cudnnHandle_t)0;
         }
 
-        const cublasHandle_t & cublasHandle() const
+        const cublasHandle_t & cublasHandle(unsigned int deviceId = 0) const
         {
-            return m_cublasHandle;
+            if constexpr (DeviceUsed == FreeWill::DeviceType::GPU_CUDA)
+            {
+                return m_deviceList[deviceId]->cublasHandle();
+            }
+            return (cublasHandle_t)0;
         }
 
         template<typename DataType = float>

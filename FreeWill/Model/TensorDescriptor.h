@@ -151,6 +151,8 @@ namespace FreeWill
 
                 m_tensors[DeviceUsed].push_back(tensor);
             }
+
+            cudaSetDevice(0);
         }
 
         template<DeviceType DeviceUsed = DeviceType::CPU_NAIVE>

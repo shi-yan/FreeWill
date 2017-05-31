@@ -109,6 +109,7 @@ set(MNIST_SOURCES
     ../../FreeWill/Model/OperatorDescriptor.cpp
     ../../FreeWill/Context/Context.h
     ../../FreeWill/Context/DeviceCPU.cpp
+    ../../FreeWill/Context/DeviceGPU.cpp
     ../../FreeWill/Context/WorkerMessage.cpp
     ../../FreeWill/Context/Semaphore.cpp
     ../../Utils/WebUI/DemoBase/DemoBase.cpp

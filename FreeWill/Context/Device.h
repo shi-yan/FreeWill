@@ -8,6 +8,10 @@
 #include <condition_variable>
 #include "Ringbuffer.h"
 #include "WorkerMessage.h"
+#include <cuda_runtime.h>
+#include <cuda.h>
+#include <cudnn.h>
+#include <cublas_v2.h>
 
 namespace FreeWill
 {
@@ -34,6 +38,8 @@ namespace FreeWill
         unsigned int m_deviceId;
         unsigned int m_cudaDeviceId;
 
+        cudnnHandle_t m_cudnnHandle;
+        cublasHandle_t m_cublasHandle;
         void threadLoop();
 
     public:
@@ -42,8 +48,21 @@ namespace FreeWill
               m_finished(false),
               m_commandQueue(100),
               m_deviceId(deviceId),
-              m_cudaDeviceId(deviceId)
+              m_cudaDeviceId(deviceId),
+              m_cudnnHandle(nullptr),
+              m_cublasHandle(nullptr)
         {}
+
+        const cudnnHandle_t & cudnnHandle() const
+        {
+            return m_cudnnHandle;
+        }
+
+        const cublasHandle_t & cublasHandle() const
+        {
+            return m_cublasHandle;
+        }
+
 
         ~Device()
         {
@@ -51,6 +70,16 @@ namespace FreeWill
             {
                 delete m_workerThread;
             }
+            RUN_CUDA(cudaSetDevice(m_cudaDeviceId));
+            if (m_cudnnHandle)
+            {
+                RUN_CUDNN( cudnnDestroy(m_cudnnHandle));
+            }
+            if (m_cublasHandle)
+            {
+                RUN_CUBLAS( cublasDestroy(m_cublasHandle));
+            }
+            cudaDeviceReset();
         }
 
         void pushWork(WorkerMessage *message);
