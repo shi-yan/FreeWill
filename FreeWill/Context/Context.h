@@ -158,7 +158,7 @@ namespace FreeWill
             return m_deviceCount;
         }
 
-        const cudnnHandle_t & cudnnHandle(unsigned int deviceId = 0) const
+        const cudnnHandle_t & cudnnHandle(unsigned int deviceId) const
         {
             if constexpr (DeviceUsed == FreeWill::DeviceType::GPU_CUDA)
             {
@@ -168,7 +168,7 @@ namespace FreeWill
             return (cudnnHandle_t)0;
         }
 
-        const cublasHandle_t & cublasHandle(unsigned int deviceId = 0) const
+        const cublasHandle_t & cublasHandle(unsigned int deviceId) const
         {
             if constexpr (DeviceUsed == FreeWill::DeviceType::GPU_CUDA)
             {

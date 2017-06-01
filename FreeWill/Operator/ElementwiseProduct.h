@@ -17,11 +17,14 @@ namespace FreeWill
         ElementwiseProduct()
             :Operator<DeviceUsed>({"OperandA","OperandB"},{"Output"})
         {
+            CHECK_GPU;
 
         }
 
         virtual bool init() override
         {
+            CHECK_GPU;
+
             if (!input("OperandA") || !input("OperandB") || !output("Output"))
             {
                 return false;

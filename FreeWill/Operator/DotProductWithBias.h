@@ -17,10 +17,11 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
         bool m_hasBias;
     public:
-        DotProductWithBias(bool hasBias = true)
-            :Operator<DeviceUsed>({"Input", "Weight","Bias"},{"Output"}),
+        DotProductWithBias(bool hasBias = true, unsigned int deviceId = 0)
+            :Operator<DeviceUsed>({"Input", "Weight","Bias"},{"Output"}, deviceId),
             m_hasBias(hasBias)
         {
                 
@@ -28,6 +29,8 @@ namespace FreeWill
 
         virtual bool init()
         {
+            CHECK_GPU;
+
             FAIL_IF(input("Input")==0 || input("Weight")==0 || output("Output") == 0);
 
             FAIL_IF ((input("Input")->shape().dimension() != 2) || 
@@ -63,6 +66,8 @@ namespace FreeWill
 
         virtual void evaluate()
         {
+            CHECK_GPU;
+
             unsigned int batchSize = input("Input")->shape()[1];
             unsigned int inputSize = input("Input")->shape()[0];
             unsigned int outputSize = output("Output")->shape()[0];
@@ -101,14 +106,14 @@ namespace FreeWill
                 if constexpr (std::is_same<DataType, float>::value)
                 {
                     
-                    RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(),CUBLAS_OP_N,CUBLAS_OP_N
+                    RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(m_deviceId),CUBLAS_OP_N,CUBLAS_OP_N
                                 ,outputSize, batchSize, inputSize, &alpha, _weight->gpuDataHandle(), outputSize, 
                                 _input->gpuDataHandle(), inputSize, &beta, _output->gpuDataHandle(), outputSize));
 
                     if (m_hasBias)
                     {
                         beta = 1.0;
-                        RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N, CUBLAS_OP_N,
+                        RUN_CUBLAS(cublasSgemm(Context<DeviceUsed>::getSingleton().cublasHandle(m_deviceId), CUBLAS_OP_N, CUBLAS_OP_N,
                                     outputSize, batchSize, 1, &alpha, _bias->gpuDataHandle(), outputSize,
                                     Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(batchSize), 1, 
                                     &beta, _output->gpuDataHandle(), outputSize));
@@ -117,14 +122,14 @@ namespace FreeWill
                 }
                 else if constexpr (std::is_same<DataType, double>::value)
                 {
-                    RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(),CUBLAS_OP_N,CUBLAS_OP_N
+                    RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(m_deviceId),CUBLAS_OP_N,CUBLAS_OP_N
                                 ,outputSize, batchSize, inputSize, &alpha, _weight->gpuDataHandle(), outputSize,
                                 _input->gpuDataHandle(), inputSize, &beta, _output->gpuDataHandle(), outputSize));
 
                     if (m_hasBias)
                     {
                         beta = 1.0;
-                        RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(), CUBLAS_OP_N, CUBLAS_OP_N,
+                        RUN_CUBLAS(cublasDgemm(Context<DeviceUsed>::getSingleton().cublasHandle(m_deviceId), CUBLAS_OP_N, CUBLAS_OP_N,
                                     outputSize, batchSize, 1, &alpha, _bias->gpuDataHandle(), outputSize,
                                     Context<DeviceUsed>::getSingleton().template getSharedOneVector<DataType>(batchSize), 1,
                                     &beta, _output->gpuDataHandle(), outputSize));

@@ -14,14 +14,17 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
 
     public:
-        CrossEntropyLoss()
-            :Operator<DeviceUsed>({"Input", "Label"},{"Cost"})
+        CrossEntropyLoss(unsigned int deviceId = 0)
+            :Operator<DeviceUsed>({"Input", "Label"},{"Cost"}, deviceId)
         {}
 
         virtual bool init() override
         {
+            CHECK_GPU;
+
             FAIL_IF(!input("Input") || !output("Cost") || !input("Label"));
           
             FAIL_IF (input("Input")->shape().dimension() != 2 || output("Cost")->shape().dimension() != 2);
@@ -37,6 +40,8 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+            CHECK_GPU;
+
             Tensor<DeviceUsed, DataType> *_input = input("Input")->template toType<DataType>();
             Tensor<DeviceUsed, DataType> *_label = input("Label")->template toType<DataType>();
 

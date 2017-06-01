@@ -12,16 +12,19 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
 
     public:
-        SigmoidCrossEntropyLossDerivative()
-        :Operator<DeviceUsed>({"Input", "Label"},{"Output"})
+        SigmoidCrossEntropyLossDerivative(unsigned int deviceId = 0)
+        :Operator<DeviceUsed>({"Input", "Label"},{"Output"}, deviceId)
         {
         
         }
 
         virtual bool init() override
         {
+            CHECK_GPU;
+
             if (!input("Input") || !output("Output") || !input("Label"))
             {
                 return false;
@@ -44,6 +47,8 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+            CHECK_GPU;
+
             Tensor<DeviceUsed, DataType> *_input = input("Input")->template toType<DataType>();
             Tensor<DeviceUsed, DataType> *_output = output("Output")->template toType<DataType>();
             Tensor<DeviceUsed, DataType> *_label = input("Label")->template toType<DataType>();

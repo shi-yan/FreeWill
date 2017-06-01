@@ -11,15 +11,18 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
 
     public:
-        Duplicate()
-            :Operator<DeviceUsed>({"From"}, {"To"})
+        Duplicate(unsigned int deviceId)
+            :Operator<DeviceUsed>({"From"}, {"To"}, deviceId)
         {
         }
 
         virtual bool init() override
         {
+            CHECK_GPU;
+
             FAIL_IF (input("From") == nullptr);
 
             FAIL_IF (output("To") == nullptr);
@@ -31,6 +34,7 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+            CHECK_GPU;
 
         }
     };

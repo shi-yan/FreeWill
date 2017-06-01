@@ -19,10 +19,11 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
 
     public:        
-        ActivationDerivative()
-            :Operator<DeviceUsed>({"Input","Output","OutputDelta"},{"InputDelta"}),
+        ActivationDerivative(unsigned int deviceId = 0)
+            :Operator<DeviceUsed>({"Input","Output","OutputDelta"},{"InputDelta"},deviceId),
             m_cudnnActivationDescriptor(0)
         {}
 
@@ -33,6 +34,8 @@ namespace FreeWill
 
         virtual bool init() override
         {
+            CHECK_GPU;
+
             FAIL_IF (!input("Output") || !output("InputDelta") || !input("OutputDelta"));
 
             FAIL_IF (input("Output")->shape() != output("InputDelta")->shape());
@@ -76,6 +79,7 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+            CHECK_GPU;
             unsigned int size = input("Output")->shape().size();
 
             Tensor<DeviceUsed, DataType> *_output = input("Output")->template toType<DataType>();
@@ -115,7 +119,7 @@ namespace FreeWill
             {
                 DataType alpha = 1.0;
                 DataType beta = 0.0;
-                RUN_CUDNN(cudnnActivationBackward(Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnActivationBackward(Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                 m_cudnnActivationDescriptor,
                                                 &alpha,
                                                 _output->gpuTensorDescriptor(),

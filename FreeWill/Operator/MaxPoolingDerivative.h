@@ -13,6 +13,8 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
+
         cudnnPoolingDescriptor_t m_poolingDescriptor;
         cudnnTensorDescriptor_t m_outputGPUTensorDescriptor;
         cudnnTensorDescriptor_t m_outputDeltaGPUTensorDescriptor;
@@ -21,14 +23,16 @@ namespace FreeWill
 
 
     public:
-        MaxPoolingDerivative()
-            :Operator<DeviceUsed>({"Output","OutputGrad","Input", "SwitchX", "SwitchY"},{"InputGrad"}),
+        MaxPoolingDerivative(unsigned int deviceId = 0)
+            :Operator<DeviceUsed>({"Output","OutputGrad","Input", "SwitchX", "SwitchY"},{"InputGrad"}, deviceId),
             m_poolingDescriptor(0),
             m_outputGPUTensorDescriptor(0),
             m_outputDeltaGPUTensorDescriptor(0),
             m_inputGPUTensorDescriptor(0),
             m_inputDeltaGPUTensorDescriptor(0)
         {
+            CHECK_GPU;
+
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnCreatePoolingDescriptor(&m_poolingDescriptor));
@@ -41,6 +45,8 @@ namespace FreeWill
 
         ~MaxPoolingDerivative()
         {
+            CHECK_GPU;
+
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnDestroyPoolingDescriptor(m_poolingDescriptor));
@@ -59,6 +65,8 @@ namespace FreeWill
 
         virtual bool init() override
         {
+            CHECK_GPU;
+
             FAIL_IF (!input("OutputGrad") || !output("InputGrad"));
 
             if constexpr (DeviceUsed == DeviceType::CPU_NAIVE)
@@ -142,6 +150,8 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+            CHECK_GPU;
+
             Tensor<DeviceUsed, DataType> *_inputGrad = output("InputGrad")->template toType<DataType>();
             Tensor<DeviceUsed, DataType> *_outputGrad = input("OutputGrad")->template toType<DataType>();
 
@@ -184,7 +194,7 @@ namespace FreeWill
                 DataType alpha = 1.0;
                 DataType beta = 0.0;
 
-                RUN_CUDNN(cudnnPoolingBackward( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnPoolingBackward( Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                 m_poolingDescriptor,
                                                 &alpha,
                                                 m_outputGPUTensorDescriptor,

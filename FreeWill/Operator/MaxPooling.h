@@ -12,6 +12,7 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
 
         cudnnPoolingDescriptor_t m_poolingDescriptor;
         cudnnTensorDescriptor_t m_inputTensorDescriptor;
@@ -19,12 +20,14 @@ namespace FreeWill
 
 
     public:
-        MaxPooling()
-            :Operator<DeviceUsed>({"Input"},{"Output", "SwitchX", "SwitchY"}),
+        MaxPooling(unsigned int deviceId = 0)
+            :Operator<DeviceUsed>({"Input"},{"Output", "SwitchX", "SwitchY"}, deviceId),
             m_poolingDescriptor(0),
             m_inputTensorDescriptor(0),
             m_outputTensorDescriptor(0)
         {
+            CHECK_GPU;
+
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnCreatePoolingDescriptor( &m_poolingDescriptor ));
@@ -35,6 +38,8 @@ namespace FreeWill
 
         ~MaxPooling()
         {
+            CHECK_GPU;
+
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnDestroyPoolingDescriptor(m_poolingDescriptor));
@@ -49,6 +54,8 @@ namespace FreeWill
 
         virtual bool init() override
         {
+            CHECK_GPU;
+
             FAIL_IF (!input("Input") || !output("Output"));
 
             FAIL_IF (input("Input")->shape().dimension() != 4);
@@ -119,6 +126,8 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+            CHECK_GPU;
+
             Tensor<DeviceUsed, DataType> *_input = input("Input")->template toType<DataType>();
             Tensor<DeviceUsed, DataType> *_output = output("Output")->template toType<DataType>();
 
@@ -186,7 +195,7 @@ namespace FreeWill
                 DataType alpha = 1.0;
                 DataType beta = 0.0;
 
-                RUN_CUDNN(cudnnPoolingForward( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnPoolingForward( Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                m_poolingDescriptor,
                                                &alpha,
                                                m_inputTensorDescriptor,

@@ -24,6 +24,14 @@
     }} \
     while (0)
 
+#ifdef DEBUG
+#define CHECK_GPU \
+    do { \
+       FAIL_IF(!isUsingTheRightDevice()) \
+    }while(0)
+#else
+#define CHECK_GPU
+#endif
 namespace FreeWill
 {
     template <DeviceType DeviceUsed>
@@ -76,11 +84,26 @@ namespace FreeWill
         std::map<std::string, struct ParameterDescriptor > m_inputParameters;
         std::map<std::string, struct ParameterDescriptor > m_outputParameters;
 
+        unsigned int m_deviceId;
+
     public:
+
+        bool isUsingTheRightDevice()
+        {
+            if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
+            {
+                int currentGPU = -1;
+                RUN_CUDA(cudaGetDevice(&currentGPU));
+
+                return (m_deviceId == currentGPU);
+            }
+            return true;
+        }
+
         Operator() = delete;
 
         Operator(const std::initializer_list<std::string > &inputParameterList, 
-                 const std::initializer_list<std::string > &outputParameterList)
+                 const std::initializer_list<std::string > &outputParameterList, unsigned int deviceId = 0)
         {
             typename std::initializer_list<std::string>::iterator iterInput = inputParameterList.begin();
 

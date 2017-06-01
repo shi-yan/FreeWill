@@ -13,14 +13,17 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
 
     public:
-        SoftmaxLogLossDerivative() : Operator<DeviceUsed>({"Output", "Label"},{"InputGrad"})
+        SoftmaxLogLossDerivative(unsigned int deviceId = 0) : Operator<DeviceUsed>({"Output", "Label"},{"InputGrad"},deviceId)
         {
         }
 
         virtual bool init() override
         {
+            CHECK_GPU;
+
             FAIL_IF (!input("Output") || !input("Label") || !output("InputGrad"));
 
             FAIL_IF (input("Output")->shape() != output("InputGrad")->shape());
@@ -38,6 +41,8 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+            CHECK_GPU;
+
             Tensor<DeviceUsed, DataType> *_output = input("Output")->template toType<DataType>();
             Tensor<DeviceUsed, unsigned int> *_label = input("Label")->template toType<unsigned int>();
             Tensor<DeviceUsed, DataType> *_inputGrad = output("InputGrad")->template toType<DataType>();

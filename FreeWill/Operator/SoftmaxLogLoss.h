@@ -15,12 +15,16 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
         cudnnTensorDescriptor_t m_inputGPUTensorDescriptor;
         cudnnTensorDescriptor_t m_outputGPUTensorDescriptor;
 
     public:
-        SoftmaxLogLoss() : Operator<DeviceUsed>({"Input", "Label"},{"Cost","Output"})
+        SoftmaxLogLoss(unsigned int deviceId = 0)
+            : Operator<DeviceUsed>({"Input", "Label"},{"Cost","Output"}, deviceId)
         {
+            CHECK_GPU;
+
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_inputGPUTensorDescriptor));
@@ -30,6 +34,8 @@ namespace FreeWill
 
         virtual ~SoftmaxLogLoss() override
         {
+            CHECK_GPU;
+
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_inputGPUTensorDescriptor));
@@ -42,6 +48,8 @@ namespace FreeWill
 
         virtual bool init() override 
         {
+            CHECK_GPU;
+
             FAIL_IF (!input("Input") || !input("Label") || !output("Cost") || !output("Output"));
 
             FAIL_IF (input("Input")->shape() != output("Output")->shape());
@@ -109,6 +117,8 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+            CHECK_GPU;
+
             Tensor<DeviceUsed, DataType> *_input = input("Input")->template toType<DataType>();
             Tensor<DeviceUsed, unsigned int> *_label = input("Label")->template toType<unsigned int>();
             Tensor<DeviceUsed, DataType> *_cost = output("Cost")->template toType<DataType>();
@@ -169,7 +179,7 @@ namespace FreeWill
             {
                 DataType alpha = 1;
                 DataType beta = 0;
-                RUN_CUDNN(cudnnSoftmaxForward(Context<DeviceUsed>::getSingleton().cudnnHandle(), CUDNN_SOFTMAX_ACCURATE,
+                RUN_CUDNN(cudnnSoftmaxForward(Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId), CUDNN_SOFTMAX_ACCURATE,
                             CUDNN_SOFTMAX_MODE_CHANNEL, &alpha,
                             m_inputGPUTensorDescriptor,
                             _input->gpuDataHandle(),

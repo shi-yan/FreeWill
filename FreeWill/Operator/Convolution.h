@@ -15,6 +15,7 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
         
         unsigned int m_zeroPaddingX;
         unsigned int m_strideX;
@@ -32,8 +33,8 @@ namespace FreeWill
 
     public:
         Convolution(unsigned int strideX = 1, unsigned int strideY = 1, 
-                unsigned int zeroPaddingX = 0, unsigned int zeroPaddingY = 0)
-            :Operator<DeviceUsed>({"Input", "FeatureMap", "Bias"}, {"Output"}),
+                unsigned int zeroPaddingX = 0, unsigned int zeroPaddingY = 0, unsigned int deviceId = 0)
+            :Operator<DeviceUsed>({"Input", "FeatureMap", "Bias"}, {"Output"}, deviceId),
             m_zeroPaddingX(zeroPaddingX),
             m_strideX(strideX),
             m_zeroPaddingY(zeroPaddingY),
@@ -47,6 +48,7 @@ namespace FreeWill
             m_workspaceSize(0),
             m_workspace(nullptr)
         {
+            CHECK_GPU;
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_inputGPUTensorDescriptor));
@@ -59,6 +61,7 @@ namespace FreeWill
 
         ~Convolution()
         {
+            CHECK_GPU;
             if constexpr (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_inputGPUTensorDescriptor));
@@ -123,6 +126,8 @@ namespace FreeWill
 
         virtual bool init() override
         {
+            CHECK_GPU;
+
             FAIL_IF (!input("Input") || !input("FeatureMap") || !input("Bias") || !output("Output"));
 
             FAIL_IF (input("Input")->shape().dimension() != 4);
@@ -231,7 +236,7 @@ namespace FreeWill
                                                            1,
                                                            CUDNN_CROSS_CORRELATION, cudnnDataType));
 
-                RUN_CUDNN(cudnnGetConvolutionForwardAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnGetConvolutionForwardAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                                m_inputGPUTensorDescriptor,
                                                                m_filterDescriptor,
                                                                m_convolutionDescriptor,
@@ -243,7 +248,7 @@ namespace FreeWill
                 qDebug() << "Convolution forward algorithm find based on huristic:";
                 displayConvolutionAlgorithm(m_convolutionForwardAlgorithm);
 
-                RUN_CUDNN(cudnnGetConvolutionForwardWorkspaceSize( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnGetConvolutionForwardWorkspaceSize( Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                                           m_inputGPUTensorDescriptor,
                                                                           m_filterDescriptor,
                                                                           m_convolutionDescriptor,
@@ -257,7 +262,7 @@ namespace FreeWill
                 const int requestedAlgoCount = 20;
                 cudnnConvolutionFwdAlgoPerf_t perfResults[requestedAlgoCount];
 
-                RUN_CUDNN(cudnnFindConvolutionForwardAlgorithm(  Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnFindConvolutionForwardAlgorithm(  Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                                  m_inputGPUTensorDescriptor,
                                                                  m_filterDescriptor,
                                                                  m_convolutionDescriptor,
@@ -294,6 +299,8 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+            CHECK_GPU;
+
             Tensor<DeviceUsed, DataType> *_input = input("Input")->template toType<DataType>();
             Tensor<DeviceUsed, DataType> *_featureMap = input("FeatureMap")->template toType<DataType>();
             Tensor<DeviceUsed, DataType> *_bias = input("Bias")->template toType<DataType>();
@@ -378,7 +385,7 @@ namespace FreeWill
 
                 float alpha = 1.0;
                 float beta = 0.0;
-                RUN_CUDNN(cudnnConvolutionForward( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnConvolutionForward( Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                    &alpha,
                                                    m_inputGPUTensorDescriptor,
                                                    _input->gpuDataHandle(),
@@ -401,7 +408,7 @@ namespace FreeWill
                     //printf("bias size:%d\n", _bias->shape().size());
                     //printf("output size:%d\n", _output->shape().size());
 
-                RUN_CUDNN(cudnnAddTensor( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnAddTensor( Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                           &alpha,
                                           m_biasGPUTensorDescriptor,
                                           _bias->gpuDataHandle(),

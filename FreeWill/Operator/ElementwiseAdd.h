@@ -16,9 +16,11 @@ namespace FreeWill
         DataType m_rate;
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
+
    public:
-        ElementwiseAdd(DataType rate = 1.0f)
-            :Operator<DeviceUsed>({"OperandA", "OperandB"}, {"Result"}),
+        ElementwiseAdd(DataType rate = 1.0f, unsigned int deviceId = 0)
+            :Operator<DeviceUsed>({"OperandA", "OperandB"}, {"Result"}, deviceId),
             m_rate(rate)
         {
         }
@@ -30,6 +32,8 @@ namespace FreeWill
 
         virtual bool init() override
         {
+            CHECK_GPU;
+
             FAIL_IF (input("OperandA") == nullptr);
 
             FAIL_IF (input("OperandB") == nullptr);
@@ -45,6 +49,7 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+            CHECK_GPU;
 
             Tensor<DeviceUsed, DataType> *result = output("Result")->template toType<DataType>();
             Tensor<DeviceUsed, DataType> *operandA = input("OperandA")->template toType<DataType>();

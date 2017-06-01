@@ -13,6 +13,8 @@ namespace FreeWill
     protected:
         using Operator<DeviceUsed>::input;
         using Operator<DeviceUsed>::output;
+        using Operator<DeviceUsed>::m_deviceId;
+
         unsigned int m_strideX;
         unsigned int m_strideY;
         unsigned int m_zeroPaddingX;
@@ -34,8 +36,8 @@ namespace FreeWill
 
     public:
         ConvolutionDerivative(unsigned int strideX = 1, unsigned int strideY = 1,
-                unsigned int zeroPaddingX = 0, unsigned int zeroPaddingY = 0)
-            :Operator<DeviceUsed>({"PrevActivation","OutputGrad","FeatureMap"},{"FeatureMapGrad","BiasGrad","InputGrad"}),
+                unsigned int zeroPaddingX = 0, unsigned int zeroPaddingY = 0, unsigned int deviceId = 0)
+            :Operator<DeviceUsed>({"PrevActivation","OutputGrad","FeatureMap"},{"FeatureMapGrad","BiasGrad","InputGrad"}, deviceId),
             m_strideX(strideX),
             m_strideY(strideY),
             m_zeroPaddingX(zeroPaddingX),
@@ -53,6 +55,7 @@ namespace FreeWill
             m_prevActivationDeltaAlgorithmWorkspace(nullptr),
             m_prevActivationDeltaAlgorithmWorkspaceSize(0)
         {
+            CHECK_GPU;
             if (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnCreateTensorDescriptor(&m_prevActivationGPUTensorDescriptor));
@@ -66,6 +69,7 @@ namespace FreeWill
 
         ~ConvolutionDerivative()
         {
+            CHECK_GPU;
             if (DeviceUsed == DeviceType::GPU_CUDA)
             {
                 RUN_CUDNN(cudnnDestroyTensorDescriptor(m_prevActivationGPUTensorDescriptor));
@@ -131,6 +135,7 @@ namespace FreeWill
 
         virtual bool init() override
         {
+            CHECK_GPU;
             FAIL_IF (!input("PrevActivation") || !input("OutputGrad") || !input("FeatureMap"));
 
             FAIL_IF (!output("FeatureMapGrad") || !output("BiasGrad") || !output("InputGrad"));
@@ -265,7 +270,7 @@ namespace FreeWill
                                                            CUDNN_CROSS_CORRELATION, cudnnDataType));
 
 
-                RUN_CUDNN(cudnnGetConvolutionBackwardFilterAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnGetConvolutionBackwardFilterAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                                       m_prevActivationGPUTensorDescriptor,
                                                                       m_outputDeltaGPUTensorDescriptor,
                                                                       m_convolutionDescriptor,
@@ -276,7 +281,7 @@ namespace FreeWill
 
                 displayFilterBackwardAlgorithm(m_filterBackwardAlgorithm);
 
-                RUN_CUDNN(cudnnGetConvolutionBackwardFilterWorkspaceSize(Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnGetConvolutionBackwardFilterWorkspaceSize(Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                                          m_prevActivationGPUTensorDescriptor,
                                                                          m_outputDeltaGPUTensorDescriptor,
                                                                          m_convolutionDescriptor,
@@ -290,7 +295,7 @@ namespace FreeWill
                 cudnnConvolutionBwdFilterAlgoPerf_t filterBackwardPerfResults[requestedFilterAlgoCount];
                 int returnedFilterAlgoCount = 0;
 
-                RUN_CUDNN(cudnnFindConvolutionBackwardFilterAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnFindConvolutionBackwardFilterAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                                        m_prevActivationGPUTensorDescriptor,
                                                                        m_outputDeltaGPUTensorDescriptor,
                                                                        m_convolutionDescriptor,
@@ -324,7 +329,7 @@ namespace FreeWill
                 qDebug() << "----------------------------------------------------------------------------";
 
 
-                RUN_CUDNN(cudnnGetConvolutionBackwardDataAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnGetConvolutionBackwardDataAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                                     m_featureMapFilterDescriptor,
                                                                     m_outputDeltaGPUTensorDescriptor,
                                                                     m_convolutionDescriptor,
@@ -335,7 +340,7 @@ namespace FreeWill
 
                 displayPrevActivationDeltaAlgorithm(m_prevActivationDeltaAlgorithm);
 
-                RUN_CUDNN(cudnnGetConvolutionBackwardDataWorkspaceSize( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnGetConvolutionBackwardDataWorkspaceSize( Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                                         m_featureMapFilterDescriptor,
                                                                         m_outputDeltaGPUTensorDescriptor,
                                                                         m_convolutionDescriptor,
@@ -349,7 +354,7 @@ namespace FreeWill
                 cudnnConvolutionBwdDataAlgoPerf_t prevActivationPerfResults[requestedPrevActivationAlgoCount];
                 int returnedPrevActivationAlgoCount = 0;
 
-                RUN_CUDNN(cudnnFindConvolutionBackwardDataAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnFindConvolutionBackwardDataAlgorithm( Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                                      m_featureMapFilterDescriptor,
                                                                      m_outputDeltaGPUTensorDescriptor,
                                                                      m_convolutionDescriptor,
@@ -387,6 +392,7 @@ namespace FreeWill
 
         virtual void evaluate() override
         {
+            CHECK_GPU;
             Tensor<DeviceUsed, DataType> *_prevActivation = input("PrevActivation")->template toType<DataType>();
             Tensor<DeviceUsed, DataType> *_featureMap = input("FeatureMap")->template toType<DataType>();
             Tensor<DeviceUsed, DataType> *_outputGrad = input("OutputGrad")->template toType<DataType>();
@@ -495,7 +501,7 @@ namespace FreeWill
                 DataType alpha = 1.0;
                 DataType beta = 0.0;
 
-                RUN_CUDNN(cudnnConvolutionBackwardFilter(Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnConvolutionBackwardFilter(Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                         &alpha,
                                                         m_prevActivationGPUTensorDescriptor,
                                                         _prevActivation->gpuDataHandle(),
@@ -509,7 +515,7 @@ namespace FreeWill
                                                         m_featureMapFilterDescriptor,
                                                         _featureMapGrad->gpuDataHandle()));
 
-                RUN_CUDNN(cudnnConvolutionBackwardBias(Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnConvolutionBackwardBias(Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                        &alpha,
                                                        m_outputDeltaGPUTensorDescriptor,
                                                        _outputGrad->gpuDataHandle(),
@@ -517,7 +523,7 @@ namespace FreeWill
                                                        m_biasGradGPUTensorDescriptor,
                                                        _biasGrad->gpuDataHandle()));
 
-                RUN_CUDNN(cudnnConvolutionBackwardData(Context<DeviceUsed>::getSingleton().cudnnHandle(),
+                RUN_CUDNN(cudnnConvolutionBackwardData(Context<DeviceUsed>::getSingleton().cudnnHandle(m_deviceId),
                                                        &alpha,
                                                        m_featureMapFilterDescriptor,
                                                        _featureMap->gpuDataHandle(),

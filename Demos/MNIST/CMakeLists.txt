@@ -31,6 +31,7 @@ IF(NOT CMAKE_BUILD_TYPE)
       "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
       FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
+
 set (CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING "build type")
 
 SET (CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -39,6 +40,10 @@ SET (CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
+
+IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+add_definitions(-DDEBUG)
+ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 #set(CMAKE_CXX_STANDARD 14)
 
