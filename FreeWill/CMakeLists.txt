@@ -80,11 +80,11 @@ cuda_add_library(cuda_kernel
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
 
-link_directories("/usr/local/cuda/lib")
+link_directories("${CUDA_TOOLKIT_ROOT_DIR}/lib")
 
 else()
 
-link_directories("/usr/local/cuda/lib64")
+link_directories("${CUDA_TOOLKIT_ROOT_DIR}/lib64")
 
 endif()
 

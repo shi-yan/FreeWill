@@ -81,15 +81,14 @@ set(CUDA_HOST_COMPILER /usr/bin/gcc)
 list(APPEND CUDA_NVCC_FLAGS "-arch=sm_52;-std=c++11;-O3;--use_fast_math;--expt-extended-lambda")
 SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
-
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
 
-link_directories("/usr/local/cuda/lib")
+link_directories("${CUDA_TOOLKIT_ROOT_DIR}/lib")
 set(Qt5Websockets_Lib_Name ${CMAKE_PREFIX_PATH}/lib/QtWebSockets.framework/QtWebSockets)
 
 else()
 
-link_directories("/usr/local/cuda/lib64")
+link_directories("${CUDA_TOOLKIT_ROOT_DIR}/lib64")
 set(Qt5Websockets_Lib_Name ${CMAKE_PREFIX_PATH}/lib/libQt5WebSockets.so)
 
 endif()

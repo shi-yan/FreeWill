@@ -9,23 +9,17 @@ FreeWill is a deeplearning library implemented in C++. The purpose of writing Fr
 The first goal of this project is matching https://github.com/karpathy/convnetjs feature wise.
 
 ## How to build
-So far, I have only tested on Ubuntu 16
+So far, I have only tested on Ubuntu 17.10
 
 I have been avoiding introducing dependencies to this project, but you need to have Qt5 to use it.
 
-Make sure you have also installed Qt5Websockets, this may not be included in Qt5Base
-
-    sudo apt-get install libqt5websockets5-dev
+Make sure you have also installed Qt5
 
 To build:
 
     mkdir build
     cd build
-    cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=debug
-
-In case you want to specify which Qt5 to use (for example you want to build Qt yourself), do this to config this project:
-
-    CMAKE_PREFIX_PATH=/home/shiy/Qt/5.7/gcc_64 cmake ..  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=debug
+    cmake .. -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-9.2 -DCMAKE_PREFIX_PATH=/home/shiy/Qt/5.11.1/gcc_64 -DCMAKE_BUILD_TYPE=debug
 
 An example of building FreeWill on Mac OS with complex compiler setup:
 
